@@ -1,0 +1,73 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+
+[sub_resource type="ProceduralSkyMaterial" id="sky_material"]
+sky_top_color = Color(0.03, 0.02, 0.12, 1)
+sky_horizon_color = Color(0.35, 0.08, 0.45, 1)
+ground_bottom_color = Color(0.02, 0.02, 0.05, 1)
+ground_horizon_color = Color(0.35, 0.08, 0.45, 1)
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("sky_material")
+
+[sub_resource type="Environment" id="environment"]
+background_mode = 2
+sky = SubResource("sky")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="floor_material"]
+albedo_color = Color(0.08, 0.08, 0.12, 1)
+roughness = 0.6
+
+[sub_resource type="PlaneMesh" id="floor_mesh"]
+material = SubResource("floor_material")
+size = Vector2(20, 20)
+
+[sub_resource type="StandardMaterial3D" id="core_material"]
+albedo_color = Color(0, 0.9, 1, 1)
+emission_enabled = true
+emission = Color(0, 0.9, 1, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="BoxMesh" id="core_mesh"]
+material = SubResource("core_material")
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.6428, -0.766, 0, 0.766, 0.6428, 0, 10, 0)
+shadow_enabled = true
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+mesh = SubResource("floor_mesh")
+
+[node name="Core" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("core_mesh")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 6)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Title" type="Label" parent="UI"]
+offset_left = 32.0
+offset_top = 24.0
+offset_right = 632.0
+offset_bottom = 90.0
+theme_override_font_sizes/font_size = 48
+text = "OVERCLOCK v0.1"
+
+[node name="FpsLabel" type="Label" parent="UI"]
+offset_left = 32.0
+offset_top = 90.0
+offset_right = 332.0
+offset_bottom = 130.0
+theme_override_font_sizes/font_size = 24
+text = "-- FPS"

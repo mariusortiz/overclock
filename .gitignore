@@ -1,0 +1,8 @@
+# Godot cache and local data (contains export credentials)
+.godot/
+build/
+*.tmp
+
+# Release keys must never be committed (ci/debug.keystore is a public debug key on purpose)
+*.jks
+release.keystore
