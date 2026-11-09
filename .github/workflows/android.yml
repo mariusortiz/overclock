@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     permissions:
-      contents: write # needed to publish the "latest-debug" release
+      contents: read
     steps:
       - uses: actions/checkout@v5
 
@@ -72,14 +72,21 @@ jobs:
           name: overclock-debug-apk
           path: build/overclock-debug.apk
 
-      - name: Publish "latest-debug" release (main only)
+      # The code repo is private, so test APKs go to the public overclock-builds repo.
+      # BUILDS_TOKEN: fine-grained token with Contents read/write on overclock-builds only.
+      - name: Publish "latest-debug" release to overclock-builds (main only)
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.BUILDS_TOKEN }}
+          BUILDS_REPO: mariusortiz/overclock-builds
         run: |
-          gh release delete latest-debug --yes --cleanup-tag || true
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::BUILDS_TOKEN secret missing, APK not published"
+            exit 0
+          fi
+          gh release delete latest-debug --repo "$BUILDS_REPO" --yes --cleanup-tag || true
           gh release create latest-debug build/overclock-debug.apk \
+            --repo "$BUILDS_REPO" \
             --prerelease \
-            --target "$GITHUB_SHA" \
             --title "Dernière version de test" \
-            --notes "APK debug généré automatiquement depuis ${GITHUB_SHA::7}."
+            --notes "APK debug généré automatiquement depuis le commit ${GITHUB_SHA::7}."

@@ -4,11 +4,11 @@ Shooter sci-fi en 3D low-poly pour Android, en vue à la troisième personne. Tu
 
 ## Tester sur ton téléphone
 
-Chaque push sur `main` compile un APK et le publie dans la release **latest-debug** :
+Chaque push sur `main` compile un APK et le publie dans la release **latest-debug** du dépôt public [overclock-builds](https://github.com/mariusortiz/overclock-builds). Aucune connexion n'est nécessaire :
 
-https://github.com/mariusortiz/overclock/releases/download/latest-debug/overclock-debug.apk
+https://github.com/mariusortiz/overclock-builds/releases/download/latest-debug/overclock-debug.apk
 
-Ouvre ce lien sur le téléphone (connecté à GitHub si le dépôt est privé), puis installe l'APK. Il faut autoriser le navigateur à installer des applications inconnues. Les mises à jour s'installent par-dessus l'ancienne version, car elles sont toutes signées avec la même clé de debug.
+Ouvre ce lien sur le téléphone, puis installe l'APK. Il faut autoriser le navigateur à installer des applications inconnues. Les mises à jour s'installent par-dessus l'ancienne version, car elles sont toutes signées avec la même clé de debug.
 
 Les APK des autres branches sont dans l'onglet **Actions**, en artefact de chaque build.
 
