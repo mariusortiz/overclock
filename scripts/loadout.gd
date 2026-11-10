@@ -77,27 +77,28 @@ const GRIP_FROM_BACK := 0.3
 const GRIP_FROM_BOTTOM := 0.35
 const SILENCER_LENGTH := 0.244  # in model units
 
-## Close-range secondary attack. "sweep" hits every robot in front instead of one.
+## Close-range secondary attack. "sweep" hits every enemy in front instead of
+## one; "grip" is how far up the handle the hand holds it, in model units.
 const MELEE := [
 	{
-		"id": "knife", "name": "Couteau",
+		"id": "knife", "grip": 0.0, "name": "Couteau",
 		"model": "res://assets/models/characters/weapon-sword.glb", "scale": 1.3,
 		"damage": 4, "range": 2.2, "cooldown": 0.5, "sweep": false, "cone": 70.0, "knockback": 0.0,
 	},
 	{
 		# Long thrust that pierces every enemy lined up in front.
-		"id": "spear", "name": "Lance",
+		"id": "spear", "grip": 0.22, "name": "Lance",
 		"model": "res://assets/models/characters/weapon-spear.glb", "scale": 3.6,
 		"damage": 6, "range": 4.5, "cooldown": 0.8, "sweep": true, "cone": 18.0, "knockback": 0.0,
 	},
 	{
-		"id": "axe", "name": "Hache",
+		"id": "axe", "grip": 0.04, "name": "Hache",
 		"model": "res://assets/models/melee/tool-axe-upgraded.glb", "scale": 3.2,
 		"damage": 10, "range": 2.6, "cooldown": 1.1, "sweep": true, "cone": 70.0, "knockback": 0.0,
 	},
 	{
 		# Sends the enemy flying backward.
-		"id": "mace", "name": "Masse",
+		"id": "mace", "grip": 0.03, "name": "Masse",
 		"model": "res://assets/models/melee/tool-hammer-upgraded.glb", "scale": 5.0,
 		"damage": 8, "range": 2.4, "cooldown": 1.0, "sweep": false, "cone": 70.0, "knockback": 12.0,
 	},
@@ -193,10 +194,15 @@ static func _add_accessory(gun: Node3D, file: String, at: Vector3, size: float) 
 	gun.add_child(accessory)
 
 
+## Creates a melee weapon as held in the hand: its handle along +Y, gripped
+## "grip" model units above its lower end.
 static func instantiate_melee(item: Dictionary) -> Node3D:
 	var model: Node3D = load(item.model).instantiate()
-	model.scale = Vector3.ONE * item.scale
-	return model
+	var size: float = item.scale
+	model.transform = Transform3D(Basis.from_scale(Vector3.ONE * size), Vector3(0, -item.grip * size, 0))
+	var held := Node3D.new()
+	held.add_child(model)
+	return held
 
 
 ## Why a locked item is locked, for the menus.

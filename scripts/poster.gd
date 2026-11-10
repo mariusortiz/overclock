@@ -16,7 +16,7 @@ const CAST := [
 	{"model": "Knight_Golden_Male.fbx", "at": Vector3(3.0, 0.0, -0.9), "yaw": -38.0, "action": &"victory", "time": 0.6, "weapon": "", "melee": "mace"},
 ]
 
-## Weapon holders and the hand each one follows.
+## Items held: [node, character holding it, follows the forearm].
 var _held: Array[Array] = []
 
 
@@ -32,8 +32,8 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	for pair in _held:
-		(pair[0] as Node3D).global_position = (pair[1] as Node3D).global_position
+	for held in _held:
+		(held[1] as CharacterModel).place_in_hand(held[0], "R", held[2])
 
 
 func _add_fighter(fighter: Dictionary) -> void:
@@ -42,16 +42,16 @@ func _add_fighter(fighter: Dictionary) -> void:
 	holder.add_child(model)
 	model.freeze(fighter.action, fighter.time)
 	if fighter.weapon != "":
-		_hold(holder, Loadout.instantiate_weapon(Loadout.find(fighter.weapon).item, Loadout.SKINS[0]), model.get_attachment("Fist.R"))
+		_hold(holder, Loadout.instantiate_weapon(Loadout.find(fighter.weapon).item, Loadout.SKINS[0]), model, false)
 	if fighter.melee != "":
-		_hold(holder, Loadout.instantiate_melee(Loadout.find(fighter.melee).item), model.get_attachment("Fist.R"))
+		_hold(holder, Loadout.instantiate_melee(Loadout.find(fighter.melee).item), model, true)
 
 
-func _hold(holder: Node3D, item: Node3D, hand: Node3D) -> void:
+func _hold(holder: Node3D, item: Node3D, character: CharacterModel, along_arm: bool) -> void:
 	var grip := Node3D.new()
 	holder.add_child(grip)
 	grip.add_child(item)
-	_held.append([grip, hand])
+	_held.append([grip, character, along_arm])
 
 
 ## A node at `at`, turned so that 0 degrees faces the camera.

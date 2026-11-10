@@ -8,8 +8,6 @@ const TURN_RANGE := 0.5  # radians each side of facing the camera
 
 var _time := 0.0
 var _character: CharacterModel
-var _right_hand: Node3D
-var _left_hand: Node3D
 
 @onready var _pivot: Node3D = $SubViewport/World/Pivot
 @onready var _weapon_holder: Node3D = $SubViewport/World/Pivot/WeaponHolder
@@ -21,10 +19,9 @@ func _process(delta: float) -> void:
 	# Sway around the pose facing the camera.
 	_time += delta
 	_pivot.rotation.y = PI + sin(_time * TURN_SPEED) * TURN_RANGE
-	if _right_hand:
-		_weapon_holder.global_position = _right_hand.global_position
-	if _left_hand:
-		_melee_holder.global_position = _left_hand.global_position
+	if _character:
+		_character.place_in_hand(_weapon_holder, "R", false)
+		_character.place_in_hand(_melee_holder, "L", true)
 
 
 func show_character(item: Dictionary) -> void:
@@ -34,8 +31,6 @@ func show_character(item: Dictionary) -> void:
 	_character = Loadout.instantiate_character(item)
 	_pivot.add_child(_character)
 	_character.play(&"aim")
-	_right_hand = _character.get_attachment("Fist.R")
-	_left_hand = _character.get_attachment("Fist.L")
 
 
 ## `skin` defaults to the equipped one.

@@ -50,8 +50,9 @@ func _ready() -> void:
 	_model_pivot.add_child(_model)
 	weapon.setup(Loadout.selected_weapon(), perks)
 	melee.setup(Loadout.selected_melee())
-	weapon.hand = _model.get_attachment("Fist.R")
-	melee.hand = _model.get_attachment("Fist.L")
+	weapon.holder = _model
+	melee.holder = _model
+	melee.gun_visual = weapon.get_node("ModelPivot")
 	melee.swung.connect(_on_melee_swung)
 	_spring_arm.add_excluded_object(get_rid())
 	_spring_arm.rotation.x = deg_to_rad(-15.0)

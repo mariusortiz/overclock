@@ -27,10 +27,12 @@ var hover_height := 0.0
 var _animation_player: AnimationPlayer
 var _animations := {}  # action -> animation name
 var _current_action := &""
+var _skeleton: Skeleton3D
 
 
 func _ready() -> void:
 	_animation_player = find_child("AnimationPlayer", true, false)
+	_skeleton = find_child("Skeleton3D", true, false)
 	for action: StringName in ACTIONS:
 		for candidate: String in ACTIONS[action]:
 			var animation_name := _find_animation(candidate)
@@ -69,16 +71,34 @@ func freeze(action: StringName, seconds: float) -> void:
 	_animation_player.pause()
 
 
-## Returns a node that follows a bone (for example "Fist.R"), or null if the
-## model has no such bone.
-func get_attachment(bone_name: String) -> Node3D:
-	var skeleton: Skeleton3D = find_child("Skeleton3D", true, false)
-	if skeleton == null or skeleton.find_bone(bone_name) == -1:
-		return null
-	var attachment := BoneAttachment3D.new()
-	attachment.bone_name = bone_name
-	skeleton.add_child(attachment)
-	return attachment
+## Moves `item` into a hand ("R" or "L"). Returns false if the model has no
+## such hand. With `along_arm`, the item's +Y axis follows the forearm, so a
+## blade or a handle moves with the arm; otherwise the item keeps its own
+## orientation (a gun that keeps pointing where its owner aims).
+func place_in_hand(item: Node3D, side: String, along_arm: bool) -> bool:
+	var fist := _bone_position("Fist." + side)
+	var elbow := _bone_position("LowerArm." + side)
+	if fist == Vector3.INF or elbow == Vector3.INF:
+		return false
+	item.global_position = fist
+	if along_arm:
+		var along := elbow.direction_to(fist)
+		var back := global_basis.x.normalized().cross(along)
+		# Skip the rare frame where the arm points exactly sideways.
+		if back.length() > 0.01:
+			back = back.normalized()
+			item.global_basis = Basis(along.cross(back), along, back)
+	return true
+
+
+## World position of a bone in its current pose, or Vector3.INF if missing.
+func _bone_position(bone_name: String) -> Vector3:
+	if _skeleton == null:
+		return Vector3.INF
+	var index := _skeleton.find_bone(bone_name)
+	if index == -1:
+		return Vector3.INF
+	return _skeleton.global_transform * _skeleton.get_bone_global_pose(index).origin
 
 
 func _find_animation(suffix: String) -> StringName:
@@ -90,7 +110,7 @@ func _find_animation(suffix: String) -> StringName:
 
 ## Measures the skeleton's rest pose to scale, orient and ground the model.
 func _fit() -> void:
-	var skeleton: Skeleton3D = find_child("Skeleton3D", true, false)
+	var skeleton := _skeleton
 	if skeleton == null:
 		return
 	var to_model := global_transform.affine_inverse() * skeleton.global_transform

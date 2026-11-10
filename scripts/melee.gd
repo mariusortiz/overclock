@@ -6,7 +6,9 @@ extends Node3D
 signal swung
 signal hit_confirmed
 
-const SWING_TIME := 0.25
+## How long the weapon stays in the striking hand; matches the punch animation.
+const SWING_TIME := 0.4
+
 
 var damage := 4
 var attack_range := 2.2
@@ -17,11 +19,14 @@ var sweep := false
 var cone_deg := 70.0
 ## Above 0, pushes the targets away with this speed.
 var knockback := 0.0
-## When set, the weapon is held at this node (the character's hand).
-var hand: Node3D
+## When set, the weapon is held in this character's left hand.
+var holder: CharacterModel
+## The gun's visual, hidden while the melee weapon takes its place for a swing.
+var gun_visual: Node3D
 var damage_multiplier := 1
 
 var _cooldown_left := 0.0
+var _swing_left := 0.0
 
 @onready var _model_pivot: Node3D = $ModelPivot
 @onready var _hit_sound: AudioStreamPlayer = $HitSound
@@ -38,22 +43,26 @@ func setup(data: Dictionary) -> void:
 
 
 func _process(_delta: float) -> void:
-	if hand:
-		_model_pivot.global_position = hand.global_position
+	# The weapon follows the forearm, so the character's swing carries it. It
+	# rests in the left hand and moves to the striking (right) hand for a swing.
+	var swinging := _swing_left > 0.0
+	if holder:
+		holder.place_in_hand(_model_pivot, "R" if swinging else "L", true)
+	if gun_visual:
+		gun_visual.visible = not swinging
 
 
 func _physics_process(delta: float) -> void:
 	_cooldown_left = maxf(_cooldown_left - delta, 0.0)
+	_swing_left = maxf(_swing_left - delta, 0.0)
 	if Input.is_action_just_pressed("melee") and _cooldown_left == 0.0:
 		_swing()
 
 
 func _swing() -> void:
 	_cooldown_left = cooldown
+	_swing_left = SWING_TIME
 	swung.emit()
-	var tween := create_tween()
-	tween.tween_property(_model_pivot, "rotation:x", deg_to_rad(-100.0), SWING_TIME * 0.4)
-	tween.tween_property(_model_pivot, "rotation:x", 0.0, SWING_TIME * 0.6)
 
 	var targets := _targets_in_reach()
 	if targets.is_empty():

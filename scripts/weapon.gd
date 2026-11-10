@@ -28,8 +28,8 @@ var ammo := 0
 var damage_multiplier := 1
 ## Perk.Type -> level, shared with the player.
 var perks := {}
-## When set, the gun is held at this node (the character's hand).
-var hand: Node3D
+## When set, the gun is held in this character's right hand.
+var holder: CharacterModel
 
 var _cooldown := 0.0
 var _reloading := false
@@ -94,8 +94,7 @@ func on_perks_changed() -> void:
 
 func _process(_delta: float) -> void:
 	# The gun sits in the hand but keeps pointing where the player aims.
-	if hand:
-		_model_pivot.global_position = hand.global_position
+	if holder and holder.place_in_hand(_model_pivot, "R", false):
 		_muzzle.position = _model_pivot.position + _muzzle_offset
 
 

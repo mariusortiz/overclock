@@ -50,7 +50,6 @@ var _model: CharacterModel
 var _base_scale := Vector3.ONE
 var _attack_animation := &"shoot"
 var _aim_animation := &"aim"
-var _hand: Node3D
 var _stun_left := 0.0
 var _tween: Tween
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -75,7 +74,6 @@ func _ready() -> void:
 	_model.target_height = model_height
 	_model.hover_height = model_hover
 	_model_pivot.add_child(_model)
-	_hand = _model.get_attachment("Fist.R")
 	_fire_cooldown = fire_interval
 	_status_material.emission_enabled = true
 	_status_material.emission_energy_multiplier = 2.0
@@ -172,8 +170,7 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 	# The gun sits in the hand but keeps pointing forward.
-	if _hand:
-		_gun.global_position = _hand.global_position
+	if _model.place_in_hand(_gun, "R", false):
 		_muzzle.global_position = _gun.global_position - global_basis.z * 0.5 + Vector3.UP * 0.2
 
 
