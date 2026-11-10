@@ -3,6 +3,10 @@ extends CharacterBody3D
 ## Third-person shooter character: always faces the camera direction.
 ## Yaw rotates the whole body, pitch only tilts the camera arm.
 
+signal health_changed(current: int, maximum: int)
+signal died
+
+@export var max_health := 100
 @export var move_speed := 6.0
 @export var acceleration := 40.0
 @export var jump_velocity := 5.5
@@ -11,6 +15,8 @@ extends CharacterBody3D
 @export var min_pitch_deg := -60.0
 @export var max_pitch_deg := 35.0
 
+var health := 0
+
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var weapon: Weapon = $Weapon
@@ -18,9 +24,25 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 
 func _ready() -> void:
+	add_to_group("player")
+	health = max_health
 	_spring_arm.add_excluded_object(get_rid())
 	_spring_arm.rotation.x = deg_to_rad(-15.0)
 	weapon.rotation.x = _spring_arm.rotation.x
+
+
+## Point enemies aim at.
+func get_aim_position() -> Vector3:
+	return global_position + Vector3.UP * 1.0
+
+
+func take_damage(amount: int) -> void:
+	if health <= 0:
+		return
+	health = maxi(health - amount, 0)
+	health_changed.emit(health, max_health)
+	if health == 0:
+		died.emit()
 
 
 ## Rotates the view. `relative` is a screen-space drag in pixels.

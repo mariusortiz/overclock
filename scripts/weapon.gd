@@ -87,7 +87,7 @@ func _find_assist_hit(origin: Vector3, direction: Vector3) -> Dictionary:
 	var best := {}
 	var best_angle := deg_to_rad(aim_assist_deg)
 	for target: Node3D in get_tree().get_nodes_in_group("targets"):
-		var to_target := target.global_position - origin
+		var to_target: Vector3 = target.get_aim_position() - origin
 		var angle := direction.angle_to(to_target)
 		if angle >= best_angle:
 			continue

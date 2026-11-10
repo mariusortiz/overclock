@@ -36,19 +36,25 @@ BOXES = [
     ("PlatformFar", (6, 1.5, 3), (10, 0.75, -12), "block_material", IDENTITY),
 ]
 
-TARGETS = [
-    (-4, 1.6, 4), (3, 1.8, 2), (0, 5.6, -6), (10, 2.1, -12),
-    (-12, 2.6, 10), (8, 2.6, 1.2), (-6, 2.5, -10), (4, 3, -15),
+# Where robots appear, near the walls.
+ENEMY_SPAWNS = [
+    (-16, 0.1, -16), (0, 0.1, -17), (16, 0.1, -16), (-17, 0.1, 0),
+    (17, 0.1, 8), (-16, 0.1, 16), (16, 0.1, 16),
 ]
 
-HEADER = """[gd_scene load_steps=11 format=3]
+HEADER = """[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Shader" path="res://shaders/grid.gdshader" id="1_grid"]
 [ext_resource type="Texture2D" path="res://assets/textures/floor_tiles.png" id="2_floor"]
 [ext_resource type="Texture2D" path="res://assets/textures/panel_dark.png" id="3_dark"]
 [ext_resource type="Texture2D" path="res://assets/textures/panel_light.png" id="4_light"]
 [ext_resource type="Texture2D" path="res://assets/textures/stripes_emission.png" id="5_stripes"]
-[ext_resource type="PackedScene" path="res://scenes/target.tscn" id="6_target"]
+[ext_resource type="Script" path="res://scripts/arena.gd" id="6_arena"]
+
+[sub_resource type="NavigationMesh" id="navigation_mesh"]
+geometry_parsed_geometry_type = 1
+agent_height = 1.8
+agent_radius = 0.5
 
 [sub_resource type="ShaderMaterial" id="floor_material"]
 shader = ExtResource("1_grid")
@@ -80,7 +86,9 @@ uv1_scale = Vector3(0.5, 0.5, 0.5)
 uv1_triplanar = true
 uv1_world_triplanar = true
 
-[node name="Arena" type="Node3D"]
+[node name="Arena" type="NavigationRegion3D"]
+navigation_mesh = SubResource("navigation_mesh")
+script = ExtResource("6_arena")
 """
 
 out = [HEADER]
@@ -90,8 +98,8 @@ for name, size, pos, material, basis in BOXES:
             "use_collision = true",
             "size = Vector3(%g, %g, %g)" % size,
             f'material = SubResource("{material}")', ""]
-out += ['[node name="Targets" type="Node3D" parent="."]', ""]
-for i, pos in enumerate(TARGETS, 1):
-    out += [f'[node name="Target{i}" parent="Targets" instance=ExtResource("6_target")]',
+out += ['[node name="EnemySpawns" type="Node3D" parent="."]', ""]
+for i, pos in enumerate(ENEMY_SPAWNS, 1):
+    out += [f'[node name="Spawn{i}" type="Marker3D" parent="EnemySpawns" groups=["enemy_spawns"]]',
             f"transform = {transform(pos)}", ""]
 open("scenes/arena.tscn", "w").write("\n".join(out))

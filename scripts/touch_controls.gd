@@ -29,6 +29,12 @@ func _ready() -> void:
 	_on_resized()
 
 
+func _exit_tree() -> void:
+	# A finger may still be down when the scene reloads.
+	_set_joystick(Vector2.ZERO)
+	Input.action_release("fire")
+
+
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if event.pressed:

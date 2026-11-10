@@ -59,7 +59,7 @@ jobs:
 
       - name: Smoke test (fails on script errors)
         run: |
-          godot --headless --quit-after 120 2>&1 | tee run.log
+          godot --headless --fixed-fps 60 --quit-after 900 2>&1 | tee run.log
           if grep -E "SCRIPT ERROR|Parse Error|^ERROR:" run.log; then exit 1; fi
 
       - name: Export debug APK
