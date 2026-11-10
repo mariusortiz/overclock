@@ -53,7 +53,7 @@ HEADER = """[gd_scene load_steps=12 format=3]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
 geometry_parsed_geometry_type = 1
-agent_height = 1.8
+agent_height = 1.75
 agent_radius = 0.5
 
 [sub_resource type="ShaderMaterial" id="floor_material"]
