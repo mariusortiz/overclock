@@ -25,6 +25,13 @@ ENEMY_SPAWNS = [
 ]
 PLAYER_SPAWN = (0, 0.1, 18)
 
+# Second floor: a deck along the west and east walls, DECK_TOP meters up, each
+# reached by one ramp. (center x, ramp center z, ramp pitch in degrees)
+DECK_TOP = 3.0
+DECK_SIZE = (10, 0.4, 24)
+DECKS = [(-24.5, 16.1, 20), (24.5, -16.1, -20)]
+RAMP_SIZE = (3.2, 0.3, 8.9)
+
 
 def prop(model, x, z, height, yaw=0, collision=1.0):
     """A model resting on the floor, scaled to `height` meters. `collision`
@@ -40,7 +47,7 @@ def rot_x(deg):
 
 ARENAS = {
     "station": {
-        "name": "STATION", "enemy": "BlueSoldier_Male.fbx",
+        "name": "STATION", "music": 0, "enemy": "BlueSoldier_Male.fbx",
         "sky_top": (0.03, 0.02, 0.12), "sky_horizon": (0.35, 0.08, 0.45),
         "ambient": (0.45, 0.42, 0.6), "ambient_energy": 0.5,
         "sun": (1, 1, 1), "sun_energy": 1.2,
@@ -64,7 +71,7 @@ ARENAS = {
         ],
     },
     "desert": {
-        "name": "DÉSERT", "enemy": "Ninja_Sand.fbx",
+        "name": "DÉSERT", "music": 3, "enemy": "Ninja_Sand.fbx",
         "sky_top": (0.25, 0.5, 0.85), "sky_horizon": (0.95, 0.8, 0.6),
         "ambient": (0.9, 0.8, 0.65), "ambient_energy": 0.4,
         "sun": (1, 0.93, 0.8), "sun_energy": 0.9,
@@ -82,7 +89,7 @@ ARENAS = {
         ],
     },
     "jungle": {
-        "name": "JUNGLE", "enemy": "Goblin_Male.fbx",
+        "name": "JUNGLE", "music": 4, "enemy": "Goblin_Male.fbx",
         "sky_top": (0.2, 0.45, 0.5), "sky_horizon": (0.6, 0.8, 0.6),
         "ambient": (0.5, 0.7, 0.5), "ambient_energy": 0.45,
         "sun": (0.95, 1, 0.85), "sun_energy": 1.1,
@@ -105,7 +112,7 @@ ARENAS = {
         ],
     },
     "volcano": {
-        "name": "VOLCAN", "enemy": "Zombie_Male.fbx",
+        "name": "VOLCAN", "music": 5, "enemy": "Zombie_Male.fbx",
         "sky_top": (0.08, 0.02, 0.02), "sky_horizon": (0.7, 0.2, 0.05),
         "ambient": (0.7, 0.35, 0.25), "ambient_energy": 0.6,
         "sun": (1, 0.6, 0.4), "sun_energy": 1.0,
@@ -122,7 +129,7 @@ ARENAS = {
         "lava": [(-2, 6, 2.2), (9, -8, 2.5), (-9, 0, 2.2), (3, -14, 2.0), (-13, -12, 2.0), (13, 2, 2.0)],
     },
     "city": {
-        "name": "VILLE", "enemy": "Suit_Male.fbx",
+        "name": "VILLE", "music": 6, "enemy": "Suit_Male.fbx",
         "sky_top": (0.05, 0.07, 0.2), "sky_horizon": (0.9, 0.45, 0.35),
         "ambient": (0.5, 0.5, 0.7), "ambient_energy": 0.6,
         "sun": (1, 0.75, 0.6), "sun_energy": 1.1,
@@ -177,18 +184,38 @@ def sun_basis():
 
 
 def spread_props(arena):
-    """The arena's props moved outward by SPREAD, plus a copy of each one
-    turned a quarter around the center and brought closer, where there is room."""
-    placed = [dict(item, x=item["x"] * SPREAD, z=item["z"] * SPREAD) for item in arena.get("props", [])]
+    """The arena's props moved outward by SPREAD, plus two more rings of copies
+    (turned around the center and brought closer) where there is room. Nothing
+    is placed under the decks, on the ramps or on a spawn point."""
     keep_clear = [(PLAYER_SPAWN[0], PLAYER_SPAWN[2], 6.0)] + [(x, z, 5.0) for x, _, z in ENEMY_SPAWNS]
     keep_clear += [(pos[0], pos[2], max(size[0], size[2]) / 2 + 3.0) for _, size, pos, _, _ in arena.get("blocks", [])]
     keep_clear += [(x * SPREAD, z * SPREAD, r * 1.3 + 2.0) for x, z, r in arena.get("lava", [])]
-    for item in list(placed):
-        x, z = -item["z"] * 0.55, item["x"] * 0.55
-        too_close = any(math.hypot(x - cx, z - cz) < radius for cx, cz, radius in keep_clear)
-        too_close = too_close or any(math.hypot(x - other["x"], z - other["z"]) < 4.5 for other in placed)
-        if not too_close:
-            placed.append(dict(item, x=x, z=z, yaw=item["yaw"] + 90))
+
+    def blocked(x, z, placed):
+        # Deck and ramp footprints, with a margin for wide props.
+        for deck_x, ramp_z, _ in DECKS:
+            if abs(x - deck_x) < DECK_SIZE[0] / 2 + 2 and abs(z) < DECK_SIZE[2] / 2 + 2:
+                return True
+            if abs(x - deck_x) < RAMP_SIZE[0] / 2 + 2 and abs(z - ramp_z) < RAMP_SIZE[2] / 2 + 2:
+                return True
+        if abs(x) > SIZE / 2 - 2 or abs(z) > SIZE / 2 - 2:
+            return True
+        if any(math.hypot(x - cx, z - cz) < radius for cx, cz, radius in keep_clear):
+            return True
+        return any(math.hypot(x - other["x"], z - other["z"]) < 4.0 for other in placed)
+
+    placed = []
+    base = [dict(item, x=item["x"] * SPREAD, z=item["z"] * SPREAD) for item in arena.get("props", [])]
+    for item in base:
+        if not blocked(item["x"], item["z"], placed):
+            placed.append(item)
+    for turn, factor in ((90, 0.55), (200, 0.8)):
+        c, s = math.cos(math.radians(turn)), math.sin(math.radians(turn))
+        for item in base:
+            x = (item["x"] * c - item["z"] * s) * factor
+            z = (item["x"] * s + item["z"] * c) * factor
+            if not blocked(x, z, placed):
+                placed.append(dict(item, x=x, z=z, yaw=item["yaw"] + turn))
     return placed
 
 
@@ -243,7 +270,8 @@ def build(arena_id, arena):
     # --- Root, sky and sun
     nodes += ['[node name="Arena" type="NavigationRegion3D"]', 'navigation_mesh = SubResource("navigation_mesh")',
               f"script = {script}", f'display_name = "{arena["name"]}"',
-              f'enemy_model = {ext_resource("PackedScene", CHARACTERS + arena["enemy"])}', "",
+              f'enemy_model = {ext_resource("PackedScene", CHARACTERS + arena["enemy"])}',
+              f'music_track = {arena["music"]}', "",
               '[node name="WorldEnvironment" type="WorldEnvironment" parent="."]', 'environment = SubResource("environment")', "",
               '[node name="Sun" type="DirectionalLight3D" parent="."]', f"transform = {transform((0, 10, 0), sun_basis())}",
               f'light_color = {color(arena["sun"])}', f'light_energy = {arena["sun_energy"]}', "shadow_enabled = true", ""]
@@ -256,6 +284,13 @@ def build(arena_id, arena):
         ("WallWest", (1, 4, SIZE + 2), (-SIZE / 2 - 0.5, 2, 0), "wall_material", IDENTITY),
         ("WallEast", (1, 4, SIZE + 2), (SIZE / 2 + 0.5, 2, 0), "wall_material", IDENTITY),
     ] + arena.get("blocks", [])
+    # Second floor: decks on four posts, and their ramps.
+    for i, (x, ramp_z, pitch) in enumerate(DECKS, 1):
+        boxes.append((f"Deck{i}", DECK_SIZE, (x, DECK_TOP - DECK_SIZE[1] / 2, 0), "wall_material", IDENTITY))
+        boxes.append((f"Ramp{i}", RAMP_SIZE, (x, DECK_TOP / 2, ramp_z), "wall_material", rot_x(pitch)))
+        for j, (dx, dz) in enumerate(((-4.5, -11.5), (4.5, -11.5), (-4.5, 11.5), (4.5, 11.5)), 1):
+            post = (0.6, DECK_TOP - DECK_SIZE[1], 0.6)
+            boxes.append((f"Deck{i}Post{j}", post, (x + dx, post[1] / 2, dz), "wall_material", IDENTITY))
     for name, size, pos, material, basis in boxes:
         nodes += [f'[node name="{name}" type="CSGBox3D" parent="."]', f"transform = {transform(pos, basis)}",
                   "use_collision = true", "size = Vector3(%g, %g, %g)" % size, f'material = SubResource("{material}")', ""]
@@ -296,6 +331,36 @@ def build(arena_id, arena):
                       f'[node name="Mesh" type="MeshInstance3D" parent="Lava/Pool{i}"]', f'mesh = SubResource("lava_mesh_{i}")', "",
                       f'[node name="CollisionShape3D" type="CollisionShape3D" parent="Lava/Pool{i}"]',
                       f"transform = {transform((0, 0.5, 0))}", f'shape = SubResource("lava_shape_{i}")', ""]
+
+    # --- Healing pads and chests on the decks
+    pad_script = ext_resource("Script", "res://scripts/regen_pad.gd")
+    chest_script = ext_resource("Script", "res://scripts/chest.gd")
+    chest_model = ext_resource("PackedScene", "res://assets/models/melee/chest.glb")
+    sub += ['[sub_resource type="CylinderMesh" id="pad_mesh"]', "top_radius = 1.5", "bottom_radius = 1.5", "height = 0.08",
+            "radial_segments = 20", "rings = 1", "",
+            '[sub_resource type="CylinderShape3D" id="pad_shape"]', "height = 2.0", "radius = 1.5", "",
+            '[sub_resource type="BoxShape3D" id="chest_shape"]', "size = Vector3(2, 2, 2)", "",
+            '[sub_resource type="StandardMaterial3D" id="chest_marker_material"]', "albedo_color = Color(1, 0.85, 0.2, 1)",
+            "emission_enabled = true", "emission = Color(1, 0.8, 0.2, 1)", "emission_energy_multiplier = 2.0", "",
+            '[sub_resource type="BoxMesh" id="chest_marker_mesh"]', 'material = SubResource("chest_marker_material")',
+            "size = Vector3(0.3, 0.3, 0.3)", ""]
+    nodes += ['[node name="Upstairs" type="Node3D" parent="."]', ""]
+    for i, (x, ramp_z, _) in enumerate(DECKS, 1):
+        # The pad sits at the far end from the ramp, the chest in the middle.
+        pad_z = -8.0 if ramp_z > 0 else 8.0
+        nodes += [f'[node name="Pad{i}" type="Area3D" parent="Upstairs"]', f"transform = {transform((x, DECK_TOP + 0.05, pad_z))}",
+                  "collision_layer = 0", "collision_mask = 2", f"script = {pad_script}", "",
+                  f'[node name="Mesh" type="MeshInstance3D" parent="Upstairs/Pad{i}"]', 'mesh = SubResource("pad_mesh")', "",
+                  f'[node name="CollisionShape3D" type="CollisionShape3D" parent="Upstairs/Pad{i}"]',
+                  f"transform = {transform((0, 1.0, 0))}", 'shape = SubResource("pad_shape")', "",
+                  f'[node name="Chest{i}" type="Area3D" parent="Upstairs"]', f"transform = {transform((x, DECK_TOP, 0))}",
+                  "collision_layer = 0", "collision_mask = 2", f"script = {chest_script}", "",
+                  f'[node name="Model" parent="Upstairs/Chest{i}" instance={chest_model}]',
+                  f"transform = {transform((0, 0, 0), (3, 0, 0, 0, 3, 0, 0, 0, 3))}", "",
+                  f'[node name="Marker" type="MeshInstance3D" parent="Upstairs/Chest{i}"]',
+                  f"transform = {transform((0, 1.8, 0))}", 'mesh = SubResource("chest_marker_mesh")', "",
+                  f'[node name="CollisionShape3D" type="CollisionShape3D" parent="Upstairs/Chest{i}"]',
+                  f"transform = {transform((0, 1.0, 0))}", 'shape = SubResource("chest_shape")', ""]
 
     # --- Spawn points
     nodes += ['[node name="PlayerSpawn" type="Marker3D" parent="."]', f"transform = {transform(PLAYER_SPAWN)}", "",

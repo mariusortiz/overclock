@@ -2,7 +2,7 @@ extends AudioStreamPlayer
 ## Background music, autoloaded as "Music" so it keeps playing across scenes
 ## and while the game is paused.
 
-enum Track { MAIN, BOSS, DEATH }
+enum Track { MAIN, BOSS, DEATH, DESERT, JUNGLE, VOLCANO, CITY }
 
 # Loaded on demand rather than preloaded, so this script still compiles
 # before the audio files have been imported for the first time.
@@ -10,6 +10,10 @@ const PATHS := {
 	Track.MAIN: "res://assets/audio/music/synthwave_house_loop.ogg",
 	Track.BOSS: "res://assets/audio/music/boss_battle_loop.mp3",
 	Track.DEATH: "res://assets/audio/music/no_hope.ogg",
+	Track.DESERT: "res://assets/audio/music/desert_travel.ogg",
+	Track.JUNGLE: "res://assets/audio/music/jungle_battle.ogg",
+	Track.VOLCANO: "res://assets/audio/music/fire_level.mp3",
+	Track.CITY: "res://assets/audio/music/city_loop.mp3",
 }
 
 var _current := -1

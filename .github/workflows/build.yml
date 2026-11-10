@@ -63,6 +63,7 @@ jobs:
           godot --headless --fixed-fps 60 --quit-after 300 2>&1 | tee run.log
           godot --headless --fixed-fps 60 --quit-after 60 res://scenes/armory.tscn 2>&1 | tee -a run.log
           godot --headless --fixed-fps 60 --quit-after 60 res://scenes/battle_pass.tscn 2>&1 | tee -a run.log
+          godot --headless --fixed-fps 60 --quit-after 60 res://scenes/tools/poster.tscn 2>&1 | tee -a run.log
           godot --headless --fixed-fps 60 --quit-after 900 res://scenes/main.tscn 2>&1 | tee -a run.log
           # Each of the other arenas, 5 s of game time.
           for arena in 1 2 3 4; do

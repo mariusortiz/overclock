@@ -4,6 +4,7 @@ extends Control
 const GAME_SCENE := "res://scenes/main.tscn"
 const ARMORY_SCENE := "res://scenes/armory.tscn"
 const PASS_SCENE := "res://scenes/battle_pass.tscn"
+const POSTER_SCENE := "res://scenes/tools/poster.tscn"
 
 @onready var _stage: CharacterStage = $Stage
 @onready var _best_label: Label = $Right/Box/Best
@@ -23,6 +24,14 @@ func _ready() -> void:
 	$Right/Box/Pass.pressed.connect(get_tree().change_scene_to_file.bind(PASS_SCENE), CONNECT_DEFERRED)
 	$Right/Box/Settings.pressed.connect(func() -> void: _settings_panel.visible = true)
 	$SettingsPanel/Center/Panel/Box/Close.pressed.connect(func() -> void: _settings_panel.visible = false)
+
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	# Test shortcut (debug and web builds): F6 opens the scene used to render
+	# the loading screen artwork.
+	if event.is_pressed() and (event as InputEventKey).keycode == KEY_F6 \
+			and (OS.is_debug_build() or OS.has_feature("web")):
+		get_tree().change_scene_to_file.call_deferred(POSTER_SCENE)
 
 
 func _notification(what: int) -> void:

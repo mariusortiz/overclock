@@ -15,6 +15,7 @@ const ACTIONS := {
 	&"aim": ["Shoot_OneHanded"],
 	&"melee": ["Punch", "Attack2", "Attack"],
 	&"die": ["Defeat", "Death"],
+	&"victory": ["Victory"],
 }
 const LOOPING: Array[StringName] = [&"idle", &"walk"]
 
@@ -56,6 +57,16 @@ func play(action: StringName, restart := false, speed := 1.0) -> void:
 		_animation_player.play(_animations[action], 0.0, 0.0)
 	else:
 		_animation_player.play(_animations[action], 0.15, speed)
+
+
+## Holds one frame of an action, `seconds` into its animation.
+func freeze(action: StringName, seconds: float) -> void:
+	if not _animations.has(action):
+		return
+	_current_action = &""
+	_animation_player.play(_animations[action], 0.0)
+	_animation_player.seek(seconds, true)
+	_animation_player.pause()
 
 
 ## Returns a node that follows a bone (for example "Fist.R"), or null if the

@@ -1,13 +1,16 @@
 class_name Minimap
 extends Control
 ## Round radar: the player is at the center and "up" is where they look.
-## Robots are red dots (bosses bigger), power-ups use their own color.
+## Enemies are red dots (bosses bigger), power-ups use their own color,
+## charged healing pads are green and closed chests yellow.
 ## Anything out of range sticks to the edge.
 
 const RANGE := 32.0
 const BACKGROUND := Color(0, 0, 0, 0.45)
 const BORDER := Color(0, 0.9, 1, 0.8)
 const ENEMY_COLOR := Color(1.0, 0.2, 0.15)
+const PAD_COLOR := Color(0.2, 1.0, 0.4)
+const CHEST_COLOR := Color(1.0, 0.85, 0.2)
 
 
 func _process(_delta: float) -> void:
@@ -23,6 +26,12 @@ func _draw() -> void:
 	var player: Node3D = get_tree().get_first_node_in_group("player")
 	if player == null:
 		return
+	for pad: RegenPad in get_tree().get_nodes_in_group("regen_pads"):
+		if pad.is_charged():
+			_draw_dot(player, pad.global_position, PAD_COLOR, 4.0)
+	for chest: Chest in get_tree().get_nodes_in_group("chests"):
+		if chest.is_closed():
+			_draw_dot(player, chest.global_position, CHEST_COLOR, 4.0)
 	for power_up: PowerUp in get_tree().get_nodes_in_group("power_ups"):
 		_draw_dot(player, power_up.global_position, PowerUp.INFO[power_up.type].color, 3.0)
 	for enemy: Node3D in get_tree().get_nodes_in_group("targets"):

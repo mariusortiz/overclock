@@ -7,6 +7,8 @@ extends NavigationRegion3D
 @export var display_name := ""
 ## Model of the regular enemies met in this arena.
 @export var enemy_model: PackedScene
+## Music played in this arena (a Music.Track value).
+@export var music_track := 0
 
 
 func _ready() -> void:

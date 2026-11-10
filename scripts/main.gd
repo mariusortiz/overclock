@@ -25,6 +25,8 @@ var _mouse_was_captured := false
 var _arena: Arena
 var _arena_index := 0
 var _arena_change_pending := false
+## XP found in chests during this game, added to the battle pass at the end.
+var _bonus_xp := 0
 
 @onready var player: Player = $Player
 @onready var hud: Hud = $HUD
@@ -38,7 +40,6 @@ func _ready() -> void:
 		if argument.begins_with("--arena="):
 			first_arena = argument.get_slice("=", 1).to_int()
 	_load_arena(first_arena)
-	Music.play_track(Music.Track.MAIN)
 
 	hud.touch_controls.look.connect(_on_touch_look)
 	# Deferred: the scene must not be removed while the button is still handling its click.
@@ -122,6 +123,14 @@ func _load_arena(index: int) -> void:
 	player.global_position = _arena.player_spawn_position()
 	player.velocity = Vector3.ZERO
 	_apply_quality()
+	Music.play_track(_arena.music_track)
+	for chest: Chest in get_tree().get_nodes_in_group("chests"):
+		chest.opened.connect(_on_chest_opened)
+
+
+func _on_chest_opened(message: String, bonus_xp: int) -> void:
+	_bonus_xp += bonus_xp
+	hud.show_banner(message)
 
 
 func _apply_quality() -> void:
@@ -139,6 +148,7 @@ func _add_score(points: int) -> void:
 
 
 func _on_wave_started(number: int) -> void:
+	get_tree().call_group("chests", "close")
 	hud.show_banner("VAGUE %d  ·  BOSS" % number if waves.is_boss_wave() else "VAGUE %d" % number)
 
 
@@ -150,7 +160,7 @@ func _on_boss_spawned(boss: Boss) -> void:
 
 
 func _on_boss_killed() -> void:
-	Music.play_track(Music.Track.MAIN)
+	Music.play_track(_arena.music_track)
 	hud.hide_boss()
 	_add_score(BOSS_SCORE)
 
@@ -217,7 +227,7 @@ func _on_player_died() -> void:
 	if is_record:
 		SaveData.save_high_score(score)
 	# The score feeds the battle pass.
-	var xp := BattlePass.xp_for_score(score)
+	var xp := BattlePass.xp_for_score(score) + _bonus_xp
 	var unlocked := []
 	for id in BattlePass.add_xp(xp):
 		unlocked.append(Loadout.find(id).item.name)
