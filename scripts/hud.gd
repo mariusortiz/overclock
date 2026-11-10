@@ -32,6 +32,8 @@ var _perk_options: Array = []
 @onready var _replay_button: Button = $GameOver/Center/Box/Replay
 @onready var _menu_button: Button = $GameOver/Center/Box/Menu
 @onready var _pause_button: Button = $PauseButton
+@onready var _boss_name: Label = $BossName
+@onready var _boss_bar: ProgressBar = $BossBar
 @onready var _effects_label: RichTextLabel = $Effects
 @onready var _perk_choice: Control = $PerkChoice
 @onready var _perk_title: Label = $PerkChoice/Center/Box/Title
@@ -58,6 +60,22 @@ func _process(_delta: float) -> void:
 func set_health(current: int, maximum: int) -> void:
 	_health_bar.max_value = maximum
 	_health_bar.value = current
+
+
+func show_boss(boss_name: String) -> void:
+	_boss_name.text = boss_name
+	_boss_name.visible = true
+	_boss_bar.visible = true
+
+
+func set_boss_health(current: int, maximum: int) -> void:
+	_boss_bar.max_value = maximum
+	_boss_bar.value = current
+
+
+func hide_boss() -> void:
+	_boss_name.visible = false
+	_boss_bar.visible = false
 
 
 func set_ammo(current: int, magazine: int, reloading: bool) -> void:

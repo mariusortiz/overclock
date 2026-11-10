@@ -4,6 +4,7 @@ extends CharacterBody3D
 ## when in range with a clear line of sight.
 
 signal died
+signal health_changed(current: int, maximum: int)
 
 const REPATH_INTERVAL := 0.3
 const EYE_HEIGHT := 1.2
@@ -23,6 +24,9 @@ const CHILL_COLOR := Color(0.5, 0.85, 1.0)
 @export var attack_range := 12.0
 @export var fire_interval := 1.6
 @export var projectile_scene: PackedScene
+@export var model_scene: PackedScene
+## Height of the point shots are aimed at.
+@export var aim_height := 1.0
 @export var power_up_scene: PackedScene
 @export var drop_chance := 0.25
 
@@ -38,12 +42,15 @@ var _chill_left := 0.0
 var _chill_factor := 1.0
 var _status_material := StandardMaterial3D.new()
 var _player: Player
+var _model: CharacterModel
+var _base_scale := Vector3.ONE
+var _attack_animation := &"holding-right-shoot"
 var _tween: Tween
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var _agent: NavigationAgent3D = $NavigationAgent3D
 @onready var _visual: Node3D = $Visual
-@onready var _model: CharacterModel = $Visual/Model
+@onready var _model_pivot: Node3D = $Visual/ModelPivot
 @onready var _muzzle: Marker3D = $Visual/Muzzle
 @onready var _status_orb: MeshInstance3D = $Visual/StatusOrb
 @onready var _shot_sound: AudioStreamPlayer3D = $ShotSound
@@ -53,6 +60,10 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 func _ready() -> void:
 	add_to_group("targets")
 	_health = max_health
+	_base_scale = _visual.scale
+	_model = model_scene.instantiate()
+	_model.set_script(CharacterModel)
+	_model_pivot.add_child(_model)
 	_fire_cooldown = fire_interval
 	_status_material.emission_enabled = true
 	_status_material.emission_energy_multiplier = 2.0
@@ -63,18 +74,19 @@ func _ready() -> void:
 
 ## Point the player's shots (and aim assist) should go for.
 func get_aim_position() -> Vector3:
-	return global_position + Vector3.UP * 1.0
+	return global_position + Vector3.UP * aim_height
 
 
 func take_damage(amount: int) -> void:
 	if _dead:
 		return
 	_health -= amount
+	health_changed.emit(maxi(_health, 0), max_health)
 	if _health <= 0:
 		_die()
 	else:
-		_visual.scale = Vector3.ONE * 1.2
-		_scale_visual_to(Vector3.ONE, 0.12)
+		_visual.scale = _base_scale * 1.2
+		_scale_visual_to(_base_scale, 0.12)
 
 
 ## Fire perk: takes `damage_per_tick` twice a second for a few seconds.
@@ -164,14 +176,22 @@ func _chase_direction(delta: float) -> Vector3:
 
 func _shoot() -> void:
 	_fire_cooldown = fire_interval
-	var projectile: Projectile = projectile_scene.instantiate()
-	var from := _muzzle.global_position
-	projectile.position = from
-	projectile.direction = from.direction_to(_player.get_aim_position())
-	get_tree().current_scene.add_child(projectile)
+	_attack()
 	_shot_sound.play()
-	_model.play(&"holding-right-shoot", true)
+	_model.play(_attack_animation, true)
 	_shoot_animation_left = SHOOT_ANIMATION_TIME
+
+
+## What a shot does. Bosses override this.
+func _attack() -> void:
+	_spawn_projectile(_muzzle.global_position.direction_to(_player.get_aim_position()))
+
+
+func _spawn_projectile(direction: Vector3) -> void:
+	var projectile: Projectile = projectile_scene.instantiate()
+	projectile.position = _muzzle.global_position
+	projectile.direction = direction
+	get_tree().current_scene.add_child(projectile)
 
 
 func _die() -> void:
@@ -186,7 +206,7 @@ func _die() -> void:
 	# Fall over, then shrink away.
 	if _tween:
 		_tween.kill()
-	_visual.scale = Vector3.ONE
+	_visual.scale = _base_scale
 	_tween = create_tween()
 	_tween.tween_interval(DEATH_ANIMATION_TIME)
 	_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.2)

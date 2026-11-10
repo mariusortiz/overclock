@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="4_hud"]
 [ext_resource type="Script" path="res://scripts/wave_manager.gd" id="5_waves"]
 [ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="6_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/boss.tscn" id="7_boss"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_material"]
 sky_top_color = Color(0.03, 0.02, 0.12, 1)
@@ -46,3 +47,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 12)
 [node name="WaveManager" type="Node" parent="."]
 script = ExtResource("5_waves")
 enemy_scene = ExtResource("6_enemy")
+boss_scene = ExtResource("7_boss")

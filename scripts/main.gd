@@ -4,6 +4,7 @@ extends Node3D
 const KILL_SCORE := 100
 const WAVE_BONUS := 250  # multiplied by the wave number
 const WAVE_HEAL := 25
+const BOSS_SCORE := 1000
 const MENU_SCENE := "res://scenes/menu.tscn"
 const DAMAGE_VIBRATION_MS := 40
 const PERK_CHOICE_DELAY := 2.0
@@ -39,6 +40,8 @@ func _ready() -> void:
 	waves.enemy_killed.connect(_add_score.bind(KILL_SCORE))
 	waves.enemy_killed.connect(player.on_enemy_killed)
 	waves.enemies_left_changed.connect(_on_enemies_left_changed)
+	waves.boss_spawned.connect(_on_boss_spawned)
+	waves.boss_killed.connect(_on_boss_killed)
 
 	hud.set_health(player.health, player.max_health)
 	hud.set_ammo(player.weapon.ammo, player.weapon.get_magazine_size(), false)
@@ -93,7 +96,18 @@ func _add_score(points: int) -> void:
 
 
 func _on_wave_started(number: int) -> void:
-	hud.show_banner("VAGUE %d" % number)
+	hud.show_banner("VAGUE %d  ·  BOSS" % number if waves.is_boss_wave() else "VAGUE %d" % number)
+
+
+func _on_boss_spawned(boss: Boss) -> void:
+	hud.show_boss(Boss.INFO[boss.kind].name)
+	hud.set_boss_health(boss.max_health, boss.max_health)
+	boss.health_changed.connect(hud.set_boss_health)
+
+
+func _on_boss_killed() -> void:
+	hud.hide_boss()
+	_add_score(BOSS_SCORE)
 
 
 func _on_wave_cleared(number: int) -> void:

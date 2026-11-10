@@ -43,6 +43,13 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
+[sub_resource type="StyleBoxFlat" id="boss_fill"]
+bg_color = Color(1, 0.25, 0.2, 0.95)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
 
@@ -190,6 +197,36 @@ mouse_filter = 2
 theme_override_font_sizes/normal_font_size = 24
 bbcode_enabled = true
 scroll_active = false
+
+[node name="BossName" type="Label" parent="."]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -280.0
+offset_top = 44.0
+offset_right = 280.0
+offset_bottom = 74.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.3, 1)
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+
+[node name="BossBar" type="ProgressBar" parent="."]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -280.0
+offset_top = 76.0
+offset_right = 280.0
+offset_bottom = 92.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("health_background")
+theme_override_styles/fill = SubResource("boss_fill")
+value = 100.0
+show_percentage = false
 
 [node name="PauseButton" type="Button" parent="."]
 anchors_preset = 1

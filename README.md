@@ -52,6 +52,19 @@ Un robot détruit laisse parfois un cube lumineux au sol. Marche dessus pour le 
 | Arme | Cadence (+20 %), Chargeur (+50 %), Explosif (dégâts de zone) |
 | Survie | Vitalité (+25 PV max), Vol de vie (+3 PV par robot détruit), Agilité (+10 % de vitesse) |
 
+## Boss
+
+Toutes les 5 vagues, un boss arrive avec trois robots. Sa barre de vie s'affiche en haut de l'écran. Le battre rapporte 1000 points et un power-up.
+
+| Vague | Boss | Comportement |
+|---|---|---|
+| 5 | Colosse | Lent, tire 5 projectiles en éventail |
+| 10 | Brute | Fonce sur toi et frappe au contact |
+| 15 | Artilleur | Reste loin et bombarde : un cercle rouge au sol annonce l'explosion |
+| 20 | Invocateur | Fait apparaître des robots et s'entoure d'un bouclier par moments |
+
+Après la vague 20, les quatre boss reviennent, plus résistants.
+
 ## Personnages et armes
 
 Ils se choisissent dans le menu et se débloquent avec le record.

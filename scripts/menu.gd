@@ -75,10 +75,10 @@ func _refresh() -> void:
 	_character_info.text = _lock_text(character)
 	_weapon_name.text = weapon.name
 	_weapon_info.text = _lock_text(weapon) if not Loadout.is_unlocked(weapon) else \
-			"Cadence %s/s · Dégâts %d · Chargeur %d" % [String.num(weapon.fire_rate, 1), weapon.damage, weapon.magazine]
+			"Cadence %s/s · Dégâts %d · Chargeur %d" % [String.num(weapon.fire_rate, 1).trim_suffix(".0"), weapon.damage, weapon.magazine]
 	_melee_name.text = melee.name
 	_melee_info.text = _lock_text(melee) if not Loadout.is_unlocked(melee) else \
-			"Dégâts %d · Portée %s m" % [melee.damage, String.num(melee.range, 1)]
+			"Dégâts %d · Portée %s m" % [melee.damage, String.num(melee.range, 1).trim_suffix(".0")]
 	_play_button.disabled = not (Loadout.is_unlocked(character) and Loadout.is_unlocked(weapon) \
 			and Loadout.is_unlocked(melee))
 
