@@ -6,7 +6,7 @@ extends Node
 const ARENAS: Array[String] = ["station", "desert", "jungle", "volcano", "city"]
 const START := Vector3(0.0, 0.2, 18.0)
 const DECKS: Array[Vector3] = [Vector3(-24.5, 3.1, 0.0), Vector3(24.5, 3.1, 0.0)]
-const FRAMES_TO_BAKE := 60
+const MAX_WAIT_FRAMES := 600
 
 
 func _ready() -> void:
@@ -14,10 +14,13 @@ func _ready() -> void:
 	for arena_name in ARENAS:
 		var arena: NavigationRegion3D = load("res://scenes/arenas/%s.tscn" % arena_name).instantiate()
 		add_child(arena)
-		for i in FRAMES_TO_BAKE:
-			await get_tree().physics_frame
+		# The navigation map is built in the background: wait until it answers.
 		var map := arena.get_navigation_map()
-		NavigationServer3D.map_force_update(map)
+		for i in MAX_WAIT_FRAMES:
+			await get_tree().physics_frame
+			OS.delay_msec(10)
+			if not NavigationServer3D.map_get_path(map, START, START + Vector3(0, 0, -4), true).is_empty():
+				break
 		for deck in DECKS:
 			var path := NavigationServer3D.map_get_path(map, START, deck, true)
 			var reached := not path.is_empty() and path[-1].distance_to(deck) < 1.5
