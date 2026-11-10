@@ -39,8 +39,8 @@ PROP_DIR = "assets/models/station/"
 PROP_SCALE = 2.1
 PROPS = [
     ("container-tall", -4, 4, 0), ("container-tall", -12, 9, 0), ("container", -10, 10.5, 0),
-    ("structure-barrier", 2, 2, 0), ("structure-barrier", 4.1, 2, 0),
-    ("structure-barrier", -8, -3, 90), ("structure-barrier", -8, -5.1, 90),
+    ("container-tall", 2, 2, 0), ("container-wide", 4, 2, 0),
+    ("container-tall", -8, -3, 0), ("container-wide", -8, -5, 0),
     ("container-flat", -5, -12, 90), ("container-flat", 12, 10, 0),
     ("computer-system", -2.5, -14, 0), ("table-display", 13, -4, 90),
     ("container-wide", 4, -14, 0), ("container-wide", 15, 3, 0),

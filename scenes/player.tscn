@@ -38,7 +38,7 @@ transform = Transform3D(-2.1, 0, 0, 0, 2.1, 0, 0, 0, -2.1, 0, 0, 0)
 script = ExtResource("7_character")
 
 [node name="CameraPivot" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 1.6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 1.8, 0)
 
 [node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
 spring_length = 3.5

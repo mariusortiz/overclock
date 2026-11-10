@@ -12,7 +12,6 @@
 [ext_resource type="PackedScene" path="res://assets/models/station/container-flat.glb" id="prop_container_flat"]
 [ext_resource type="PackedScene" path="res://assets/models/station/container-tall.glb" id="prop_container_tall"]
 [ext_resource type="PackedScene" path="res://assets/models/station/container-wide.glb" id="prop_container_wide"]
-[ext_resource type="PackedScene" path="res://assets/models/station/structure-barrier.glb" id="prop_structure_barrier"]
 [ext_resource type="PackedScene" path="res://assets/models/station/table-display.glb" id="prop_table_display"]
 
 [sub_resource type="BoxShape3D" id="shape_computer_system"]
@@ -29,9 +28,6 @@ size = Vector3(1.680, 1.890, 1.680)
 
 [sub_resource type="BoxShape3D" id="shape_container_wide"]
 size = Vector3(1.260, 1.470, 1.260)
-
-[sub_resource type="BoxShape3D" id="shape_structure_barrier"]
-size = Vector3(2.100, 1.890, 2.100)
 
 [sub_resource type="BoxShape3D" id="shape_table_display"]
 size = Vector3(2.607, 0.945, 1.713)
@@ -187,42 +183,42 @@ shape = SubResource("shape_container")
 [node name="Prop4" type="StaticBody3D" parent="Props"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, 2, -0, 2)
 
-[node name="Model" parent="Props/Prop4" instance=ExtResource("prop_structure_barrier")]
+[node name="Model" parent="Props/Prop4" instance=ExtResource("prop_container_tall")]
 transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 0, 0, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Props/Prop4"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.05, 0.945, 1.05)
-shape = SubResource("shape_structure_barrier")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.21, 0.945, 0.21)
+shape = SubResource("shape_container_tall")
 
 [node name="Prop5" type="StaticBody3D" parent="Props"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, 4.1, -0, 2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, 4, -0, 2)
 
-[node name="Model" parent="Props/Prop5" instance=ExtResource("prop_structure_barrier")]
+[node name="Model" parent="Props/Prop5" instance=ExtResource("prop_container_wide")]
 transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 0, 0, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Props/Prop5"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.05, 0.945, 1.05)
-shape = SubResource("shape_structure_barrier")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.735, 0)
+shape = SubResource("shape_container_wide")
 
 [node name="Prop6" type="StaticBody3D" parent="Props"]
-transform = Transform3D(6.123e-17, 0, 1, 0, 1, 0, -1, 0, 6.123e-17, -8, -0, -3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -8, -0, -3)
 
-[node name="Model" parent="Props/Prop6" instance=ExtResource("prop_structure_barrier")]
+[node name="Model" parent="Props/Prop6" instance=ExtResource("prop_container_tall")]
 transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 0, 0, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Props/Prop6"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.05, 0.945, 1.05)
-shape = SubResource("shape_structure_barrier")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.21, 0.945, 0.21)
+shape = SubResource("shape_container_tall")
 
 [node name="Prop7" type="StaticBody3D" parent="Props"]
-transform = Transform3D(6.123e-17, 0, 1, 0, 1, 0, -1, 0, 6.123e-17, -8, -0, -5.1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -8, -0, -5)
 
-[node name="Model" parent="Props/Prop7" instance=ExtResource("prop_structure_barrier")]
+[node name="Model" parent="Props/Prop7" instance=ExtResource("prop_container_wide")]
 transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 0, 0, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Props/Prop7"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.05, 0.945, 1.05)
-shape = SubResource("shape_structure_barrier")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.735, 0)
+shape = SubResource("shape_container_wide")
 
 [node name="Prop8" type="StaticBody3D" parent="Props"]
 transform = Transform3D(6.123e-17, 0, 1, 0, 1, 0, -1, 0, 6.123e-17, -5, -2.217e-14, -12)
