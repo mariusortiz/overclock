@@ -57,6 +57,7 @@ var _base_scale := Vector3.ONE
 var _attack_animation := &"shoot"
 var _aim_animation := &"aim"
 var _stun_left := 0.0
+var _freeze_left := 0.0
 var _kill_style := &""
 var _kill_color := Color.WHITE
 var _tween: Tween
@@ -129,6 +130,11 @@ func knockback(direction: Vector3, strength: float) -> void:
 	_stun_left = 0.35
 
 
+## Stops the enemy from moving and attacking for `seconds`.
+func stun(seconds: float) -> void:
+	_freeze_left = seconds
+
+
 ## Fire perk: takes `damage_per_tick` twice a second for a few seconds.
 func ignite(damage_per_tick: int) -> void:
 	_burn_left = BURN_DURATION
@@ -165,7 +171,8 @@ func _physics_process(delta: float) -> void:
 
 	var wanted := Vector3.ZERO
 	var animation := &"idle"
-	if not _dead and _player and _player.health > 0:
+	_freeze_left -= delta
+	if not _dead and _freeze_left <= 0.0 and _player and _player.health > 0:
 		var to_player := _player.global_position - global_position
 		_face(to_player, delta)
 		var can_shoot := to_player.length() <= attack_range and _has_line_of_sight()

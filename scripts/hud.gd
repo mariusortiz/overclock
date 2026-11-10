@@ -9,6 +9,7 @@ signal perk_chosen(type: Perk.Type)
 
 const BANNER_TIME := 2.5
 const FADE_TIME := 0.4
+const ULTIMATE_READY_COLOR := Color(1.0, 0.85, 0.2)
 
 var _is_touch := DisplayServer.is_touchscreen_available()
 var _game_over := false
@@ -26,6 +27,7 @@ var _perk_options: Array = []
 @onready var _wave_label: Label = $WaveLabel
 @onready var _score_label: Label = $ScoreLabel
 @onready var _ammo_label: Label = $AmmoLabel
+@onready var _ultimate_label: Label = $UltimateLabel
 @onready var _banner: Label = $Banner
 @onready var _game_over_screen: Control = $GameOver
 @onready var _end_title: Label = $GameOver/Center/Box/Title
@@ -96,6 +98,17 @@ func hide_boss() -> void:
 
 func set_ammo(current: int, magazine: int, reloading: bool) -> void:
 	_ammo_label.text = "RECHARGE…" if reloading else "%d / %d" % [current, magazine]
+
+
+## `ratio`: charge of the ultimate, from 0 to 1.
+func set_ultimate(ratio: float) -> void:
+	var is_ready := ratio >= 1.0
+	var text := "ULTI PRÊTE" if is_ready else "ULTI  %d %%" % floori(ratio * 100.0)
+	if is_ready and not _is_touch:
+		text += "  [E]"
+	if _ultimate_label.text != text:
+		_ultimate_label.text = text
+		_ultimate_label.modulate = ULTIMATE_READY_COLOR if is_ready else Color(1, 1, 1, 0.6)
 
 
 func set_score(score: int) -> void:

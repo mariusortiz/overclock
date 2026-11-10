@@ -102,6 +102,9 @@ func _refresh() -> void:
 		_detail_status.text = Loadout.unlock_text(_viewed)
 	else:
 		_detail_status.text = "Équipé"
+	if _viewed.has("ulti"):
+		var ulti: Dictionary = Ultimate.INFO[_viewed.ulti]
+		_detail_status.text += "\nULTI · %s : %s" % [ulti.name, ulti.text]
 	for bar in _detail_stats.get_children():
 		_detail_stats.remove_child(bar)
 		bar.queue_free()

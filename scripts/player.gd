@@ -37,6 +37,7 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var weapon: Weapon = $Weapon
 @onready var melee: Melee = $Melee
+var ultimate := Ultimate.new()
 var _model: CharacterModel
 
 @onready var _model_pivot: Node3D = $ModelPivot
@@ -48,7 +49,10 @@ var _model: CharacterModel
 func _ready() -> void:
 	add_to_group("player")
 	health = max_health
-	_model = Loadout.instantiate_character(Loadout.selected_character())
+	var character := Loadout.selected_character()
+	_model = Loadout.instantiate_character(character)
+	ultimate.setup(self, character.ulti)
+	add_child(ultimate)
 	_model_pivot.add_child(_model)
 	weapon.setup(Loadout.selected_weapon(), perks)
 	melee.setup(Loadout.selected_melee())
@@ -92,10 +96,11 @@ func add_perk(type: Perk.Type) -> void:
 ## Call when one of the player's shots or effects destroys a robot.
 func on_enemy_killed() -> void:
 	heal(Perk.LIFESTEAL_HEAL * perks.get(Perk.Type.LIFESTEAL, 0))
+	ultimate.add_charge(Ultimate.KILL_CHARGE)
 
 
 func take_damage(amount: int) -> void:
-	if health <= 0 or invulnerable:
+	if health <= 0 or invulnerable or ultimate.shielded:
 		return
 	if has_effect(PowerUp.Type.SHIELD):
 		amount = ceili(amount / 2.0)
@@ -174,6 +179,7 @@ func _die() -> void:
 	set_process_unhandled_input(false)
 	weapon.set_physics_process(false)
 	melee.set_physics_process(false)
+	ultimate.set_physics_process(false)
 	_model.play(&"die")
 	died.emit()
 

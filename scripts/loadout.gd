@@ -6,19 +6,19 @@ class_name Loadout
 const CHARACTER_DIR := "res://assets/models/quaternius/characters/"
 
 const CHARACTERS := [
-	{"id": "soldier", "name": "Soldat", "model": "Soldier_Male.fbx"},
-	{"id": "cowboy", "name": "Cow-boy", "model": "Cowboy_Male.fbx"},
-	{"id": "soldier_female", "name": "Soldate", "model": "Soldier_Female.fbx"},
-	{"id": "ninja", "name": "Ninja", "model": "Ninja_Male.fbx"},
-	{"id": "pirate", "name": "Pirate", "model": "Pirate_Male.fbx"},
-	{"id": "knight", "name": "Chevalier", "model": "Knight_Male.fbx"},
-	{"id": "kimono", "name": "Samouraï", "model": "Kimono_Male.fbx"},
-	{"id": "viking", "name": "Viking", "model": "Viking_Male.fbx"},
-	{"id": "elf", "name": "Elfe", "model": "Elf.fbx"},
-	{"id": "cowgirl", "name": "Cow-girl", "model": "Cowboy_Female.fbx"},
-	{"id": "witch", "name": "Sorcière", "model": "Witch.fbx"},
-	{"id": "wizard", "name": "Magicien", "model": "Wizard.fbx"},
-	{"id": "golden_knight", "name": "Chevalier d'or", "model": "Knight_Golden_Male.fbx"},
+	{"id": "soldier", "ulti": &"airstrike", "name": "Soldat", "model": "Soldier_Male.fbx"},
+	{"id": "cowboy", "ulti": &"deadeye", "name": "Cow-boy", "model": "Cowboy_Male.fbx"},
+	{"id": "soldier_female", "ulti": &"overdrive", "name": "Soldate", "model": "Soldier_Female.fbx"},
+	{"id": "ninja", "ulti": &"clones", "name": "Ninja", "model": "Ninja_Male.fbx"},
+	{"id": "pirate", "ulti": &"broadside", "name": "Pirate", "model": "Pirate_Male.fbx"},
+	{"id": "knight", "ulti": &"rampart", "name": "Chevalier", "model": "Knight_Male.fbx"},
+	{"id": "kimono", "ulti": &"whirlwind", "name": "Samouraï", "model": "Kimono_Male.fbx"},
+	{"id": "viking", "ulti": &"rage", "name": "Viking", "model": "Viking_Male.fbx"},
+	{"id": "elf", "ulti": &"arrows", "name": "Elfe", "model": "Elf.fbx"},
+	{"id": "cowgirl", "ulti": &"dynamite", "name": "Cow-girl", "model": "Cowboy_Female.fbx"},
+	{"id": "witch", "ulti": &"curse", "name": "Sorcière", "model": "Witch.fbx"},
+	{"id": "wizard", "ulti": &"timestop", "name": "Magicien", "model": "Wizard.fbx"},
+	{"id": "golden_knight", "ulti": &"blessing", "name": "Chevalier d'or", "model": "Knight_Golden_Male.fbx"},
 ]
 
 ## Weapon skins are finishes: they keep the gun's shape. A skin with a pattern

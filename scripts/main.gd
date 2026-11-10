@@ -58,6 +58,9 @@ func _ready() -> void:
 	player.melee.hit_confirmed.connect(hud.reticle.show_hit)
 	player.weapon.ammo_changed.connect(hud.set_ammo)
 	player.weapon.equipped.connect(_on_weapon_equipped)
+	player.ultimate.charge_changed.connect(hud.set_ultimate)
+	player.ultimate.activated.connect(_on_weapon_equipped)
+	hud.set_ultimate(0.0)
 	player.health_changed.connect(hud.set_health)
 	player.damaged.connect(hud.flash_damage)
 	player.damaged.connect(_vibrate)
@@ -106,6 +109,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		for enemy in get_tree().get_nodes_in_group("targets"):
 			player.weapon.tag_kill(enemy)
 			enemy.take_damage(9999)
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_F6 \
+			and (OS.is_debug_build() or OS.has_feature("web")):
+		# Test shortcut (debug and web builds): charges the ultimate.
+		player.ultimate.add_charge(1.0)
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_F7 \
 			and (OS.is_debug_build() or OS.has_feature("web")):
 		# Test shortcut (debug and web builds): drops a weapon crate.
@@ -183,8 +190,9 @@ func _drop_crate() -> void:
 	hud.show_banner("CAISSE D'ARME EN APPROCHE")
 
 
-func _on_weapon_equipped(weapon_name: String) -> void:
-	hud.show_banner(weapon_name.to_upper())
+## Announces a gun taken in hand, or an ultimate.
+func _on_weapon_equipped(title: String) -> void:
+	hud.show_banner(title.to_upper())
 
 
 func _on_boss_spawned(boss: Boss) -> void:

@@ -19,6 +19,7 @@ La compilation de l'APK Android est désactivée pour l'instant. Le preset d'exp
 | Tirer | Bouton TIR en bas à droite (on peut viser en gardant le doigt dessus) | Clic gauche |
 | Viser (zoom) | Bouton VISER : un appui l'active, un autre le désactive | Maintenir le clic droit |
 | Corps à corps | Bouton COUP | F |
+| Ulti | Bouton ULTI, quand la jauge est pleine | E |
 | Recharger | Bouton RECH. à gauche du bouton TIR (automatique quand le chargeur est vide) | R |
 | Pause et réglages | Bouton II en haut à droite, ou bouton retour d'Android | Échap |
 | Sauter | Bouton SAUT au-dessus du bouton TIR | Espace |
@@ -77,6 +78,26 @@ Les arènes font 60 m de côté. La partie commence dans la station, et chaque b
 
 Une mini-carte en haut à gauche montre les ennemis en rouge (les boss en plus gros) et les power-ups dans leur couleur.
 
+## Ultis
+
+Chaque personnage a une capacité ultime. Sa jauge, affichée au-dessus des munitions, se remplit de 10 % par ennemi abattu (et lentement avec le temps). Une fois pleine, le bouton ULTI ou la touche E la déclenche.
+
+| Personnage | Ulti | Effet |
+|---|---|---|
+| Soldat | Frappe aérienne | Bombarde les 5 ennemis les plus proches |
+| Cow-boy | Duel | Tire d'un coup sur les 6 ennemis les plus proches |
+| Soldate | Surrégime | 8 s de tir deux fois plus rapide, sans recharger |
+| Ninja | Clones | Deux clones se battent à tes côtés pendant 12 s |
+| Pirate | Bordée | Tire 8 roquettes tout autour de toi |
+| Chevalier | Rempart | Invulnérable pendant 6 s |
+| Samouraï | Tourbillon | Tranche tous les ennemis à moins de 5 m |
+| Viking | Rage | Soin, puissance et vitesse |
+| Elfe | Volée de flèches | Touche tous les ennemis de l'arène |
+| Cow-girl | Dynamite | Explosion de 9 m qui repousse les ennemis |
+| Sorcière | Malédiction | Tous les ennemis brûlent et sont ralentis |
+| Magicien | Arrêt du temps | Fige tous les ennemis pendant 5 s (2 s pour un boss) |
+| Chevalier d'or | Bénédiction | Soin complet, bouclier et régénération |
+
 ## Passe de combat
 
 Chaque partie rapporte de l'XP (un dixième du score). Le passe compte 30 paliers, permanents et gratuits. Chaque palier débloque un personnage, une arme, une arme de corps à corps ou un skin d'arme. Le Soldat, le Blaster, le Couteau et le skin Standard sont disponibles dès le départ. L'ordre des récompenses est dans `scripts/battle_pass.gd`.
@@ -102,7 +123,7 @@ Un tir dans la tête fait le double de dégâts : le marqueur de touche devient 
 | Hache (tous les ennemis devant soi) | 1,1 s | 10 | 2,6 m |
 | Masse (repousse l'ennemi) | 1 s | 8 | 2,4 m |
 
-Les skins d'armes sont des finitions : ils gardent la forme de l'arme et la repeignent d'un motif (néon, camouflage, fibre de carbone, lave…), certains la font briller ou lui ajoutent une lunette ou un silencieux, et chacun change la couleur du tir. Les statistiques ne changent pas. Le skin décide aussi de la façon dont meurent les ennemis abattus : ils fondent en flaque (Toxique, Océan), gèlent puis éclatent (Glace, Or), se consument (Lave, Solaire), se dissipent en rayon de lumière (Néon, Royal) ou explosent en morceaux (Sakura, Champion). Le skin Champion ne s'obtient qu'en battant le boss final. Il y a 13 personnages, purement visuels.
+Les skins d'armes sont des finitions : ils gardent la forme de l'arme et la repeignent d'un motif (néon, camouflage, fibre de carbone, lave…), certains la font briller ou lui ajoutent une lunette ou un silencieux, et chacun change la couleur du tir. Les statistiques ne changent pas. Le skin décide aussi de la façon dont meurent les ennemis abattus : ils fondent en flaque (Toxique, Océan), gèlent puis éclatent (Glace, Or), se consument (Lave, Solaire), se dissipent en rayon de lumière (Néon, Royal) ou explosent en morceaux (Sakura, Champion). Le skin Champion ne s'obtient qu'en battant le boss final. Il y a 13 personnages : ils ne diffèrent que par leur apparence et leur ulti.
 
 ## Développer en local (optionnel)
 

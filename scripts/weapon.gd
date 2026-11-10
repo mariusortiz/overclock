@@ -36,6 +36,8 @@ var damage_multiplier := 1
 var perks := {}
 ## The Loadout.WEAPONS entry in hand.
 var current_data := {}
+## Ultimate: fires twice as fast without using ammo.
+var overdrive := false
 ## When set, the gun is held in this character's right hand.
 var holder: CharacterModel
 
@@ -148,6 +150,8 @@ func _level(type: Perk.Type) -> int:
 
 func _fire() -> void:
 	_cooldown = 1.0 / (fire_rate * (1.0 + Perk.RAPID_FIRE_BONUS * _level(Perk.Type.RAPID_FIRE)))
+	if overdrive:
+		_cooldown *= 0.5
 	var camera := get_viewport().get_camera_3d()
 	var origin := camera.global_position
 	var direction := -camera.global_basis.z
@@ -180,6 +184,8 @@ func _fire() -> void:
 	_shot_sound.pitch_scale = randf_range(0.94, 1.06)
 	_shot_sound.play()
 
+	if overdrive:
+		return
 	ammo -= 1
 	ammo_changed.emit(ammo, get_magazine_size(), false)
 	if ammo == 0:

@@ -70,6 +70,11 @@ func _ready() -> void:
 
 
 ## Bosses are too heavy to be pushed around.
+## Bosses shake off a stun faster.
+func stun(seconds: float) -> void:
+	super(seconds * 0.4)
+
+
 func knockback(_direction: Vector3, _strength: float) -> void:
 	pass
 
