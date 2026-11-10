@@ -3,13 +3,22 @@ extends Node
 ## deck of every arena. Prints one NAV line per deck and exits with an error
 ## if a deck cannot be reached.
 
-const ARENAS: Array[String] = ["desert", "station", "jungle", "volcano", "city"]
+const ARENAS: Array[String] = ["station", "desert", "jungle", "volcano", "city"]
 const START := Vector3(0.0, 0.2, 18.0)
 const DECKS: Array[Vector3] = [Vector3(-24.5, 3.1, 0.0), Vector3(24.5, 3.1, 0.0)]
 const MAX_WAIT_FRAMES := 600
 
 
 func _ready() -> void:
+	# The very first region added in a headless run never gets a usable map
+	# (whichever arena it is), so a throwaway one goes first.
+	var warm_up: Node = load("res://scenes/arenas/%s.tscn" % ARENAS[0]).instantiate()
+	add_child(warm_up)
+	for i in 30:
+		await get_tree().physics_frame
+	remove_child(warm_up)
+	warm_up.free()
+
 	var failed := false
 	for arena_name in ARENAS:
 		var arena: NavigationRegion3D = load("res://scenes/arenas/%s.tscn" % arena_name).instantiate()
