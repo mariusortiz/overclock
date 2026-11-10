@@ -11,7 +11,7 @@ const TURN_RANGE := 0.5  # radians each side of facing the camera
 const SPIN_SPEED := 0.9
 const FLOAT_HEIGHT := 1.05
 ## A gun shown alone is scaled to this length, in meters.
-const FLOAT_GUN_LENGTH := 1.25
+const FLOAT_GUN_LENGTH := 1.5
 const FLOAT_MELEE_SCALE := 1.6
 
 var _time := 0.0

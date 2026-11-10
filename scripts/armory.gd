@@ -4,6 +4,8 @@ extends Control
 
 const MENU_SCENE := "res://scenes/menu.tscn"
 const CARD_SIZE := Vector2(214, 108)
+## Characters that fit on one line of a card.
+const CARD_LINE_LENGTH := 12
 
 ## One tab per kind of item. "stats" lists what the detail panel shows:
 ## [label, key in the item, value that fills the bar].
@@ -93,7 +95,11 @@ func _refresh() -> void:
 		elif not Loadout.is_unlocked(item):
 			status = "VERROUILLÉ"
 			card.modulate = Color(1, 1, 1, 0.55)
-		card.text = "%s\n%s" % [item.name, status]
+		# A long hyphenated name is split at the hyphen rather than mid-word.
+		var title: String = item.name
+		if title.length() > CARD_LINE_LENGTH:
+			title = title.replace("-", "-\n")
+		card.text = "%s\n%s" % [title, status]
 		card.pressed.connect(_on_card_pressed.bind(item))
 		_grid.add_child(card)
 

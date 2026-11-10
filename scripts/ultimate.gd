@@ -85,7 +85,8 @@ func _activate() -> void:
 			for side: float in [-1.0, 1.0]:
 				var clone := Clone.new()
 				clone.player = _player
-				clone.offset = Vector3(side * 2.0, 0, 0.5)
+				# Ahead and to the side, out of the camera's way.
+				clone.offset = Vector3(side * 2.2, 0, -1.5)
 				clone.position = _player.global_position
 				scene.add_child(clone)
 		&"broadside":
