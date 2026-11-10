@@ -1,6 +1,6 @@
 extends Control
-## Armory: pick the character, the weapon and the melee weapon from a grid of
-## cards. Locked items can be previewed but not equipped.
+## Armory: pick the character, the weapon, the melee weapon and the weapon
+## skin from a grid of cards. Locked items can be previewed but not equipped.
 
 const MENU_SCENE := "res://scenes/menu.tscn"
 const CARD_SIZE := Vector2(214, 108)
@@ -13,6 +13,7 @@ var _tabs := [
 		"stats": [["CADENCE", "fire_rate", 14.0], ["DÉGÂTS", "damage", 10.0], ["CHARGEUR", "magazine", 40.0]]},
 	{"label": "CORPS À CORPS", "key": Loadout.MELEE_KEY, "items": Loadout.MELEE,
 		"stats": [["DÉGÂTS", "damage", 10.0], ["PORTÉE", "range", 4.5]]},
+	{"label": "SKIN", "key": Loadout.SKIN_KEY, "items": Loadout.SKINS, "stats": []},
 ]
 var _tab_index := 0
 var _viewed: Dictionary
@@ -58,6 +59,8 @@ func _equipped() -> Dictionary:
 			return Loadout.selected_weapon()
 		Loadout.MELEE_KEY:
 			return Loadout.selected_melee()
+		Loadout.SKIN_KEY:
+			return Loadout.selected_skin()
 	return Loadout.selected_character()
 
 
@@ -108,6 +111,8 @@ func _on_card_pressed(item: Dictionary) -> void:
 			_stage.show_weapon(item)
 		Loadout.MELEE_KEY:
 			_stage.show_melee(item)
+		Loadout.SKIN_KEY:
+			_stage.show_weapon(Loadout.selected_weapon(), item)
 	_refresh()
 
 

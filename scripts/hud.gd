@@ -30,6 +30,7 @@ var _perk_options: Array = []
 @onready var _game_over_screen: Control = $GameOver
 @onready var _final_score: Label = $GameOver/Center/Box/Score
 @onready var _best_score: Label = $GameOver/Center/Box/Best
+@onready var _xp_label: Label = $GameOver/Center/Box/Xp
 @onready var _replay_button: Button = $GameOver/Center/Box/Replay
 @onready var _menu_button: Button = $GameOver/Center/Box/Menu
 @onready var _pause_button: Button = $PauseButton
@@ -166,7 +167,8 @@ func show_death_title() -> void:
 	_death_title.visible = true
 
 
-func show_game_over(score: int, best: int, is_record: bool) -> void:
+## `unlocked` lists the names of the battle pass rewards just earned.
+func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: Array) -> void:
 	_death_title.visible = false
 	_game_over = true
 	pause_menu.enabled = false
@@ -176,4 +178,7 @@ func show_game_over(score: int, best: int, is_record: bool) -> void:
 	reticle.visible = false
 	_final_score.text = "Score : %d" % score
 	_best_score.text = "Nouveau record !" if is_record else "Record : %d" % best
+	_xp_label.text = "+%d XP" % xp
+	if not unlocked.is_empty():
+		_xp_label.text += "\nDébloqué : " + ", ".join(unlocked)
 	_game_over_screen.visible = true

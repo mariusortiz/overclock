@@ -42,7 +42,7 @@ mouse_filter = 2
 
 [node name="Box" type="VBoxContainer" parent="Right"]
 custom_minimum_size = Vector2(460, 0)
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="Logo" type="Control" parent="Right/Box"]
 custom_minimum_size = Vector2(460, 96)
@@ -64,6 +64,11 @@ text = "JOUER"
 custom_minimum_size = Vector2(0, 84)
 theme_override_font_sizes/font_size = 34
 text = "ARSENAL"
+
+[node name="Pass" type="Button" parent="Right/Box"]
+custom_minimum_size = Vector2(0, 84)
+theme_override_font_sizes/font_size = 34
+text = "PASSE DE COMBAT"
 
 [node name="Settings" type="Button" parent="Right/Box"]
 custom_minimum_size = Vector2(0, 84)

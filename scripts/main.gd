@@ -216,7 +216,12 @@ func _on_player_died() -> void:
 	var is_record := score > best
 	if is_record:
 		SaveData.save_high_score(score)
-	hud.show_game_over(score, maxi(score, best), is_record)
+	# The score feeds the battle pass.
+	var xp := BattlePass.xp_for_score(score)
+	var unlocked := []
+	for id in BattlePass.add_xp(xp):
+		unlocked.append(Loadout.find(id).item.name)
+	hud.show_game_over(score, maxi(score, best), is_record, xp, unlocked)
 
 
 func _on_touch_look(relative: Vector2) -> void:

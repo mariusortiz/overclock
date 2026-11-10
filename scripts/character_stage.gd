@@ -38,8 +38,9 @@ func show_character(item: Dictionary) -> void:
 	_left_hand = _character.get_attachment("Fist.L")
 
 
-func show_weapon(item: Dictionary) -> void:
-	_replace(_weapon_holder, Loadout.instantiate_weapon(item))
+## `skin` defaults to the equipped one.
+func show_weapon(item: Dictionary, skin := {}) -> void:
+	_replace(_weapon_holder, Loadout.instantiate_weapon(item, skin))
 
 
 func show_melee(item: Dictionary) -> void:

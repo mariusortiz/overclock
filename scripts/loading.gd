@@ -3,7 +3,7 @@ extends Control
 ## background, then opens the menu.
 
 const MENU_SCENE := "res://scenes/menu.tscn"
-const SCENES_TO_LOAD: Array[String] = [MENU_SCENE, "res://scenes/armory.tscn", "res://scenes/main.tscn"]
+const SCENES_TO_LOAD: Array[String] = [MENU_SCENE, "res://scenes/armory.tscn", "res://scenes/battle_pass.tscn", "res://scenes/main.tscn"]
 const MINIMUM_TIME := 2.0
 const MONSTERS := "res://assets/models/quaternius/monsters/"
 const CHARACTERS := "res://assets/models/quaternius/characters/"

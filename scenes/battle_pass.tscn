@@ -1,0 +1,93 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle_pass_screen.gd" id="main"]
+[ext_resource type="Script" path="res://scripts/tech_background.gd" id="bg"]
+
+[node name="BattlePass" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("main")
+
+[node name="Background" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("bg")
+
+[node name="Back" type="Button" parent="."]
+offset_left = 28.0
+offset_top = 20.0
+offset_right = 228.0
+offset_bottom = 84.0
+theme_override_font_sizes/font_size = 26
+text = "< RETOUR"
+
+[node name="Title" type="Label" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -400.0
+offset_top = 20.0
+offset_right = 400.0
+offset_bottom = 84.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.16, 0.83, 1, 1)
+theme_override_font_sizes/font_size = 44
+text = "PASSE DE COMBAT"
+horizontal_alignment = 1
+
+[node name="Top" type="VBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -360.0
+offset_top = 110.0
+offset_right = 360.0
+offset_bottom = 230.0
+grow_horizontal = 2
+theme_override_constants/separation = 8
+
+[node name="Tier" type="Label" parent="Top"]
+theme_override_font_sizes/font_size = 34
+horizontal_alignment = 1
+
+[node name="Bar" type="ProgressBar" parent="Top"]
+custom_minimum_size = Vector2(0, 22)
+show_percentage = false
+
+[node name="Xp" type="Label" parent="Top"]
+theme_override_colors/font_color = Color(1, 0.24, 0.95, 1)
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = -430.0
+offset_right = -28.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+vertical_scroll_mode = 0
+
+[node name="Track" type="HBoxContainer" parent="Scroll"]
+theme_override_constants/separation = 12
+
+[node name="Hint" type="Label" parent="."]
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -36.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.7, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "Chaque partie rapporte de l'XP selon ton score."
+horizontal_alignment = 1

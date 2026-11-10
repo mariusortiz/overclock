@@ -79,26 +79,30 @@ Les arènes font 60 m de côté. La partie commence dans la station, et chaque b
 
 Une mini-carte en haut à gauche montre les ennemis en rouge (les boss en plus gros) et les power-ups dans leur couleur.
 
-## Personnages et armes
+## Passe de combat
 
-Ils se choisissent dans le menu et se débloquent avec le record.
+Chaque partie rapporte de l'XP (un dixième du score). Le passe compte 30 paliers, permanents et gratuits. Chaque palier débloque un personnage, une arme, une arme de corps à corps ou un skin d'arme. Le Soldat, le Blaster, le Couteau et le skin Standard sont disponibles dès le départ. L'ordre des récompenses est dans `scripts/battle_pass.gd`.
 
-| Arme | Cadence | Dégâts | Chargeur | Record requis |
-|---|---|---|---|---|
-| Blaster | 8/s | 1 | 24 | 0 |
-| Fusil lourd | 2/s | 5 | 8 | 1500 |
-| Sniper (zoom plus fort) | 1/s | 8 | 5 | 2500 |
-| Mitraillette | 14/s | 1 | 40 | 4000 |
-| Bazooka (roquette, explosion de 4 m) | 0,8/s | 10 | 1 | 6000 |
+## Arsenal
 
-| Corps à corps | Délai | Dégâts | Portée | Record requis |
-|---|---|---|---|---|
-| Couteau (une cible) | 0,5 s | 4 | 2,2 m | 0 |
-| Lance (transperce les ennemis alignés) | 0,8 s | 6 | 4,5 m | 2000 |
-| Hache (tous les ennemis devant soi) | 1,1 s | 10 | 2,6 m | 3000 |
-| Masse (repousse l'ennemi) | 1 s | 8 | 2,4 m | 4500 |
+L'arsenal, accessible depuis l'accueil, a quatre onglets : personnage, arme, corps à corps et skin. Un élément verrouillé peut être prévisualisé, mais pas équipé.
 
-Personnages (visuel seulement) : Soldat (0), Cow-boy (1000), Pirate (2500), Viking (5000), Chevalier d'or (8000).
+| Arme | Cadence | Dégâts | Chargeur |
+|---|---|---|---|
+| Blaster | 8/s | 1 | 24 |
+| Fusil lourd | 2/s | 5 | 8 |
+| Sniper (zoom plus fort) | 1/s | 8 | 5 |
+| Mitraillette | 14/s | 1 | 40 |
+| Bazooka (roquette, explosion de 4 m) | 0,8/s | 10 | 1 |
+
+| Corps à corps | Délai | Dégâts | Portée |
+|---|---|---|---|
+| Couteau (une cible) | 0,5 s | 4 | 2,2 m |
+| Lance (transperce les ennemis alignés) | 0,8 s | 6 | 4,5 m |
+| Hache (tous les ennemis devant soi) | 1,1 s | 10 | 2,6 m |
+| Masse (repousse l'ennemi) | 1 s | 8 | 2,4 m |
+
+Les 12 skins d'armes (Néon, Glace, Lave, Or…) s'appliquent à toutes les armes : ils teintent le modèle et changent la couleur du tir. Il y a 13 personnages, purement visuels.
 
 ## Développer en local (optionnel)
 

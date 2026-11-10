@@ -68,6 +68,12 @@ func setup(data: Dictionary, owner_perks: Dictionary) -> void:
 	blast_radius = data.get("blast_radius", 0.0)
 
 	_model_pivot.add_child(Loadout.instantiate_weapon(data))
+	# The skin also colors the shots.
+	var shot_color: Color = Loadout.selected_skin().shot
+	(_tracer_mesh.material as StandardMaterial3D).albedo_color = shot_color
+	(_impact_mesh.material as StandardMaterial3D).albedo_color = shot_color
+	($Muzzle/Flash/Mesh as MeshInstance3D).material_override = _fx_material(shot_color.lerp(Color.WHITE, 0.5))
+	($Muzzle/Flash/Light as OmniLight3D).light_color = shot_color
 	_muzzle_offset = data.muzzle
 	_muzzle.position = _muzzle_offset
 
