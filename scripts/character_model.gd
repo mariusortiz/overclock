@@ -74,15 +74,16 @@ func freeze(action: StringName, seconds: float) -> void:
 ## Moves `item` into a hand ("R" or "L"). Returns false if the model has no
 ## such hand. With `along_arm`, the item's +Y axis follows the forearm, so a
 ## blade or a handle moves with the arm; otherwise the item keeps its own
-## orientation (a gun that keeps pointing where its owner aims).
-func place_in_hand(item: Node3D, side: String, along_arm: bool) -> bool:
+## orientation (a gun that keeps pointing where its owner aims). `reversed`
+## points the item back toward the elbow: a weapon carried at rest, tip up.
+func place_in_hand(item: Node3D, side: String, along_arm: bool, reversed := false) -> bool:
 	var fist := _bone_position("Fist." + side)
 	var elbow := _bone_position("LowerArm." + side)
 	if fist == Vector3.INF or elbow == Vector3.INF:
 		return false
 	item.global_position = fist
 	if along_arm:
-		var along := elbow.direction_to(fist)
+		var along := fist.direction_to(elbow) if reversed else elbow.direction_to(fist)
 		var back := global_basis.x.normalized().cross(along)
 		# Skip the rare frame where the arm points exactly sideways.
 		if back.length() > 0.01:

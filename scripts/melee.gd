@@ -47,7 +47,8 @@ func _process(_delta: float) -> void:
 	# rests in the left hand and moves to the striking (right) hand for a swing.
 	var swinging := _swing_left > 0.0
 	if holder:
-		holder.place_in_hand(_model_pivot, "R" if swinging else "L", true)
+		# At rest it is carried tip up; in a swing it points where the arm strikes.
+		holder.place_in_hand(_model_pivot, "R" if swinging else "L", true, not swinging)
 	if gun_visual:
 		gun_visual.visible = not swinging
 

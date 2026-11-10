@@ -20,7 +20,7 @@ func _process(delta: float) -> void:
 	_pivot.rotation.y = PI + sin(_time * TURN_SPEED) * TURN_RANGE
 	if _character:
 		_character.place_in_hand(_weapon_holder, "R", false)
-		_character.place_in_hand(_melee_holder, "L", true)
+		_character.place_in_hand(_melee_holder, "L", true, true)
 
 
 func show_character(item: Dictionary) -> void:

@@ -86,8 +86,8 @@ const MELEE := [
 	},
 	{
 		# Long thrust that pierces every enemy lined up in front.
-		"id": "spear", "grip": 0.22, "name": "Lance",
-		"model": "res://assets/models/characters/weapon-spear.glb", "scale": 3.6,
+		"id": "spear", "grip": 0.25, "name": "Lance",
+		"model": "res://assets/models/characters/weapon-spear.glb", "scale": 2.4,
 		"damage": 6, "range": 4.5, "cooldown": 0.8, "sweep": true, "cone": 18.0, "knockback": 0.0,
 	},
 	{
