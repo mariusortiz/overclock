@@ -1,5 +1,5 @@
 extends Node3D
-## Title screen: best score, character and weapon selection, play button.
+## Title screen: best score, character, weapon and melee selection, play button.
 ## Locked items can be previewed but not played.
 
 const GAME_SCENE := "res://scenes/main.tscn"
@@ -8,6 +8,7 @@ const SPIN_SPEED := 0.6
 var _best := 0
 var _character_index := 0
 var _weapon_index := 0
+var _melee_index := 0
 
 @onready var _character_pivot: Node3D = $CharacterPivot
 @onready var _weapon_pivot: Node3D = $WeaponPivot
@@ -16,6 +17,8 @@ var _weapon_index := 0
 @onready var _character_info: Label = $UI/Panel/Center/Box/CharacterInfo
 @onready var _weapon_name: Label = $UI/Panel/Center/Box/WeaponRow/Name
 @onready var _weapon_info: Label = $UI/Panel/Center/Box/WeaponInfo
+@onready var _melee_name: Label = $UI/Panel/Center/Box/MeleeRow/Name
+@onready var _melee_info: Label = $UI/Panel/Center/Box/MeleeInfo
 @onready var _play_button: Button = $UI/Panel/Center/Box/Play
 
 
@@ -25,11 +28,14 @@ func _ready() -> void:
 	_best_label.text = "Record : %d" % _best
 	_character_index = Loadout.CHARACTERS.find(Loadout.selected_character())
 	_weapon_index = Loadout.WEAPONS.find(Loadout.selected_weapon())
+	_melee_index = Loadout.MELEE.find(Loadout.selected_melee())
 
 	$UI/Panel/Center/Box/CharacterRow/Previous.pressed.connect(_cycle_character.bind(-1))
 	$UI/Panel/Center/Box/CharacterRow/Next.pressed.connect(_cycle_character.bind(1))
 	$UI/Panel/Center/Box/WeaponRow/Previous.pressed.connect(_cycle_weapon.bind(-1))
 	$UI/Panel/Center/Box/WeaponRow/Next.pressed.connect(_cycle_weapon.bind(1))
+	$UI/Panel/Center/Box/MeleeRow/Previous.pressed.connect(_cycle_melee.bind(-1))
+	$UI/Panel/Center/Box/MeleeRow/Next.pressed.connect(_cycle_melee.bind(1))
 	_play_button.pressed.connect(_on_play_pressed)
 	_refresh()
 
@@ -55,16 +61,26 @@ func _cycle_weapon(step: int) -> void:
 	_refresh()
 
 
+func _cycle_melee(step: int) -> void:
+	_melee_index = posmod(_melee_index + step, Loadout.MELEE.size())
+	_refresh()
+
+
 func _refresh() -> void:
 	var character: Dictionary = Loadout.CHARACTERS[_character_index]
 	var weapon: Dictionary = Loadout.WEAPONS[_weapon_index]
+	var melee: Dictionary = Loadout.MELEE[_melee_index]
 
 	_character_name.text = character.name
 	_character_info.text = _lock_text(character)
 	_weapon_name.text = weapon.name
 	_weapon_info.text = _lock_text(weapon) if not Loadout.is_unlocked(weapon) else \
-			"Cadence %d/s · Dégâts %d · Chargeur %d" % [weapon.fire_rate, weapon.damage, weapon.magazine]
-	_play_button.disabled = not (Loadout.is_unlocked(character) and Loadout.is_unlocked(weapon))
+			"Cadence %s/s · Dégâts %d · Chargeur %d" % [String.num(weapon.fire_rate, 1), weapon.damage, weapon.magazine]
+	_melee_name.text = melee.name
+	_melee_info.text = _lock_text(melee) if not Loadout.is_unlocked(melee) else \
+			"Dégâts %d · Portée %s m" % [melee.damage, String.num(melee.range, 1)]
+	_play_button.disabled = not (Loadout.is_unlocked(character) and Loadout.is_unlocked(weapon) \
+			and Loadout.is_unlocked(melee))
 
 	_replace_child(_character_pivot, Loadout.instantiate_character(character))
 	(_character_pivot.get_child(0) as CharacterModel).play(&"idle")
@@ -86,5 +102,6 @@ func _replace_child(parent: Node3D, child: Node3D) -> void:
 func _on_play_pressed() -> void:
 	Loadout.select(Loadout.CHARACTER_KEY, Loadout.CHARACTERS[_character_index])
 	Loadout.select(Loadout.WEAPON_KEY, Loadout.WEAPONS[_weapon_index])
+	Loadout.select(Loadout.MELEE_KEY, Loadout.MELEE[_melee_index])
 	# Deferred: the scene must not be removed while the button handles its click.
 	get_tree().change_scene_to_file.call_deferred(GAME_SCENE)

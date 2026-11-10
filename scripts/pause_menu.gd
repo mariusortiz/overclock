@@ -58,6 +58,7 @@ func open() -> void:
 	_mouse_was_captured = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Input.action_release("fire")
+	Input.action_release("aim")
 	get_tree().paused = true
 	visible = true
 

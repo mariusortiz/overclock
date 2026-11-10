@@ -25,6 +25,8 @@ Cette version web est mise à jour à chaque push sur `main`. Elle utilise un mo
 | Bouger | Joystick : poser le pouce n'importe où sur la moitié gauche | ZQSD (AZERTY) ou WASD (QWERTY), flèches |
 | Caméra | Glisser sur la moitié droite | Souris (clic dans le jeu pour la capturer) |
 | Tirer | Bouton TIR en bas à droite (on peut viser en gardant le doigt dessus) | Clic gauche |
+| Viser (zoom) | Bouton VISER : un appui l'active, un autre le désactive | Maintenir le clic droit |
+| Corps à corps | Bouton COUP | F |
 | Recharger | Bouton RECH. à gauche du bouton TIR (automatique quand le chargeur est vide) | R |
 | Pause et réglages | Bouton II en haut à droite, ou bouton retour d'Android | Échap |
 | Sauter | Bouton SAUT au-dessus du bouton TIR | Espace |
@@ -58,7 +60,14 @@ Ils se choisissent dans le menu et se débloquent avec le record.
 |---|---|---|---|---|
 | Blaster | 8/s | 1 | 24 | 0 |
 | Fusil lourd | 2/s | 5 | 8 | 1500 |
+| Sniper (zoom plus fort) | 1/s | 8 | 5 | 2500 |
 | Mitraillette | 14/s | 1 | 40 | 4000 |
+| Bazooka (roquette, explosion de 4 m) | 0,8/s | 10 | 1 | 6000 |
+
+| Corps à corps | Délai | Dégâts | Portée | Record requis |
+|---|---|---|---|---|
+| Couteau (une cible) | 0,5 s | 4 | 2,2 m | 0 |
+| Hache (tous les robots devant soi) | 1,1 s | 10 | 2,6 m | 3000 |
 
 Personnages (visuel seulement) : Soldat (0), Ouvrier (1000), Pillard (2500), Chevalier (5000), Alien (8000).
 

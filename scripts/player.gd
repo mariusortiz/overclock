@@ -19,6 +19,8 @@ signal perks_changed
 @export var touch_sensitivity := 0.006
 @export var min_pitch_deg := -60.0
 @export var max_pitch_deg := 35.0
+@export var default_fov := 70.0
+@export var zoom_speed := 12.0
 
 var health := 0
 ## Perk.Type -> level. Shared with the weapon.
@@ -26,14 +28,17 @@ var perks := {}
 
 var _effects := {}  # PowerUp.Type -> seconds left
 var _regen_buffer := 0.0
+var _action_animation_left := 0.0
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var weapon: Weapon = $Weapon
+@onready var melee: Melee = $Melee
 var _model: CharacterModel
 
 @onready var _model_pivot: Node3D = $ModelPivot
 @onready var _pickup_sound: AudioStreamPlayer = $PickupSound
 @onready var _spring_arm: SpringArm3D = $CameraPivot/SpringArm3D
+@onready var _camera: Camera3D = $CameraPivot/SpringArm3D/Camera3D
 
 
 func _ready() -> void:
@@ -42,6 +47,8 @@ func _ready() -> void:
 	_model = Loadout.instantiate_character(Loadout.selected_character())
 	_model_pivot.add_child(_model)
 	weapon.setup(Loadout.selected_weapon(), perks)
+	melee.setup(Loadout.selected_melee())
+	melee.swung.connect(_on_melee_swung)
 	_spring_arm.add_excluded_object(get_rid())
 	_spring_arm.rotation.x = deg_to_rad(-15.0)
 	weapon.rotation.x = _spring_arm.rotation.x
@@ -101,7 +108,8 @@ func heal(amount: int) -> void:
 
 ## Rotates the view. `relative` is a screen-space drag in pixels.
 func look(relative: Vector2, sensitivity: float) -> void:
-	sensitivity *= Settings.sensitivity
+	# Slower while zoomed in, in proportion to the zoom.
+	sensitivity *= Settings.sensitivity * _camera.fov / default_fov
 	rotate_y(-relative.x * sensitivity)
 	var pitch := _spring_arm.rotation.x - relative.y * sensitivity
 	_spring_arm.rotation.x = clampf(pitch, deg_to_rad(min_pitch_deg), deg_to_rad(max_pitch_deg))
@@ -113,8 +121,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		look(event.relative, mouse_sensitivity)
 
 
+func _process(delta: float) -> void:
+	var target_fov := weapon.zoom_fov if Input.is_action_pressed("aim") and health > 0 else default_fov
+	_camera.fov = lerpf(_camera.fov, target_fov, minf(zoom_speed * delta, 1.0))
+
+
+func _on_melee_swung() -> void:
+	_model.play(&"attack-melee-right", true)
+	_action_animation_left = 0.4
+
+
 func _physics_process(delta: float) -> void:
 	_update_effects(delta)
+	_action_animation_left -= delta
 
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
@@ -134,6 +153,8 @@ func _physics_process(delta: float) -> void:
 
 
 func _update_animation() -> void:
+	if _action_animation_left > 0.0:
+		return
 	if not is_on_floor():
 		_model.play(&"fall" if velocity.y < 0.0 else &"jump")
 	elif Vector2(velocity.x, velocity.z).length() > 0.5:
@@ -146,6 +167,7 @@ func _die() -> void:
 	set_physics_process(false)
 	set_process_unhandled_input(false)
 	weapon.set_physics_process(false)
+	melee.set_physics_process(false)
 	_model.play(&"die")
 	died.emit()
 
@@ -157,6 +179,7 @@ func _update_effects(delta: float) -> void:
 			_effects.erase(type)
 
 	weapon.damage_multiplier = power_damage_multiplier if has_effect(PowerUp.Type.POWER) else 1
+	melee.damage_multiplier = weapon.damage_multiplier
 
 	if has_effect(PowerUp.Type.REGEN):
 		_regen_buffer += regen_per_second * delta

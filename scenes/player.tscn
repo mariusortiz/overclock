@@ -5,6 +5,7 @@
 [ext_resource type="AudioStream" path="res://assets/audio/kenney/laserSmall_000.ogg" id="3_shot"]
 [ext_resource type="AudioStream" path="res://assets/audio/hit.wav" id="4_hit"]
 [ext_resource type="AudioStream" path="res://assets/audio/pickup.wav" id="5_pickup"]
+[ext_resource type="Script" path="res://scripts/melee.gd" id="6_melee"]
 
 [sub_resource type="CapsuleShape3D" id="body_shape"]
 radius = 0.4
@@ -75,3 +76,13 @@ max_polyphony = 4
 [node name="PickupSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_pickup")
 volume_db = -4.0
+
+[node name="Melee" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 0.75, -0.25)
+script = ExtResource("6_melee")
+
+[node name="ModelPivot" type="Node3D" parent="Melee"]
+
+[node name="HitSound" type="AudioStreamPlayer" parent="Melee"]
+stream = ExtResource("4_hit")
+pitch_scale = 0.7

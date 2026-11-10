@@ -10,7 +10,7 @@ signal enemies_left_changed(count: int)
 
 @export var enemy_scene: PackedScene
 @export var first_wave_delay := 2.0
-@export var break_duration := 4.0
+@export var break_duration := 5.0
 @export var spawn_interval := 0.8
 @export var min_player_distance := 12.0
 

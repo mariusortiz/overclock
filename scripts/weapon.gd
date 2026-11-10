@@ -9,6 +9,7 @@ signal ammo_changed(current: int, magazine: int, reloading: bool)
 
 const TRACER_COLOR := Color(0, 0.9, 1)
 const FLASH_TIME := 0.04
+const ROCKET_SCENE := preload("res://scenes/rocket.tscn")
 
 @export var max_range := 200.0
 ## Touch only: a shot that misses still hits a target within this angle of the reticle.
@@ -19,6 +20,10 @@ var fire_rate := 8.0
 var damage := 1
 var magazine_size := 24
 var reload_time := 1.4
+## Camera field of view while aiming.
+var zoom_fov := 40.0
+## Above 0, the weapon fires rockets that explode with this radius.
+var blast_radius := 0.0
 var ammo := 0
 var damage_multiplier := 1
 ## Perk.Type -> level, shared with the player.
@@ -56,6 +61,8 @@ func setup(data: Dictionary, owner_perks: Dictionary) -> void:
 	damage = data.damage
 	magazine_size = data.magazine
 	reload_time = data.reload_time
+	zoom_fov = data.zoom_fov
+	blast_radius = data.get("blast_radius", 0.0)
 
 	var model := Loadout.instantiate_weapon(data)
 	var size: float = data.scale
@@ -108,15 +115,20 @@ func _fire() -> void:
 	var end := origin + direction * max_range
 	if not hit.is_empty():
 		end = hit.position
-		_spawn_fx(_impact_mesh, end, 0.15)
-		if _is_damageable(hit):
-			_apply_hit(hit.collider, end)
-			_hit_sound.play()
-			hit_confirmed.emit()
-		elif _level(Perk.Type.EXPLOSIVE) > 0:
-			_explode(end, null)
 
-	_spawn_tracer(_tracer_mesh, _muzzle.global_position, end)
+	if blast_radius > 0.0:
+		_launch_rocket(end)
+	else:
+		if not hit.is_empty():
+			_spawn_fx(_impact_mesh, end, 0.15)
+			if _is_damageable(hit):
+				_apply_hit(hit.collider, end)
+				_hit_sound.play()
+				hit_confirmed.emit()
+			elif _level(Perk.Type.EXPLOSIVE) > 0:
+				_explode(end, null)
+		_spawn_tracer(_tracer_mesh, _muzzle.global_position, end)
+
 	_show_flash()
 	_shot_sound.pitch_scale = randf_range(0.94, 1.06)
 	_shot_sound.play()
@@ -127,13 +139,40 @@ func _fire() -> void:
 		_reload()
 
 
-## Damages an enemy and applies the elemental perks.
-func _apply_hit(enemy: Node3D, point: Vector3) -> void:
+func _launch_rocket(toward: Vector3) -> void:
+	var rocket: Rocket = ROCKET_SCENE.instantiate()
+	var from := _muzzle.global_position
+	rocket.position = from
+	rocket.direction = from.direction_to(toward)
+	rocket.exploded.connect(_on_rocket_exploded)
+	get_tree().current_scene.add_child(rocket)
+
+
+func _on_rocket_exploded(at: Vector3) -> void:
+	var blast := _spawn_fx(_explosion_mesh, at, 0.25)
+	blast.scale = Vector3.ONE * (blast_radius / Perk.EXPLOSION_RADIUS)
+	var hit_any := false
+	for target: Node3D in get_tree().get_nodes_in_group("targets"):
+		if at.distance_to(target.get_aim_position()) <= blast_radius:
+			_damage_with_elements(target)
+			hit_any = true
+	if hit_any:
+		_hit_sound.play()
+		hit_confirmed.emit()
+
+
+## Damages an enemy and applies the fire and ice perks.
+func _damage_with_elements(enemy: Node3D) -> void:
 	enemy.take_damage(damage * damage_multiplier)
 	if _level(Perk.Type.FIRE) > 0:
 		enemy.ignite(_level(Perk.Type.FIRE))
 	if _level(Perk.Type.ICE) > 0:
 		enemy.chill(_level(Perk.Type.ICE))
+
+
+## A direct hit: damage, elements, then the chaining perks.
+func _apply_hit(enemy: Node3D, point: Vector3) -> void:
+	_damage_with_elements(enemy)
 	if _level(Perk.Type.LIGHTNING) > 0:
 		_chain_lightning(enemy)
 	if _level(Perk.Type.EXPLOSIVE) > 0:

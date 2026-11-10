@@ -6,6 +6,7 @@ const WAVE_BONUS := 250  # multiplied by the wave number
 const WAVE_HEAL := 25
 const MENU_SCENE := "res://scenes/menu.tscn"
 const DAMAGE_VIBRATION_MS := 40
+const PERK_CHOICE_DELAY := 2.0
 
 var score := 0
 
@@ -26,6 +27,7 @@ func _ready() -> void:
 	hud.perk_chosen.connect(_on_perk_chosen)
 
 	player.weapon.hit_confirmed.connect(hud.reticle.show_hit)
+	player.melee.hit_confirmed.connect(hud.reticle.show_hit)
 	player.weapon.ammo_changed.connect(hud.set_ammo)
 	player.health_changed.connect(hud.set_health)
 	player.damaged.connect(hud.flash_damage)
@@ -61,6 +63,13 @@ func _unhandled_input(event: InputEvent) -> void:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		else:
 			Input.action_press("fire")
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT \
+			and event.device != InputEvent.DEVICE_ID_EMULATION:
+		# Hold the right button to zoom in.
+		if event.pressed and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+			Input.action_press("aim")
+		else:
+			Input.action_release("aim")
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_F9 \
 			and (OS.is_debug_build() or OS.has_feature("web")):
 		# Test shortcut (debug and web builds): destroys every robot.
@@ -93,13 +102,19 @@ func _on_wave_cleared(number: int) -> void:
 	var bonus := WAVE_BONUS * number
 	_add_score(bonus)
 	player.heal(WAVE_HEAL)
+	hud.show_banner("VAGUE %d TERMINÉE   +%d" % [number, bonus])
 
-	# Pause and let the player pick a perk. The mouse is freed for the click.
+	# A short breather, then pause and let the player pick a perk.
+	await get_tree().create_timer(PERK_CHOICE_DELAY, false).timeout
+	if player.health <= 0:
+		return
+	# The mouse is freed for the click.
 	_mouse_was_captured = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Input.action_release("fire")
+	Input.action_release("aim")
 	get_tree().paused = true
-	hud.show_perk_choice("VAGUE %d TERMINÉE   +%d" % [number, bonus], Perk.pick_choices(3), player.perks)
+	hud.show_perk_choice("Choisis un pouvoir", Perk.pick_choices(3), player.perks)
 
 
 func _on_perk_chosen(type: Perk.Type) -> void:

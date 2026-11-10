@@ -111,7 +111,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 26
 text = "Clique pour jouer
-ZQSD : bouger · Souris : viser · Clic : tirer · R : recharger · Espace : sauter · Échap : pause"
+ZQSD : bouger · Clic : tirer · Clic droit : viser · F : corps à corps · R : recharger · Espace : sauter · Échap : pause"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
@@ -317,11 +317,6 @@ theme_override_constants/separation = 28
 [node name="Title" type="Label" parent="PerkChoice/Center/Box"]
 theme_override_colors/font_color = Color(0, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 44
-horizontal_alignment = 1
-
-[node name="Subtitle" type="Label" parent="PerkChoice/Center/Box"]
-theme_override_font_sizes/font_size = 28
-text = "Choisis un pouvoir"
 horizontal_alignment = 1
 
 [node name="Options" type="HBoxContainer" parent="PerkChoice/Center/Box"]
