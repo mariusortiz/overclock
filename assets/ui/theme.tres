@@ -1,6 +1,6 @@
 [gd_resource type="Theme" load_steps=14 format=3]
 
-[ext_resource type="FontFile" path="res://assets/ui/fonts/kenney_future_narrow.ttf" id="1_font"]
+[ext_resource type="FontFile" path="res://assets/ui/fonts/kenney_mini_square_mono.ttf" id="1_font"]
 
 [sub_resource type="StyleBoxFlat" id="button_normal"]
 content_margin_left = 28.0
@@ -173,7 +173,16 @@ corner_radius_bottom_left = 3
 
 [resource]
 default_font = ExtResource("1_font")
-default_font_size = 22
+default_font_size = 20
+CheckButton/colors/font_color = Color(1, 1, 1, 1)
+CheckButton/colors/font_pressed_color = Color(1, 1, 1, 1)
+CheckButton/colors/font_hover_color = Color(1, 1, 1, 1)
+CheckButton/colors/font_hover_pressed_color = Color(1, 1, 1, 1)
+CheckButton/styles/normal = SubResource("focus")
+CheckButton/styles/pressed = SubResource("focus")
+CheckButton/styles/hover = SubResource("focus")
+CheckButton/styles/hover_pressed = SubResource("focus")
+CheckButton/styles/focus = SubResource("focus")
 Button/colors/font_color = Color(1, 1, 1, 1)
 Button/colors/font_hover_color = Color(1, 1, 1, 1)
 Button/colors/font_pressed_color = Color(0.02, 0.08, 0.2, 1)

@@ -3,7 +3,7 @@ extends Control
 ## The OVERCLOCK badge, drawn by code so it stays sharp at any size: a slanted
 ## plate with a lightning bolt, in the game's cyan and magenta.
 
-const FONT := preload("res://assets/ui/fonts/kenney_future.ttf")
+const FONT := preload("res://assets/ui/fonts/kenney_mini_square_mono.ttf")
 const PLATE := Color(0.03, 0.07, 0.2)
 const CYAN := Color(0.16, 0.83, 1.0)
 const MAGENTA := Color(1.0, 0.24, 0.95)
@@ -36,7 +36,7 @@ func _draw() -> void:
 		bolt.append(bolt_origin + point * s)
 	draw_colored_polygon(bolt, MAGENTA)
 
-	var font_size := int(h * 0.46)
+	var font_size := int(h * 0.4)
 	var text_left := bolt_origin.x + s * 0.9
 	var text_width := w - shift - text_left - h * 0.15
 	draw_string(FONT, Vector2(text_left, h * 0.66), "OVERCLOCK", HORIZONTAL_ALIGNMENT_CENTER, text_width, font_size, Color.WHITE)
