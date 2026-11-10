@@ -113,7 +113,8 @@ func _on_card_pressed(item: Dictionary) -> void:
 			_stage.show_melee(item)
 		Loadout.SKIN_KEY:
 			_stage.show_weapon(Loadout.selected_weapon(), item)
-	_refresh()
+	# Deferred: the cards are rebuilt, and one of them is handling this click.
+	_refresh.call_deferred()
 
 
 func _add_stat(label_text: String, value: float, full: float) -> void:
