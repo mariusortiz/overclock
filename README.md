@@ -2,21 +2,13 @@
 
 Shooter sci-fi en 3D low-poly pour Android, en vue à la troisième personne. Tu affrontes des vagues de robots dans une arène. Fait avec [Godot](https://godotengine.org) 4.5.
 
-## Tester sur ton téléphone
-
-Chaque push sur `main` compile un APK et le publie dans la release **latest-debug** du dépôt public [overclock-builds](https://github.com/mariusortiz/overclock-builds). Aucune connexion n'est nécessaire :
-
-https://github.com/mariusortiz/overclock-builds/releases/download/latest-debug/overclock-debug.apk
-
-Ouvre ce lien sur le téléphone, puis installe l'APK. Il faut autoriser le navigateur à installer des applications inconnues. Les mises à jour s'installent par-dessus l'ancienne version, car elles sont toutes signées avec la même clé de debug.
-
-Les APK des autres branches sont dans l'onglet **Actions**, en artefact de chaque build.
-
-## Tester dans le navigateur (Mac, PC)
+## Tester le jeu
 
 https://mariusortiz.github.io/overclock-builds/
 
-Cette version web est mise à jour à chaque push sur `main`. Elle utilise un moteur de rendu plus simple que sur téléphone (WebGL 2) : le rendu et les FPS diffèrent un peu. Le téléphone reste la référence.
+Cette version web est mise à jour à chaque push sur `main`. Elle s'ouvre aussi dans le navigateur d'un téléphone.
+
+La compilation de l'APK Android est désactivée pour l'instant. Le preset d'export Android (`export_presets.cfg`) et la clé de debug (`ci/debug.keystore`) restent en place pour la réactiver plus tard.
 
 ## Contrôles
 
@@ -120,7 +112,7 @@ Les skins d'armes sont des finitions : ils gardent la forme de l'arme et la repe
 - `assets/` : modèles 3D, sons et musique CC0 (voir `CREDITS.md`), plus les textures générées par les scripts de `tools/`
 - `tools/` : scripts Python qui génèrent les arènes (`scenes/arenas/`), les textures et les sons
 - `ci/debug.keystore` : clé de debug publique (mot de passe `android`), utilisée uniquement pour les APK de test. La clé de release ne sera jamais commitée.
-- `.github/workflows/build.yml` : compilation de l'APK et de la version web
+- `.github/workflows/build.yml` : contrôles automatiques et compilation de la version web
 
 ## Licence des assets
 
