@@ -12,7 +12,6 @@ var _character: CharacterModel
 @onready var _pivot: Node3D = $SubViewport/World/Pivot
 @onready var _weapon_holder: Node3D = $SubViewport/World/Pivot/WeaponHolder
 @onready var _melee_holder: Node3D = $SubViewport/World/Pivot/MeleeHolder
-@onready var _extras: Node3D = $SubViewport/World/Extras
 
 
 func _process(delta: float) -> void:
@@ -47,21 +46,6 @@ func show_loadout() -> void:
 	show_character(Loadout.selected_character())
 	show_weapon(Loadout.selected_weapon())
 	show_melee(Loadout.selected_melee())
-
-
-## Adds another animated model to the scene (enemies, a boss behind).
-func add_extra(model_path: String, at: Vector3, height: float, hover := 0.0) -> void:
-	var model: Node3D = load(model_path).instantiate()
-	model.set_script(CharacterModel)
-	var character := model as CharacterModel
-	character.target_height = height
-	character.hover_height = hover
-	var holder := Node3D.new()
-	holder.position = at
-	holder.rotation.y = PI
-	_extras.add_child(holder)
-	holder.add_child(character)
-	character.play(&"idle")
 
 
 func _replace(holder: Node3D, model: Node3D) -> void:

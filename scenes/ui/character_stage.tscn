@@ -38,5 +38,3 @@ fov = 40.0
 [node name="WeaponHolder" type="Node3D" parent="SubViewport/World/Pivot"]
 
 [node name="MeleeHolder" type="Node3D" parent="SubViewport/World/Pivot"]
-
-[node name="Extras" type="Node3D" parent="SubViewport/World"]

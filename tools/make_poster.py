@@ -18,9 +18,9 @@ raw = Image.open(sys.argv[1]).convert("RGB").resize(SIZE, Image.LANCZOS)
 
 # Stronger, flatter colors.
 image = ImageEnhance.Contrast(raw).enhance(1.25)
-image = ImageEnhance.Color(image).enhance(1.5)
-image = image.filter(ImageFilter.MedianFilter(7))
-image = image.quantize(colors=56, method=Image.MEDIANCUT, dither=Image.NONE).convert("RGB")
+image = ImageEnhance.Color(image).enhance(1.3)
+image = image.filter(ImageFilter.MedianFilter(5))
+image = image.quantize(colors=160, method=Image.MEDIANCUT, dither=Image.NONE).convert("RGB")
 
 # Dark outlines where the smoothed picture changes sharply.
 edges = raw.filter(ImageFilter.GaussianBlur(1.5)).convert("L").filter(ImageFilter.FIND_EDGES)

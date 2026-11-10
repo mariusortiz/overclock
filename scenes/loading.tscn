@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/loading.gd" id="main"]
 [ext_resource type="Script" path="res://scripts/tech_background.gd" id="bg"]
 [ext_resource type="Script" path="res://scripts/logo.gd" id="logo"]
-[ext_resource type="PackedScene" path="res://scenes/ui/character_stage.tscn" id="stage"]
+[ext_resource type="Texture2D" path="res://assets/ui/loading_art.jpg" id="art"]
 
 [node name="Loading" type="Control"]
 layout_mode = 3
@@ -22,24 +22,27 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("bg")
 
-[node name="Stage" parent="." instance=ExtResource("stage")]
-anchor_left = 0.15
-anchor_top = 0.0
-anchor_right = 0.85
-anchor_bottom = 0.78
+[node name="Art" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("art")
+expand_mode = 1
+stretch_mode = 6
 
 [node name="Logo" type="Control" parent="."]
 anchor_left = 0.5
-anchor_top = 0.62
+anchor_top = 0.7
 anchor_right = 0.5
-anchor_bottom = 0.62
+anchor_bottom = 0.7
 grow_horizontal = 2
 grow_vertical = 2
-offset_left = -330.0
-offset_right = 330.0
-offset_bottom = 130.0
+offset_left = -260.0
+offset_right = 260.0
+offset_bottom = 100.0
 script = ExtResource("logo")
 
 [node name="Bottom" type="VBoxContainer" parent="."]
