@@ -12,6 +12,12 @@ Ouvre ce lien sur le téléphone, puis installe l'APK. Il faut autoriser le navi
 
 Les APK des autres branches sont dans l'onglet **Actions**, en artefact de chaque build.
 
+## Tester dans le navigateur (Mac, PC)
+
+https://mariusortiz.github.io/overclock-builds/
+
+Cette version web est mise à jour à chaque push sur `main`. Elle utilise un moteur de rendu plus simple que sur téléphone (WebGL 2) : le rendu et les FPS diffèrent un peu. Le téléphone reste la référence.
+
 ## Développer en local (optionnel)
 
 1. Installe Godot 4.5.1 (la version standard, pas .NET).
@@ -22,7 +28,7 @@ Les APK des autres branches sont dans l'onglet **Actions**, en artefact de chaqu
 - `scenes/` : scènes Godot (`.tscn`)
 - `scripts/` : code GDScript
 - `ci/debug.keystore` : clé de debug publique (mot de passe `android`), utilisée uniquement pour les APK de test. La clé de release ne sera jamais commitée.
-- `.github/workflows/android.yml` : compilation de l'APK
+- `.github/workflows/build.yml` : compilation de l'APK et de la version web
 
 ## Licence des assets
 
