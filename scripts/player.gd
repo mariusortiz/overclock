@@ -8,6 +8,9 @@ signal damaged
 signal died
 
 @export var max_health := 100
+@export var regen_per_second := 5.0
+@export var speed_boost := 1.4
+@export var power_damage_multiplier := 2
 @export var move_speed := 6.0
 @export var acceleration := 40.0
 @export var jump_velocity := 5.5
@@ -18,9 +21,12 @@ signal died
 
 var health := 0
 
+var _effects := {}  # PowerUp.Type -> seconds left
+var _regen_buffer := 0.0
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var weapon: Weapon = $Weapon
+@onready var _pickup_sound: AudioStreamPlayer = $PickupSound
 @onready var _spring_arm: SpringArm3D = $CameraPivot/SpringArm3D
 
 
@@ -37,9 +43,25 @@ func get_aim_position() -> Vector3:
 	return global_position + Vector3.UP * 1.0
 
 
+func apply_power_up(type: PowerUp.Type) -> void:
+	_effects[type] = PowerUp.INFO[type].duration
+	_pickup_sound.play()
+
+
+func has_effect(type: PowerUp.Type) -> bool:
+	return _effects.has(type)
+
+
+## Active effects: PowerUp.Type -> seconds left.
+func get_effects() -> Dictionary:
+	return _effects
+
+
 func take_damage(amount: int) -> void:
 	if health <= 0:
 		return
+	if has_effect(PowerUp.Type.SHIELD):
+		amount = ceili(amount / 2.0)
 	health = maxi(health - amount, 0)
 	health_changed.emit(health, max_health)
 	damaged.emit()
@@ -68,6 +90,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_update_effects(delta)
+
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 	elif Input.is_action_just_pressed("jump"):
@@ -75,7 +99,24 @@ func _physics_process(delta: float) -> void:
 
 	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var target := transform.basis * Vector3(input.x, 0.0, input.y) * move_speed
+	if has_effect(PowerUp.Type.SPEED):
+		target *= speed_boost
 	velocity.x = move_toward(velocity.x, target.x, acceleration * delta)
 	velocity.z = move_toward(velocity.z, target.z, acceleration * delta)
 
 	move_and_slide()
+
+
+func _update_effects(delta: float) -> void:
+	for type: PowerUp.Type in _effects.keys():
+		_effects[type] -= delta
+		if _effects[type] <= 0.0:
+			_effects.erase(type)
+
+	weapon.damage_multiplier = power_damage_multiplier if has_effect(PowerUp.Type.POWER) else 1
+
+	if has_effect(PowerUp.Type.REGEN):
+		_regen_buffer += regen_per_second * delta
+		if _regen_buffer >= 1.0:
+			heal(int(_regen_buffer))
+			_regen_buffer -= int(_regen_buffer)

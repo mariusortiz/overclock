@@ -16,6 +16,8 @@ const WORLD_MASK := 1
 @export var attack_range := 12.0
 @export var fire_interval := 1.6
 @export var projectile_scene: PackedScene
+@export var power_up_scene: PackedScene
+@export var drop_chance := 0.25
 
 var _health := 0
 var _dead := false
@@ -115,6 +117,8 @@ func _die() -> void:
 	remove_from_group("targets")
 	collision_layer = 0
 	died.emit()
+	if randf() < drop_chance:
+		_drop_power_up()
 	_scale_visual_to(Vector3.ZERO, 0.2)
 	_tween.tween_callback(queue_free)
 
@@ -124,3 +128,10 @@ func _scale_visual_to(target_scale: Vector3, duration: float) -> void:
 		_tween.kill()
 	_tween = create_tween()
 	_tween.tween_property(_visual, "scale", target_scale, duration)
+
+
+func _drop_power_up() -> void:
+	var power_up: PowerUp = power_up_scene.instantiate()
+	power_up.type = PowerUp.Type.values().pick_random()
+	power_up.position = global_position
+	get_tree().current_scene.add_child(power_up)

@@ -41,5 +41,15 @@ def hit():
     return [0.4 * math.sin(2 * math.pi * 2400 * i / RATE) * (1 - i / n) ** 2 for i in range(n)]
 
 
+def pickup():
+    """Rising two-note chime."""
+    out = []
+    for freq in (880, 1320):
+        n = int(RATE * 0.09)
+        out += [0.35 * math.sin(2 * math.pi * freq * i / RATE) * (1 - i / n) ** 0.7 for i in range(n)]
+    return out
+
+
 write("shot.wav", shot())
+write("pickup.wav", pickup())
 write("hit.wav", hit())

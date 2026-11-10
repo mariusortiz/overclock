@@ -4,6 +4,7 @@ extends CanvasLayer
 ## FPS counter, desktop hint and touch controls.
 
 signal replay_pressed
+signal menu_pressed
 
 const BANNER_TIME := 2.5
 
@@ -26,12 +27,15 @@ var _banner_tween: Tween
 @onready var _final_score: Label = $GameOver/Center/Box/Score
 @onready var _best_score: Label = $GameOver/Center/Box/Best
 @onready var _replay_button: Button = $GameOver/Center/Box/Replay
+@onready var _menu_button: Button = $GameOver/Center/Box/Menu
+@onready var _effects_label: RichTextLabel = $Effects
 
 
 func _ready() -> void:
 	touch_controls.visible = _is_touch
 	_banner.modulate.a = 0.0
 	_replay_button.pressed.connect(replay_pressed.emit)
+	_menu_button.pressed.connect(menu_pressed.emit)
 
 
 func _process(_delta: float) -> void:
@@ -55,6 +59,17 @@ func set_score(score: int) -> void:
 
 func set_wave(number: int, enemies_left: int) -> void:
 	_wave_label.text = "VAGUE %d  ·  %d robot%s" % [number, enemies_left, "" if enemies_left == 1 else "s"]
+
+
+## `effects` maps a PowerUp.Type to its seconds left.
+func set_effects(effects: Dictionary) -> void:
+	var lines := PackedStringArray()
+	for type: PowerUp.Type in effects:
+		var info: Dictionary = PowerUp.INFO[type]
+		lines.append("[color=#%s]%s  %d[/color]" % [info.color.to_html(false), info.label, ceili(effects[type])])
+	var text := "\n".join(lines)
+	if _effects_label.text != text:
+		_effects_label.text = text
 
 
 func flash_damage() -> void:

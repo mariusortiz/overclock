@@ -4,6 +4,7 @@ extends Node3D
 const KILL_SCORE := 100
 const WAVE_BONUS := 250  # multiplied by the wave number
 const WAVE_HEAL := 25
+const MENU_SCENE := "res://scenes/menu.tscn"
 
 var score := 0
 
@@ -16,6 +17,7 @@ func _ready() -> void:
 	hud.touch_controls.look.connect(_on_touch_look)
 	# Deferred: the scene must not be removed while the button is still handling its click.
 	hud.replay_pressed.connect(get_tree().reload_current_scene, CONNECT_DEFERRED)
+	hud.menu_pressed.connect(get_tree().change_scene_to_file.bind(MENU_SCENE), CONNECT_DEFERRED)
 
 	player.weapon.hit_confirmed.connect(hud.reticle.show_hit)
 	player.weapon.ammo_changed.connect(hud.set_ammo)
@@ -31,6 +33,10 @@ func _ready() -> void:
 	hud.set_health(player.health, player.max_health)
 	hud.set_ammo(player.weapon.ammo, player.weapon.magazine_size, false)
 	hud.set_score(score)
+
+
+func _process(_delta: float) -> void:
+	hud.set_effects(player.get_effects())
 
 
 func _unhandled_input(event: InputEvent) -> void:

@@ -180,6 +180,16 @@ theme_override_colors/font_color = Color(0, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 48
 horizontal_alignment = 1
 
+[node name="Effects" type="RichTextLabel" parent="."]
+offset_left = 24.0
+offset_top = 92.0
+offset_right = 424.0
+offset_bottom = 260.0
+mouse_filter = 2
+theme_override_font_sizes/normal_font_size = 24
+bbcode_enabled = true
+scroll_active = false
+
 [node name="GameOver" type="Control" parent="."]
 visible = false
 layout_mode = 3
@@ -230,3 +240,8 @@ horizontal_alignment = 1
 custom_minimum_size = Vector2(340, 96)
 theme_override_font_sizes/font_size = 36
 text = "REJOUER"
+
+[node name="Menu" type="Button" parent="GameOver/Center/Box"]
+custom_minimum_size = Vector2(340, 72)
+theme_override_font_sizes/font_size = 28
+text = "MENU"

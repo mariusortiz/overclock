@@ -28,6 +28,17 @@ Cette version web est mise à jour à chaque push sur `main`. Elle utilise un mo
 | Recharger | Bouton RECH. à gauche du bouton TIR (automatique quand le chargeur est vide) | R |
 | Sauter | Bouton SAUT au-dessus du bouton TIR | Espace |
 
+## Power-ups
+
+Un robot détruit laisse parfois un cube lumineux au sol. Marche dessus pour le ramasser.
+
+| Couleur | Effet |
+|---|---|
+| Vert | Régénération : +5 PV par seconde pendant 8 s |
+| Orange | Puissance : dégâts doublés pendant 10 s |
+| Jaune | Vitesse : déplacement +40 % pendant 10 s |
+| Bleu | Bouclier : dégâts reçus divisés par deux pendant 10 s |
+
 ## Développer en local (optionnel)
 
 1. Installe Godot 4.5.1 (la version standard, pas .NET).

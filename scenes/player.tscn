@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://scripts/weapon.gd" id="2_weapon"]
 [ext_resource type="AudioStream" path="res://assets/audio/shot.wav" id="3_shot"]
 [ext_resource type="AudioStream" path="res://assets/audio/hit.wav" id="4_hit"]
+[ext_resource type="AudioStream" path="res://assets/audio/pickup.wav" id="5_pickup"]
 
 [sub_resource type="CapsuleShape3D" id="body_shape"]
 radius = 0.4
@@ -104,3 +105,7 @@ max_polyphony = 4
 stream = ExtResource("4_hit")
 volume_db = -4.0
 max_polyphony = 4
+
+[node name="PickupSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_pickup")
+volume_db = -4.0

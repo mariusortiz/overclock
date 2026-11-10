@@ -19,6 +19,7 @@ const FLASH_TIME := 0.04
 @export_flags_3d_physics var hit_mask := 5  # world + targets, not the player
 
 var ammo := 0
+var damage_multiplier := 1
 
 var _cooldown := 0.0
 var _reloading := false
@@ -74,7 +75,7 @@ func _fire() -> void:
 		end = hit.position
 		_spawn_impact(end)
 		if _is_damageable(hit):
-			hit.collider.take_damage(damage)
+			hit.collider.take_damage(damage * damage_multiplier)
 			_hit_sound.play()
 			hit_confirmed.emit()
 

@@ -6,8 +6,8 @@ config_version=5
 [application]
 
 config/name="Overclock"
-config/version="0.5.0"
-run/main_scene="res://scenes/main.tscn"
+config/version="0.6.0"
+run/main_scene="res://scenes/menu.tscn"
 config/features=PackedStringArray("4.5", "Mobile")
 config/icon="res://icon.svg"
 
