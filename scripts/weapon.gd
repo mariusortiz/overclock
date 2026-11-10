@@ -4,11 +4,13 @@ extends Node3D
 ## drawn from the muzzle to the hit point. Stats come from a Loadout.WEAPONS
 ## entry, and the owner's perks modify them.
 
-signal hit_confirmed
+## `headshot` is true when the shot hit the head.
+signal hit_confirmed(headshot: bool)
 signal ammo_changed(current: int, magazine: int, reloading: bool)
 
 const TRACER_COLOR := Color(0, 0.9, 1)
 const FLASH_TIME := 0.04
+const HEADSHOT_MULTIPLIER := 2
 const ROCKET_SCENE := preload("res://scenes/rocket.tscn")
 
 @export var max_range := 200.0
@@ -134,9 +136,10 @@ func _fire() -> void:
 		if not hit.is_empty():
 			_spawn_fx(_impact_mesh, end, 0.15)
 			if _is_damageable(hit):
-				_apply_hit(hit.collider, end)
+				var headshot := _apply_hit(hit.collider, end)
+				_hit_sound.pitch_scale = 1.6 if headshot else 1.0
 				_hit_sound.play()
-				hit_confirmed.emit()
+				hit_confirmed.emit(headshot)
 			elif _level(Perk.Type.EXPLOSIVE) > 0:
 				_explode(end, null)
 		_spawn_tracer(_tracer_mesh, _muzzle.global_position, end)
@@ -169,26 +172,30 @@ func _on_rocket_exploded(at: Vector3) -> void:
 			_damage_with_elements(target)
 			hit_any = true
 	if hit_any:
+		_hit_sound.pitch_scale = 1.0
 		_hit_sound.play()
-		hit_confirmed.emit()
+		hit_confirmed.emit(false)
 
 
 ## Damages an enemy and applies the fire and ice perks.
-func _damage_with_elements(enemy: Node3D) -> void:
-	enemy.take_damage(damage * damage_multiplier)
+func _damage_with_elements(enemy: Node3D, multiplier := 1) -> void:
+	enemy.take_damage(damage * damage_multiplier * multiplier)
 	if _level(Perk.Type.FIRE) > 0:
 		enemy.ignite(_level(Perk.Type.FIRE))
 	if _level(Perk.Type.ICE) > 0:
 		enemy.chill(_level(Perk.Type.ICE))
 
 
-## A direct hit: damage, elements, then the chaining perks.
-func _apply_hit(enemy: Node3D, point: Vector3) -> void:
-	_damage_with_elements(enemy)
+## A direct hit: damage (doubled on the head), elements, then the chaining
+## perks. Returns true for a headshot.
+func _apply_hit(enemy: Node3D, point: Vector3) -> bool:
+	var headshot: bool = enemy.has_method("is_head_hit") and enemy.is_head_hit(point)
+	_damage_with_elements(enemy, HEADSHOT_MULTIPLIER if headshot else 1)
 	if _level(Perk.Type.LIGHTNING) > 0:
 		_chain_lightning(enemy)
 	if _level(Perk.Type.EXPLOSIVE) > 0:
 		_explode(point, enemy)
+	return headshot
 
 
 ## Jumps to the closest other enemy in range.

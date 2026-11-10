@@ -4,9 +4,11 @@ extends Control
 
 const COLOR := Color(1, 1, 1, 0.9)
 const HIT_COLOR := Color(1, 0.24, 0.95)
+const HEADSHOT_COLOR := Color(1.0, 0.9, 0.2)
 const HIT_DURATION := 0.15
 
 var _hit_left := 0.0
+var _hit_color := HIT_COLOR
 
 
 func _ready() -> void:
@@ -14,7 +16,8 @@ func _ready() -> void:
 	resized.connect(queue_redraw)
 
 
-func show_hit() -> void:
+func show_hit(headshot := false) -> void:
+	_hit_color = HEADSHOT_COLOR if headshot else HIT_COLOR
 	_hit_left = HIT_DURATION
 	set_process(true)
 	queue_redraw()
@@ -34,4 +37,4 @@ func _draw() -> void:
 		draw_line(center + dir * 6.0, center + dir * 14.0, COLOR, 2.0)
 	if _hit_left > 0.0:
 		for dir: Vector2 in [Vector2(1, 1), Vector2(1, -1), Vector2(-1, 1), Vector2(-1, -1)]:
-			draw_line(center + dir * 7.0, center + dir * 14.0, HIT_COLOR, 3.0)
+			draw_line(center + dir * 7.0, center + dir * 14.0, _hit_color, 3.0)

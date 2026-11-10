@@ -11,6 +11,10 @@ const EYE_HEIGHT := 1.2
 const WORLD_MASK := 1
 const SHOOT_ANIMATION_TIME := 0.4
 const DEATH_ANIMATION_TIME := 1.0
+## The head starts this far up the model, as a fraction of its height.
+const HEAD_START := 0.68
+## Beyond this height difference the player is on another floor.
+const LEVEL_HEIGHT := 1.5
 const BURN_DURATION := 3.0
 const BURN_TICK := 0.5
 const CHILL_DURATION := 2.5
@@ -74,6 +78,7 @@ func _ready() -> void:
 	_model.target_height = model_height
 	_model.hover_height = model_hover
 	_model_pivot.add_child(_model)
+	_gun.add_child(Loadout.instantiate_weapon(Loadout.WEAPONS[0], Loadout.SKINS[0]))
 	_fire_cooldown = fire_interval
 	_status_material.emission_enabled = true
 	_status_material.emission_energy_multiplier = 2.0
@@ -85,6 +90,12 @@ func _ready() -> void:
 ## Point the player's shots (and aim assist) should go for.
 func get_aim_position() -> Vector3:
 	return global_position + Vector3.UP * aim_height
+
+
+## True when a shot landing at `point` (world space) hits the head.
+func is_head_hit(point: Vector3) -> bool:
+	var head_base := (model_hover + model_height * HEAD_START) * _base_scale.y
+	return point.y >= global_position.y + head_base
 
 
 func take_damage(amount: int) -> void:
@@ -147,11 +158,15 @@ func _physics_process(delta: float) -> void:
 	if not _dead and _player and _player.health > 0:
 		var to_player := _player.global_position - global_position
 		_face(to_player, delta)
-		if to_player.length() <= attack_range and _has_line_of_sight():
-			animation = _aim_animation
+		var can_shoot := to_player.length() <= attack_range and _has_line_of_sight()
+		if can_shoot:
 			_fire_cooldown -= delta * slow
 			if _fire_cooldown <= 0.0:
 				_shoot()
+		# Stand and aim only on the player's floor; otherwise keep coming (up
+		# or down a ramp), shooting on the way when the player is in sight.
+		if can_shoot and absf(to_player.y) < LEVEL_HEIGHT:
+			animation = _aim_animation
 		else:
 			wanted = _chase_direction(delta) * move_speed * slow
 			if not wanted.is_zero_approx():

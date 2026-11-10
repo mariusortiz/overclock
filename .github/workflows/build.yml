@@ -70,10 +70,14 @@ jobs:
             godot --headless --fixed-fps 60 --quit-after 300 res://scenes/main.tscn -- --arena=$arena 2>&1 | tee -a run.log
           done
           # Each boss wave, 20 s of game time.
-          for wave in 5 10 15 20; do
+          for wave in 5 10 15 20 25; do
             godot --headless --fixed-fps 60 --quit-after 1200 res://scenes/main.tscn -- --start-wave=$wave 2>&1 | tee -a run.log
           done
           # "still in use at exit" only reports the music playing when --quit-after stops the game.
+          # Enemies must be able to walk up to every deck.
+          godot --headless --fixed-fps 60 res://scenes/tools/nav_check.tscn 2>&1 | tee -a run.log
+          grep "^NAV" run.log
+          if grep -q "^NAV FAIL" run.log; then exit 1; fi
           if grep -E "SCRIPT ERROR|Parse Error|^ERROR:" run.log | grep -v "still in use at exit"; then exit 1; fi
 
       - name: Export debug APK

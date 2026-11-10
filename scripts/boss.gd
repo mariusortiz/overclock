@@ -5,16 +5,18 @@ extends Enemy
 
 signal summon_requested(count: int)
 
-enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER }
+## TITAN is the final boss, met in the last arena.
+enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER, TITAN }
 
-const MODEL_DIR := "res://assets/models/quaternius/monsters/"
+const MODEL_DIR := "res://assets/models/quaternius/"
 ## "height" is the model's height before the boss scene doubles it, and
 ## "hover" how far it floats above the floor.
 const INFO := {
-	Kind.COLOSSUS: {"name": "DRAGON", "model": "Dragon.fbx", "height": 1.7, "hover": 0.5, "health": 60, "speed": 2.2, "fire_interval": 2.2, "range": 14.0},
-	Kind.BRUTE: {"name": "SQUELETTE GÉANT", "model": "Skeleton.fbx", "height": 1.8, "hover": 0.0, "health": 50, "speed": 6.0, "fire_interval": 1.0, "range": 2.6},
-	Kind.ARTILLERY: {"name": "CHAUVE-SOURIS GÉANTE", "model": "Bat.fbx", "height": 1.3, "hover": 0.9, "health": 55, "speed": 3.0, "fire_interval": 2.0, "range": 24.0},
-	Kind.SUMMONER: {"name": "SLIME ROYAL", "model": "Slime.fbx", "height": 1.3, "hover": 0.0, "health": 70, "speed": 3.0, "fire_interval": 1.3, "range": 13.0},
+	Kind.COLOSSUS: {"name": "DRAGON", "model": "monsters/Dragon.fbx", "height": 1.7, "hover": 0.5, "health": 60, "speed": 2.2, "fire_interval": 2.2, "range": 14.0},
+	Kind.BRUTE: {"name": "SQUELETTE GÉANT", "model": "monsters/Skeleton.fbx", "height": 1.8, "hover": 0.0, "health": 50, "speed": 6.0, "fire_interval": 1.0, "range": 2.6},
+	Kind.ARTILLERY: {"name": "CHAUVE-SOURIS GÉANTE", "model": "monsters/Bat.fbx", "height": 1.3, "hover": 0.9, "health": 55, "speed": 3.0, "fire_interval": 2.0, "range": 24.0},
+	Kind.SUMMONER: {"name": "SLIME ROYAL", "model": "monsters/Slime.fbx", "height": 1.3, "hover": 0.0, "health": 70, "speed": 3.0, "fire_interval": 1.3, "range": 13.0},
+	Kind.TITAN: {"name": "TITAN", "model": "mechs/George.fbx", "height": 2.6, "hover": 0.0, "health": 220, "speed": 2.6, "fire_interval": 1.7, "range": 20.0},
 }
 const FAN_ANGLES_DEG: Array[float] = [-24.0, -12.0, 0.0, 12.0, 24.0]
 const BRUTE_DAMAGE := 18
@@ -23,6 +25,10 @@ const SUMMON_COUNT := 2
 const SHIELD_OFF_TIME := 6.0
 const SHIELD_ON_TIME := 3.0
 const SHIELD_COLOR := Color(0.3, 0.6, 1.0, 0.3)
+const TITAN_TEXTURE := "res://assets/models/quaternius/mechs/George_Texture.jpg"
+const TITAN_SUMMON_INTERVAL := 11.0
+const TITAN_SHOCKWAVE_INTERVAL := 6.0
+const TITAN_MORTAR_SPREAD := 5.0
 
 var kind := Kind.COLOSSUS
 
@@ -30,6 +36,8 @@ var _summon_left := SUMMON_INTERVAL
 var _shield_left := SHIELD_OFF_TIME
 var _shielded := false
 var _shield: MeshInstance3D
+var _shockwave_left := TITAN_SHOCKWAVE_INTERVAL
+var _attack_count := 0
 
 
 ## Call before adding the boss to the scene. `health_scale` grows each time
@@ -56,6 +64,8 @@ func _ready() -> void:
 		_attack_animation = &"melee"
 	if kind == Kind.SUMMONER:
 		_shield = _create_shield()
+	if kind == Kind.TITAN:
+		_dress_titan()
 
 
 ## Bosses are too heavy to be pushed around.
@@ -70,9 +80,16 @@ func take_damage(amount: int) -> void:
 
 func _physics_process(delta: float) -> void:
 	super(delta)
-	if kind != Kind.SUMMONER or _dead:
+	if _dead:
 		return
+	match kind:
+		Kind.SUMMONER:
+			_update_summoner(delta)
+		Kind.TITAN:
+			_update_titan(delta)
 
+
+func _update_summoner(delta: float) -> void:
 	_summon_left -= delta
 	if _summon_left <= 0.0:
 		_summon_left = SUMMON_INTERVAL
@@ -88,18 +105,72 @@ func _physics_process(delta: float) -> void:
 func _attack() -> void:
 	match kind:
 		Kind.COLOSSUS:
-			var forward := _muzzle.global_position.direction_to(_player.get_aim_position())
-			for angle in FAN_ANGLES_DEG:
-				_spawn_projectile(forward.rotated(Vector3.UP, deg_to_rad(angle)))
+			_shoot_fan()
 		Kind.BRUTE:
 			if global_position.distance_to(_player.global_position) <= attack_range + 0.5:
 				_player.take_damage(BRUTE_DAMAGE)
 		Kind.ARTILLERY:
-			var strike := MortarStrike.new()
-			strike.position = _player.global_position
-			get_tree().current_scene.add_child(strike)
+			_call_mortar(_player.global_position)
 		Kind.SUMMONER:
 			super()
+		Kind.TITAN:
+			_attack_count += 1
+			_shoot_fan()
+			# From the second phase on, every other attack also shells the area.
+			if _phase() >= 2 and _attack_count % 2 == 0:
+				for i in 3:
+					var spread := Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * TITAN_MORTAR_SPREAD
+					_call_mortar(_player.global_position + (spread if i > 0 else Vector3.ZERO))
+
+
+func _shoot_fan() -> void:
+	var forward := _muzzle.global_position.direction_to(_player.get_aim_position())
+	for angle in FAN_ANGLES_DEG:
+		_spawn_projectile(forward.rotated(Vector3.UP, deg_to_rad(angle)))
+
+
+func _call_mortar(at: Vector3) -> void:
+	var strike := MortarStrike.new()
+	strike.position = at
+	get_tree().current_scene.add_child(strike)
+
+
+## The Titan fights in three phases, as its health drops by thirds.
+func _phase() -> int:
+	var left := float(_health) / max_health
+	return 1 if left > 0.66 else (2 if left > 0.33 else 3)
+
+
+func _update_titan(delta: float) -> void:
+	var phase := _phase()
+	if phase >= 2:
+		_summon_left -= delta
+		if _summon_left <= 0.0:
+			_summon_left = TITAN_SUMMON_INTERVAL
+			summon_requested.emit(SUMMON_COUNT)
+	if phase == 3:
+		_shockwave_left -= delta
+		if _shockwave_left <= 0.0:
+			_shockwave_left = TITAN_SHOCKWAVE_INTERVAL
+			var wave := Shockwave.new()
+			wave.position = global_position
+			get_tree().current_scene.add_child(wave)
+			_model.play(&"jump", true)
+			_shoot_animation_left = 0.8
+
+
+## The mech's texture is a separate file, and it needs a body as big as it looks.
+func _dress_titan() -> void:
+	var material := StandardMaterial3D.new()
+	material.albedo_texture = load(TITAN_TEXTURE)
+	for mesh: MeshInstance3D in _model.find_children("*", "MeshInstance3D", true, false):
+		mesh.material_override = material
+	var shape := CapsuleShape3D.new()
+	shape.radius = 1.3
+	shape.height = 5.0
+	var collision: CollisionShape3D = $CollisionShape3D
+	collision.shape = shape
+	collision.position.y = 2.5
 
 
 func _die() -> void:

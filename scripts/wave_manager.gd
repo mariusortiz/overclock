@@ -8,7 +8,7 @@ signal wave_cleared(number: int)
 signal enemy_killed
 signal enemies_left_changed(count: int)
 signal boss_spawned(boss: Boss)
-signal boss_killed
+signal boss_killed(kind: Boss.Kind)
 
 const BOSS_EVERY := 5
 const BOSS_ESCORT := 3
@@ -122,7 +122,8 @@ func _spawn() -> void:
 		boss_spawned.emit(enemy)
 
 
-## The four bosses take turns, and get tougher each time they come around.
+## The bosses take turns, one per arena, and get tougher each time they come
+## around.
 func _create_boss() -> Boss:
 	@warning_ignore("integer_division")
 	var index := wave / BOSS_EVERY - 1
@@ -131,7 +132,7 @@ func _create_boss() -> Boss:
 	@warning_ignore("integer_division")
 	boss.configure(kinds[index % kinds.size()], 1.0 + 0.6 * (index / kinds.size()))
 	boss.summon_requested.connect(_on_boss_summon_requested)
-	boss.died.connect(boss_killed.emit)
+	boss.died.connect(boss_killed.emit.bind(boss.kind))
 	return boss
 
 

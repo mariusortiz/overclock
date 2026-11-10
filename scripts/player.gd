@@ -25,6 +25,8 @@ const WALK_ANIMATION_SPEED := 1.8
 @export var zoom_speed := 12.0
 
 var health := 0
+## Set once the game is won: nothing can hurt the player anymore.
+var invulnerable := false
 ## Perk.Type -> level. Shared with the weapon.
 var perks := {}
 
@@ -93,7 +95,7 @@ func on_enemy_killed() -> void:
 
 
 func take_damage(amount: int) -> void:
-	if health <= 0:
+	if health <= 0 or invulnerable:
 		return
 	if has_effect(PowerUp.Type.SHIELD):
 		amount = ceili(amount / 2.0)

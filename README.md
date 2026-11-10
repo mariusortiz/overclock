@@ -63,7 +63,9 @@ Toutes les 5 vagues, un monstre arrive avec trois ennemis. Sa barre de vie s'aff
 | 15 | Chauve-souris géante | Reste loin et bombarde : un cercle rouge au sol annonce l'explosion |
 | 20 | Slime royal | Fait apparaître des ennemis et s'entoure d'un bouclier par moments |
 
-Après la vague 20, les quatre boss reviennent, plus résistants.
+| 25 | Titan (boss final, dans la ville) | Robot géant en trois phases : tirs en éventail, bombardement, invocations, puis une onde de choc au sol à esquiver en sautant ou depuis une passerelle |
+
+Battre le Titan termine la partie : un trophée apparaît, tu gagnes le skin Champion et tu reviens au menu.
 
 ## Arènes
 
@@ -89,11 +91,13 @@ L'arsenal, accessible depuis l'accueil, a quatre onglets : personnage, arme, cor
 
 | Arme | Cadence | Dégâts | Chargeur |
 |---|---|---|---|
-| Blaster | 8/s | 1 | 24 |
-| Fusil lourd | 2/s | 5 | 8 |
-| Sniper (zoom plus fort) | 1/s | 8 | 5 |
-| Mitraillette | 14/s | 1 | 40 |
-| Bazooka (roquette, explosion de 4 m) | 0,8/s | 10 | 1 |
+| Pistolet | 4/s | 2 | 12 |
+| Fusil d'assaut | 10/s | 1 | 30 |
+| Fusil de précision (zoom plus fort) | 1/s | 8 | 5 |
+| Pistolet-mitrailleur | 14/s | 1 | 40 |
+| Lance-roquettes (explosion de 4 m) | 0,8/s | 10 | 1 |
+
+Un tir dans la tête fait le double de dégâts : le marqueur de touche devient jaune.
 
 | Corps à corps | Délai | Dégâts | Portée |
 |---|---|---|---|
@@ -102,7 +106,7 @@ L'arsenal, accessible depuis l'accueil, a quatre onglets : personnage, arme, cor
 | Hache (tous les ennemis devant soi) | 1,1 s | 10 | 2,6 m |
 | Masse (repousse l'ennemi) | 1 s | 8 | 2,4 m |
 
-Les 12 skins d'armes (Néon, Glace, Lave, Or…) s'appliquent à toutes les armes. Un skin garde la forme de l'arme : il lui ajoute éventuellement une lunette ou un silencieux, la teinte et change la couleur du tir. Les statistiques ne changent pas. Il y a 13 personnages, purement visuels.
+Les skins d'armes sont des finitions : ils gardent la forme de l'arme et la repeignent d'un motif (néon, camouflage, fibre de carbone, lave…), certains la font briller ou lui ajoutent une lunette ou un silencieux, et chacun change la couleur du tir. Les statistiques ne changent pas. Le skin Champion ne s'obtient qu'en battant le boss final. Il y a 13 personnages, purement visuels.
 
 ## Développer en local (optionnel)
 

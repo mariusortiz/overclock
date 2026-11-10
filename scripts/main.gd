@@ -10,6 +10,7 @@ const DAMAGE_VIBRATION_MS := 40
 const PERK_CHOICE_DELAY := 2.0
 const DEATH_SLOW_MOTION := 0.3
 const DEATH_TITLE_TIME := 3.0
+const VICTORY_TIME := 5.0
 ## Arenas, in the order they are visited: a new one after each boss.
 const ARENAS: Array[PackedScene] = [
 	preload("res://scenes/arenas/station.tscn"),
@@ -27,6 +28,8 @@ var _arena_index := 0
 var _arena_change_pending := false
 ## XP found in chests during this game, added to the battle pass at the end.
 var _bonus_xp := 0
+var _won := false
+var _boss: Boss
 
 @onready var player: Player = $Player
 @onready var hud: Hud = $HUD
@@ -153,20 +156,43 @@ func _on_wave_started(number: int) -> void:
 
 
 func _on_boss_spawned(boss: Boss) -> void:
+	_boss = boss
 	Music.play_track(Music.Track.BOSS)
 	hud.show_boss(Boss.INFO[boss.kind].name)
 	hud.set_boss_health(boss.max_health, boss.max_health)
 	boss.health_changed.connect(hud.set_boss_health)
 
 
-func _on_boss_killed() -> void:
+func _on_boss_killed(kind: Boss.Kind) -> void:
 	Music.play_track(_arena.music_track)
 	hud.hide_boss()
 	_add_score(BOSS_SCORE)
+	if kind == Boss.Kind.TITAN:
+		_win()
+
+
+## The final boss is down: a trophy rises where it fell, then the results.
+func _win() -> void:
+	_won = true
+	waves.stop()
+	player.invulnerable = true
+	for enemy in get_tree().get_nodes_in_group("targets"):
+		enemy.take_damage(9999)
+
+	var trophy := Trophy.new()
+	trophy.position = Vector3(_boss.global_position.x, _arena.global_position.y, _boss.global_position.z)
+	add_child(trophy)
+	hud.show_banner("VICTOIRE")
+	await get_tree().create_timer(VICTORY_TIME).timeout
+
+	Input.action_release("fire")
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	SaveData.save_progress(Loadout.CHAMPION_KEY, true)
+	_show_results(true)
 
 
 func _on_wave_cleared(number: int) -> void:
-	if player.health <= 0:
+	if player.health <= 0 or _won:
 		return
 	var bonus := WAVE_BONUS * number
 	_add_score(bonus)
@@ -176,7 +202,7 @@ func _on_wave_cleared(number: int) -> void:
 
 	# A short breather, then pause and let the player pick a perk.
 	await get_tree().create_timer(PERK_CHOICE_DELAY, false).timeout
-	if player.health <= 0:
+	if player.health <= 0 or _won:
 		return
 	# The mouse is freed for the click.
 	_mouse_was_captured = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
@@ -211,6 +237,8 @@ func _exit_tree() -> void:
 
 
 func _on_player_died() -> void:
+	if _won:
+		return
 	waves.stop()
 	Input.action_release("fire")
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -221,17 +249,22 @@ func _on_player_died() -> void:
 	hud.show_death_title()
 	await get_tree().create_timer(DEATH_TITLE_TIME, true, false, true).timeout
 	Engine.time_scale = 1.0
+	_show_results(false)
 
+
+## Saves the record, feeds the battle pass and shows the end screen.
+func _show_results(victory: bool) -> void:
 	var best := SaveData.load_high_score()
 	var is_record := score > best
 	if is_record:
 		SaveData.save_high_score(score)
-	# The score feeds the battle pass.
 	var xp := BattlePass.xp_for_score(score) + _bonus_xp
 	var unlocked := []
 	for id in BattlePass.add_xp(xp):
 		unlocked.append(Loadout.find(id).item.name)
-	hud.show_game_over(score, maxi(score, best), is_record, xp, unlocked)
+	if victory:
+		unlocked.append("skin Champion")
+	hud.show_game_over(score, maxi(score, best), is_record, xp, unlocked, victory)
 
 
 func _on_touch_look(relative: Vector2) -> void:

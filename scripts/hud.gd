@@ -28,6 +28,7 @@ var _perk_options: Array = []
 @onready var _ammo_label: Label = $AmmoLabel
 @onready var _banner: Label = $Banner
 @onready var _game_over_screen: Control = $GameOver
+@onready var _end_title: Label = $GameOver/Center/Box/Title
 @onready var _final_score: Label = $GameOver/Center/Box/Score
 @onready var _best_score: Label = $GameOver/Center/Box/Best
 @onready var _xp_label: Label = $GameOver/Center/Box/Xp
@@ -167,8 +168,9 @@ func show_death_title() -> void:
 	_death_title.visible = true
 
 
-## `unlocked` lists the names of the battle pass rewards just earned.
-func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: Array) -> void:
+## `unlocked` lists the names of the rewards just earned. With `victory`, the
+## screen celebrates and only offers to go back to the menu.
+func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: Array, victory := false) -> void:
 	_death_title.visible = false
 	_game_over = true
 	pause_menu.enabled = false
@@ -181,4 +183,8 @@ func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: A
 	_xp_label.text = "+%d XP" % xp
 	if not unlocked.is_empty():
 		_xp_label.text += "\nDébloqué : " + ", ".join(unlocked)
+	if victory:
+		_end_title.text = "VICTOIRE"
+		_end_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+		_replay_button.visible = false
 	_game_over_screen.visible = true

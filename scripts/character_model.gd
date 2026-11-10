@@ -10,12 +10,13 @@ extends Node3D
 const ACTIONS := {
 	&"idle": ["Idle", "Flying"],
 	&"walk": ["Walk", "Running", "Flying"],
-	&"shoot": ["Shoot_OneHanded", "Attack"],
+	&"shoot": ["Shoot_OneHanded", "Shoot", "Attack"],
 	# Same animation as "shoot", frozen on its first frame: arm stretched out.
 	&"aim": ["Shoot_OneHanded"],
 	&"melee": ["Punch", "Attack2", "Attack"],
 	&"die": ["Defeat", "Death"],
 	&"victory": ["Victory"],
+	&"jump": ["Jump"],
 }
 const LOOPING: Array[StringName] = [&"idle", &"walk"]
 
