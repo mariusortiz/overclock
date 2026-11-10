@@ -57,6 +57,9 @@ jobs:
           godot --headless --import
           grep -H "mipmaps/generate" assets/textures/*.import
 
+      - name: Inspect new models
+        run: godot --headless -s tools/inspect_models.gd -- res://assets/models/quaternius/characters/Soldier_Male.fbx res://assets/models/quaternius/characters/Ninja_Sand.fbx res://assets/models/quaternius/monsters/Dragon.fbx res://assets/models/quaternius/monsters/Skeleton.fbx res://assets/models/quaternius/monsters/Slime.fbx res://assets/models/quaternius/monsters/Bat.fbx 2>&1 | grep -E "MODEL|size|animations|bones|ERROR" || true
+
       - name: Smoke test (fails on script errors)
         run: |
           # The menu, then 15 s of the game scene.
