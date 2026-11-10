@@ -32,7 +32,7 @@ tonemap_mode = 2
 glow_enabled = true
 fog_enabled = true
 fog_light_color = Color(0.6, 0.8, 0.6, 1)
-fog_density = 0.012
+fog_density = 0.006
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
 geometry_parsed_geometry_type = 1

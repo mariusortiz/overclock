@@ -101,7 +101,7 @@ func set_score(score: int) -> void:
 
 
 func set_wave(number: int, enemies_left: int) -> void:
-	_wave_label.text = "VAGUE %d  ·  %d robot%s" % [number, enemies_left, "" if enemies_left == 1 else "s"]
+	_wave_label.text = "VAGUE %d  ·  %d ennemi%s" % [number, enemies_left, "" if enemies_left == 1 else "s"]
 
 
 ## Shows the timed power-ups (`effects`: PowerUp.Type -> seconds left) and the

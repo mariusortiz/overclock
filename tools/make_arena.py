@@ -213,7 +213,7 @@ def build(arena_id, arena):
             '[sub_resource type="Environment" id="environment"]', "background_mode = 2", 'sky = SubResource("sky")',
             "ambient_light_source = 2", f'ambient_light_color = {color(arena["ambient"])}',
             f'ambient_light_energy = {arena["ambient_energy"]}', "tonemap_mode = 2", "glow_enabled = true",
-            "fog_enabled = true", f'fog_light_color = {color(arena["sky_horizon"])}', "fog_density = 0.012", "",
+            "fog_enabled = true", f'fog_light_color = {color(arena["sky_horizon"])}', "fog_density = 0.006", "",
             '[sub_resource type="NavigationMesh" id="navigation_mesh"]', "geometry_parsed_geometry_type = 1",
             "agent_height = 1.75", "agent_radius = 0.5", ""]
 
