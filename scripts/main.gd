@@ -96,6 +96,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		# Test shortcut (debug and web builds): destroys every robot.
 		for enemy in get_tree().get_nodes_in_group("targets"):
 			enemy.take_damage(9999)
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_F8 \
+			and (OS.is_debug_build() or OS.has_feature("web")):
+		# Test shortcut (debug and web builds): the next wave is a boss wave.
+		waves.skip_to_next_boss()
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_F10 \
 			and (OS.is_debug_build() or OS.has_feature("web")):
 		# Test shortcut (debug and web builds): jumps to the next arena.

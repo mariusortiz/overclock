@@ -4,10 +4,12 @@ extends AudioStreamPlayer
 
 enum Track { MAIN, BOSS, DEATH }
 
-const STREAMS := {
-	Track.MAIN: preload("res://assets/audio/music/synthwave_house_loop.ogg"),
-	Track.BOSS: preload("res://assets/audio/music/boss_battle_loop.mp3"),
-	Track.DEATH: preload("res://assets/audio/music/no_hope.ogg"),
+# Loaded on demand rather than preloaded, so this script still compiles
+# before the audio files have been imported for the first time.
+const PATHS := {
+	Track.MAIN: "res://assets/audio/music/synthwave_house_loop.ogg",
+	Track.BOSS: "res://assets/audio/music/boss_battle_loop.mp3",
+	Track.DEATH: "res://assets/audio/music/no_hope.ogg",
 }
 
 var _current := -1
@@ -24,6 +26,6 @@ func play_track(track: Track) -> void:
 	if track == _current:
 		return
 	_current = track
-	stream = STREAMS[track]
+	stream = load(PATHS[track])
 	stream.set("loop", track != Track.DEATH)
 	play()

@@ -40,6 +40,12 @@ func _ready() -> void:
 	_start_next_wave(first_wave_delay)
 
 
+## Test helper: the next wave will be a boss wave.
+func skip_to_next_boss() -> void:
+	@warning_ignore("integer_division")
+	wave = (wave / BOSS_EVERY + 1) * BOSS_EVERY - 1
+
+
 ## Stops spawning for good (game over).
 func stop() -> void:
 	_stopped = true
