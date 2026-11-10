@@ -66,3 +66,19 @@ panels((40, 42, 62), 2, seed=1).save(OUT + "panel_dark.png")
 panels((92, 98, 124), 2, seed=2, frame=18).save(OUT + "panel_light.png")
 panels((24, 24, 38), 2, seed=3, rivets=False).save(OUT + "floor_tiles.png")
 stripes().save(OUT + "stripes_emission.png")
+
+# Ground of the outdoor arenas: plain noise with a few darker speckles.
+def ground(base, amount, seed, speckles=400):
+    img = noisy(base, amount, seed)
+    px = img.load()
+    rnd = random.Random(seed + 7)
+    for _ in range(speckles):
+        x, y = rnd.randrange(SIZE), rnd.randrange(SIZE)
+        px[x, y] = shade(base, rnd.choice((-28, -18, 16)))
+    return img
+
+
+ground((196, 164, 110), 8, seed=11).save(OUT + "sand.png")
+ground((72, 118, 60), 10, seed=12).save(OUT + "grass.png")
+ground((48, 40, 42), 8, seed=13).save(OUT + "basalt.png")
+panels((58, 58, 66), 1, seed=14, rivets=False).save(OUT + "asphalt.png")

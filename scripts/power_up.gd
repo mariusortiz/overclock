@@ -23,6 +23,7 @@ var _age := 0.0
 
 
 func _ready() -> void:
+	add_to_group("transient")
 	var color: Color = INFO[type].color
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color

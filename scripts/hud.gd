@@ -8,6 +8,7 @@ signal menu_pressed
 signal perk_chosen(type: Perk.Type)
 
 const BANNER_TIME := 2.5
+const FADE_TIME := 0.4
 
 var _is_touch := DisplayServer.is_touchscreen_available()
 var _game_over := false
@@ -33,6 +34,7 @@ var _perk_options: Array = []
 @onready var _menu_button: Button = $GameOver/Center/Box/Menu
 @onready var _pause_button: Button = $PauseButton
 @onready var _boss_name: Label = $BossName
+@onready var _fade: ColorRect = $Fade
 @onready var _boss_bar: ProgressBar = $BossBar
 @onready var _effects_label: RichTextLabel = $Effects
 @onready var _perk_choice: Control = $PerkChoice
@@ -60,6 +62,17 @@ func _process(_delta: float) -> void:
 func set_health(current: int, maximum: int) -> void:
 	_health_bar.max_value = maximum
 	_health_bar.value = current
+
+
+## Darkens the whole screen; await it before changing what is behind.
+func fade_to_black() -> void:
+	var tween := create_tween()
+	tween.tween_property(_fade, "color:a", 1.0, FADE_TIME)
+	await tween.finished
+
+
+func fade_from_black() -> void:
+	create_tween().tween_property(_fade, "color:a", 0.0, FADE_TIME)
 
 
 func show_boss(boss_name: String) -> void:

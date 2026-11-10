@@ -12,6 +12,7 @@ var damage := 20
 
 
 func _ready() -> void:
+	add_to_group("transient")
 	var disc := CylinderMesh.new()
 	disc.top_radius = RADIUS
 	disc.bottom_radius = RADIUS

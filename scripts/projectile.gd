@@ -10,6 +10,7 @@ var direction := Vector3.FORWARD
 
 
 func _ready() -> void:
+	add_to_group("transient")
 	body_entered.connect(_on_body_entered)
 	get_tree().create_timer(lifetime).timeout.connect(queue_free)
 

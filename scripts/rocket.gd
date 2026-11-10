@@ -14,6 +14,7 @@ var _age := 0.0
 
 
 func _ready() -> void:
+	add_to_group("transient")
 	body_entered.connect(func(_body: Node3D) -> void: _explode())
 
 

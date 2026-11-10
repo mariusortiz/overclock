@@ -1,56 +1,157 @@
-"""Generates scenes/arena.tscn (blockout test arena).
+"""Generates the arena scenes in scenes/arenas/ from the ARENAS table below.
 
 Run from the repo root: python3 tools/make_arena.py
 Godot serializes Transform3D row by row: basis rows first, then the origin.
+Every arena is a 40 x 40 m walled square. The player starts at (0, 12) and the
+robots appear at ENEMY_SPAWNS, so keep those spots clear.
 """
 import json
 import math
 import struct
 
 IDENTITY = (1, 0, 0, 0, 1, 0, 0, 0, 1)
+STATION = "res://assets/models/station/"
+NATURE = "res://assets/models/nature/"
+CITY = "res://assets/models/city/"
+
+ENEMY_SPAWNS = [
+    (-16, 0.1, -16), (0, 0.1, -17), (16, 0.1, -16), (-17, 0.1, 0),
+    (17, 0.1, 8), (-16, 0.1, 16), (16, 0.1, 16),
+]
+PLAYER_SPAWN = (0, 0.1, 12)
 
 
+def prop(model, x, z, height, yaw=0, collision=1.0):
+    """A model resting on the floor, scaled to `height` meters. `collision`
+    shrinks the collision box horizontally (trees: trunk only); 0 means none."""
+    return {"model": model, "x": x, "z": z, "height": height, "yaw": yaw, "collision": collision}
+
+
+# Blocks: (name, size, position, material, basis)
 def rot_x(deg):
     c, s = math.cos(math.radians(deg)), math.sin(math.radians(deg))
     return (1, 0, 0, 0, c, -s, 0, s, c)
 
 
+ARENAS = {
+    "station": {
+        "name": "STATION",
+        "sky_top": (0.03, 0.02, 0.12), "sky_horizon": (0.35, 0.08, 0.45),
+        "ambient": (0.45, 0.42, 0.6), "ambient_energy": 0.5,
+        "sun": (1, 1, 1), "sun_energy": 1.2,
+        "floor": "grid", "wall_color": (1, 1, 1),
+        "blocks": [
+            ("Pillar", (2, 5, 2), (0, 2.5, -6), "accent_material", IDENTITY),
+            ("Platform", (4, 2, 4), (8, 1, 1.2), "block_material", IDENTITY),
+            # Rises toward -Z, from the floor up to the top of Platform.
+            ("Ramp", (2.4, 0.3, 6), (8, 0.9, 6), "accent_material", rot_x(20)),
+            ("PlatformFar", (6, 1.5, 3), (10, 0.75, -12), "block_material", IDENTITY),
+        ],
+        "props": [
+            prop(STATION + "container-tall.glb", -4, 4, 1.9), prop(STATION + "container-tall.glb", -12, 9, 1.9),
+            prop(STATION + "container.glb", -10, 10.5, 1.26), prop(STATION + "container-tall.glb", 2, 2, 1.9),
+            prop(STATION + "container-wide.glb", 4, 2, 1.47), prop(STATION + "container-tall.glb", -8, -3, 1.9),
+            prop(STATION + "container-wide.glb", -8, -5, 1.47), prop(STATION + "container-flat.glb", -5, -12, 1.26, 90),
+            prop(STATION + "container-flat.glb", 12, 10, 1.26), prop(STATION + "computer-system.glb", -2.5, -14, 1.26),
+            prop(STATION + "table-display.glb", 13, -4, 0.95, 90), prop(STATION + "container-wide.glb", 4, -14, 1.47),
+            prop(STATION + "container-wide.glb", 15, 3, 1.47), prop(STATION + "container-tall.glb", -15, -8, 1.9),
+            prop(STATION + "container.glb", 5, 13, 1.26), prop(STATION + "container.glb", -14, 2, 1.26),
+        ],
+    },
+    "desert": {
+        "name": "DÉSERT",
+        "sky_top": (0.25, 0.5, 0.85), "sky_horizon": (0.95, 0.8, 0.6),
+        "ambient": (0.9, 0.8, 0.65), "ambient_energy": 0.7,
+        "sun": (1, 0.93, 0.8), "sun_energy": 1.5,
+        "floor": "sand", "wall_color": (0.8, 0.62, 0.4),
+        "props": [
+            prop(NATURE + "statue_obelisk.glb", 0, -4, 5.0, 0, 0.7),
+            prop(NATURE + "rock_tallA.glb", -6, 3, 2.4), prop(NATURE + "rock_tallB.glb", 6, -9, 2.6, 40),
+            prop(NATURE + "rock_tallC.glb", -11, -8, 2.4, 90), prop(NATURE + "rock_tallD.glb", 10, 6, 2.8),
+            prop(NATURE + "stone_tallA.glb", 4, 4, 2.0), prop(NATURE + "stone_tallB.glb", -4, -12, 2.0, 90),
+            prop(NATURE + "rock_largeA.glb", -9, 10, 1.3), prop(NATURE + "rock_largeB.glb", 9, -2, 1.3),
+            prop(NATURE + "cactus_tall.glb", -13, 3, 2.6, 0, 0.5), prop(NATURE + "cactus_tall.glb", 12, -13, 2.6, 90, 0.5),
+            prop(NATURE + "cactus_short.glb", -3, 7, 1.5, 0, 0.6), prop(NATURE + "cactus_short.glb", 7, 11, 1.5, 0, 0.6),
+            prop(NATURE + "tree_palmTall.glb", -14, -13, 5.0, 0, 0.2), prop(NATURE + "tree_palmTall.glb", 13, 13, 5.0, 90, 0.2),
+            prop(NATURE + "statue_column.glb", -3, -9, 3.5), prop(NATURE + "statue_column.glb", 3, -9, 3.5),
+        ],
+    },
+    "jungle": {
+        "name": "JUNGLE",
+        "sky_top": (0.2, 0.45, 0.5), "sky_horizon": (0.6, 0.8, 0.6),
+        "ambient": (0.5, 0.7, 0.5), "ambient_energy": 0.6,
+        "sun": (0.95, 1, 0.85), "sun_energy": 1.1,
+        "floor": "grass", "wall_color": (0.3, 0.42, 0.25),
+        "props": [
+            prop(NATURE + "tree_default.glb", -6, 2, 6.0, 0, 0.2), prop(NATURE + "tree_default.glb", 5, -5, 6.5, 60, 0.2),
+            prop(NATURE + "tree_default.glb", -11, -9, 6.0, 120, 0.2), prop(NATURE + "tree_default.glb", 11, 7, 7.0, 0, 0.2),
+            prop(NATURE + "tree_default.glb", 0, -11, 6.0, 30, 0.2), prop(NATURE + "tree_default.glb", -13, 9, 6.5, 0, 0.2),
+            prop(NATURE + "tree_default.glb", 13, -9, 6.0, 90, 0.2),
+            prop(NATURE + "tree_oak.glb", -3, -5, 5.0, 0, 0.25), prop(NATURE + "tree_oak.glb", 7, 2, 5.0, 45, 0.25),
+            prop(NATURE + "tree_oak.glb", -8, 12, 5.0, 0, 0.25),
+            prop(NATURE + "tree_palmTall.glb", 3, 7, 6.0, 0, 0.2), prop(NATURE + "tree_palmTall.glb", -14, -3, 6.0, 0, 0.2),
+            prop(NATURE + "rock_largeC.glb", -4, 8, 1.4), prop(NATURE + "rock_largeC.glb", 9, -12, 1.4, 90),
+            prop(NATURE + "rock_largeA.glb", -9, -2, 1.4),
+            prop(NATURE + "log_stackLarge.glb", 4, -1, 1.3), prop(NATURE + "log_stackLarge.glb", -5, -14, 1.3, 90),
+            prop(NATURE + "statue_head.glb", 0, -3, 2.6),
+            prop(NATURE + "plant_bushLarge.glb", 2, 3, 0.9, 0, 0), prop(NATURE + "plant_bushLarge.glb", -7, 6, 0.9, 0, 0),
+            prop(NATURE + "plant_bushLarge.glb", 8, 10, 0.9, 0, 0), prop(NATURE + "plant_bushLarge.glb", -12, -12, 0.9, 0, 0),
+            prop(NATURE + "plant_bushLarge.glb", 12, -3, 0.9, 0, 0),
+        ],
+    },
+    "volcano": {
+        "name": "VOLCAN",
+        "sky_top": (0.08, 0.02, 0.02), "sky_horizon": (0.7, 0.2, 0.05),
+        "ambient": (0.7, 0.35, 0.25), "ambient_energy": 0.6,
+        "sun": (1, 0.6, 0.4), "sun_energy": 1.0,
+        "floor": "basalt", "wall_color": (0.3, 0.22, 0.22),
+        "props": [
+            prop(NATURE + "rock_tallE.glb", -5, 3, 2.8), prop(NATURE + "rock_tallF.glb", 6, -4, 3.0, 40),
+            prop(NATURE + "rock_tallG.glb", -10, -10, 2.6), prop(NATURE + "rock_tallH.glb", 11, 8, 3.2, 90),
+            prop(NATURE + "rock_tallA.glb", 0, -9, 2.8, 30), prop(NATURE + "rock_tallB.glb", -12, 6, 2.6),
+            prop(NATURE + "rock_tallC.glb", 12, -12, 2.8), prop(NATURE + "rock_tallD.glb", 5, 9, 2.6, 60),
+            prop(NATURE + "stone_tallC.glb", -3, -3, 2.0), prop(NATURE + "stone_tallA.glb", 8, 3, 2.0, 90),
+            prop(NATURE + "statue_columnDamaged.glb", -7, -5, 3.0), prop(NATURE + "statue_columnDamaged.glb", 7, -10, 3.0, 90),
+        ],
+        # Lava pools: (x, z, radius). They hurt the player.
+        "lava": [(-2, 6, 2.2), (9, -8, 2.5), (-9, 0, 2.2), (3, -14, 2.0), (-13, -12, 2.0), (13, 2, 2.0)],
+    },
+    "city": {
+        "name": "VILLE",
+        "sky_top": (0.05, 0.07, 0.2), "sky_horizon": (0.9, 0.45, 0.35),
+        "ambient": (0.5, 0.5, 0.7), "ambient_energy": 0.6,
+        "sun": (1, 0.75, 0.6), "sun_energy": 1.1,
+        "floor": "asphalt", "wall_color": (0.42, 0.42, 0.48),
+        "props": [
+            prop(CITY + "building-a.glb", -9, -9, 7.0), prop(CITY + "building-d.glb", -9, 0, 8.0, 90),
+            prop(CITY + "building-h.glb", -9, 9, 7.0, 180), prop(CITY + "building-f.glb", 9, -9, 9.0, 270),
+            prop(CITY + "building-i.glb", 9, 0, 8.0, 90), prop(CITY + "building-l.glb", 9, 9, 10.0),
+            prop(CITY + "building-c.glb", 0, -5, 4.5),
+            prop(STATION + "container-flat.glb", -2, 5, 1.26, 90), prop(STATION + "container-flat.glb", 3, -12, 1.26),
+            prop(STATION + "container-tall.glb", 2, 8, 1.9), prop(STATION + "container-wide.glb", -3, -13, 1.47),
+            prop(STATION + "container.glb", 15, -4, 1.26), prop(STATION + "container.glb", -15, 5, 1.26),
+        ],
+    },
+}
+ORDER = ["station", "desert", "jungle", "volcano", "city"]
+
+
 def transform(pos, basis=IDENTITY):
-    return "Transform3D(%s)" % ", ".join(f"{v:.4g}" for v in basis + tuple(pos))
+    return "Transform3D(%s)" % ", ".join(f"{v:.4g}" for v in tuple(basis) + tuple(pos))
 
 
-# (name, size, position, material, basis)
-BOXES = [
-    ("Floor", (40, 1, 40), (0, -0.5, 0), "floor_material", IDENTITY),
-    ("WallNorth", (40, 4, 1), (0, 2, -20.5), "wall_material", IDENTITY),
-    ("WallSouth", (40, 4, 1), (0, 2, 20.5), "wall_material", IDENTITY),
-    ("WallWest", (1, 4, 42), (-20.5, 2, 0), "wall_material", IDENTITY),
-    ("WallEast", (1, 4, 42), (20.5, 2, 0), "wall_material", IDENTITY),
-    ("Pillar", (2, 5, 2), (0, 2.5, -6), "accent_material", IDENTITY),
-    ("Platform", (4, 2, 4), (8, 1, 1.2), "block_material", IDENTITY),
-    # Rises toward -Z, from the floor up to the top of Platform.
-    ("Ramp", (2.4, 0.3, 6), (8, 0.9, 6), "accent_material", rot_x(20)),
-    ("PlatformFar", (6, 1.5, 3), (10, 0.75, -12), "block_material", IDENTITY),
-]
-
-# Cover objects: (model in assets/models/station, x, z, yaw in degrees).
-# Kenney models are sized for 0.84 m characters, hence the common scale.
-PROP_DIR = "assets/models/station/"
-PROP_SCALE = 2.1
-PROPS = [
-    ("container-tall", -4, 4, 0), ("container-tall", -12, 9, 0), ("container", -10, 10.5, 0),
-    ("container-tall", 2, 2, 0), ("container-wide", 4, 2, 0),
-    ("container-tall", -8, -3, 0), ("container-wide", -8, -5, 0),
-    ("container-flat", -5, -12, 90), ("container-flat", 12, 10, 0),
-    ("computer-system", -2.5, -14, 0), ("table-display", 13, -4, 90),
-    ("container-wide", 4, -14, 0), ("container-wide", 15, 3, 0),
-    ("container-tall", -15, -8, 0), ("container", 5, 13, 0), ("container", -14, 2, 0),
-]
+def rot_y(deg):
+    c, s = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+    return (c, 0, s, 0, 1, 0, -s, 0, c)
 
 
-def glb_bounds(path):
+def color(rgb):
+    return "Color(%g, %g, %g, 1)" % tuple(rgb)
+
+
+def glb_bounds(res_path):
     """Min and max corners of all meshes of a .glb file."""
-    with open(path, "rb") as f:
+    with open(res_path.replace("res://", ""), "rb") as f:
         f.read(12)
         length, _ = struct.unpack("<I4s", f.read(8))
         gltf = json.loads(f.read(length))
@@ -63,102 +164,127 @@ def glb_bounds(path):
     return lo, hi
 
 
-def slug(model):
-    return model.replace("-", "_")
+def sun_basis():
+    """Yaw 30, pitch -50: light coming down at an angle."""
+    def mul(a, b):
+        return [sum(a[i * 3 + k] * b[k * 3 + j] for k in range(3)) for i in range(3) for j in range(3)]
+    return mul(rot_y(30), rot_x(-50))
 
 
-def rot_y(deg):
-    c, s = math.cos(math.radians(deg)), math.sin(math.radians(deg))
-    return (c, 0, s, 0, 1, 0, -s, 0, c)
+def build(arena_id, arena):
+    ext, sub, nodes = [], [], []
+    ext_ids = {}
+
+    def ext_resource(kind, path):
+        if path not in ext_ids:
+            ext_ids[path] = f"ext_{len(ext_ids) + 1}"
+            ext.append(f'[ext_resource type="{kind}" path="{path}" id="{ext_ids[path]}"]')
+        return f'ExtResource("{ext_ids[path]}")'
+
+    script = ext_resource("Script", "res://scripts/arena.gd")
+    panel_dark = ext_resource("Texture2D", "res://assets/textures/panel_dark.png")
+
+    # --- Sky, light, navigation
+    sub += ['[sub_resource type="ProceduralSkyMaterial" id="sky_material"]',
+            f'sky_top_color = {color(arena["sky_top"])}', f'sky_horizon_color = {color(arena["sky_horizon"])}',
+            f'ground_bottom_color = {color(arena["sky_top"])}', f'ground_horizon_color = {color(arena["sky_horizon"])}', "",
+            '[sub_resource type="Sky" id="sky"]', 'sky_material = SubResource("sky_material")', "",
+            '[sub_resource type="Environment" id="environment"]', "background_mode = 2", 'sky = SubResource("sky")',
+            "ambient_light_source = 2", f'ambient_light_color = {color(arena["ambient"])}',
+            f'ambient_light_energy = {arena["ambient_energy"]}', "tonemap_mode = 2", "glow_enabled = true", "",
+            '[sub_resource type="NavigationMesh" id="navigation_mesh"]', "geometry_parsed_geometry_type = 1",
+            "agent_height = 1.75", "agent_radius = 0.5", ""]
+
+    # --- Materials
+    if arena["floor"] == "grid":
+        shader = ext_resource("Shader", "res://shaders/grid.gdshader")
+        floor_texture = ext_resource("Texture2D", "res://assets/textures/floor_tiles.png")
+        sub += ['[sub_resource type="ShaderMaterial" id="floor_material"]', f"shader = {shader}",
+                f"shader_parameter/floor_texture = {floor_texture}", ""]
+    else:
+        floor_texture = ext_resource("Texture2D", f'res://assets/textures/{arena["floor"]}.png')
+        sub += ['[sub_resource type="StandardMaterial3D" id="floor_material"]', f"albedo_texture = {floor_texture}",
+                "roughness = 0.9", "uv1_scale = Vector3(0.25, 0.25, 0.25)", "uv1_triplanar = true", "uv1_world_triplanar = true", ""]
+    sub += ['[sub_resource type="StandardMaterial3D" id="wall_material"]', f'albedo_color = {color(arena["wall_color"])}',
+            f"albedo_texture = {panel_dark}", "roughness = 0.8", "uv1_scale = Vector3(0.5, 0.5, 0.5)",
+            "uv1_triplanar = true", "uv1_world_triplanar = true", ""]
+    if arena.get("blocks"):
+        panel_light = ext_resource("Texture2D", "res://assets/textures/panel_light.png")
+        stripes = ext_resource("Texture2D", "res://assets/textures/stripes_emission.png")
+        sub += ['[sub_resource type="StandardMaterial3D" id="block_material"]', f"albedo_texture = {panel_light}",
+                "roughness = 0.6", "uv1_scale = Vector3(0.5, 0.5, 0.5)", "uv1_triplanar = true", "uv1_world_triplanar = true", "",
+                '[sub_resource type="StandardMaterial3D" id="accent_material"]', "albedo_color = Color(0.75, 0.45, 0.85, 1)",
+                f"albedo_texture = {panel_dark}", "emission_enabled = true", "emission = Color(1, 0.24, 0.95, 1)",
+                "emission_energy_multiplier = 1.5", "emission_operator = 1", f"emission_texture = {stripes}",
+                "uv1_scale = Vector3(0.5, 0.5, 0.5)", "uv1_triplanar = true", "uv1_world_triplanar = true", ""]
+
+    # --- Root, sky and sun
+    nodes += ['[node name="Arena" type="NavigationRegion3D"]', 'navigation_mesh = SubResource("navigation_mesh")',
+              f"script = {script}", f'display_name = "{arena["name"]}"', "",
+              '[node name="WorldEnvironment" type="WorldEnvironment" parent="."]', 'environment = SubResource("environment")', "",
+              '[node name="Sun" type="DirectionalLight3D" parent="."]', f"transform = {transform((0, 10, 0), sun_basis())}",
+              f'light_color = {color(arena["sun"])}', f'light_energy = {arena["sun_energy"]}', "shadow_enabled = true", ""]
+
+    # --- Floor, walls, blocks
+    boxes = [
+        ("Floor", (40, 1, 40), (0, -0.5, 0), "floor_material", IDENTITY),
+        ("WallNorth", (40, 4, 1), (0, 2, -20.5), "wall_material", IDENTITY),
+        ("WallSouth", (40, 4, 1), (0, 2, 20.5), "wall_material", IDENTITY),
+        ("WallWest", (1, 4, 42), (-20.5, 2, 0), "wall_material", IDENTITY),
+        ("WallEast", (1, 4, 42), (20.5, 2, 0), "wall_material", IDENTITY),
+    ] + arena.get("blocks", [])
+    for name, size, pos, material, basis in boxes:
+        nodes += [f'[node name="{name}" type="CSGBox3D" parent="."]', f"transform = {transform(pos, basis)}",
+                  "use_collision = true", "size = Vector3(%g, %g, %g)" % size, f'material = SubResource("{material}")', ""]
+
+    # --- Props, with a box collision computed from the model bounds
+    nodes += ['[node name="Props" type="Node3D" parent="."]', ""]
+    for i, item in enumerate(arena.get("props", []), 1):
+        lo, hi = glb_bounds(item["model"])
+        scale = item["height"] / (hi[1] - lo[1])
+        name = f"Prop{i}"
+        parent_type = "StaticBody3D" if item["collision"] > 0 else "Node3D"
+        nodes += [f'[node name="{name}" type="{parent_type}" parent="Props"]',
+                  f'transform = {transform((item["x"], -lo[1] * scale, item["z"]), rot_y(item["yaw"]))}', "",
+                  f'[node name="Model" parent="Props/{name}" instance={ext_resource("PackedScene", item["model"])}]',
+                  f"transform = {transform((0, 0, 0), (scale, 0, 0, 0, scale, 0, 0, 0, scale))}", ""]
+        if item["collision"] > 0:
+            size = [(h - l) * scale for l, h in zip(lo, hi)]
+            size[0] *= item["collision"]
+            size[2] *= item["collision"]
+            center = [(l + h) / 2 * scale for l, h in zip(lo, hi)]
+            shape_id = f"shape_{i}"
+            sub += [f'[sub_resource type="BoxShape3D" id="{shape_id}"]', "size = Vector3(%.3f, %.3f, %.3f)" % tuple(size), ""]
+            nodes += [f'[node name="CollisionShape3D" type="CollisionShape3D" parent="Props/{name}"]',
+                      f"transform = {transform(center)}", f'shape = SubResource("{shape_id}")', ""]
+
+    # --- Lava pools
+    if arena.get("lava"):
+        hazard = ext_resource("Script", "res://scripts/hazard.gd")
+        sub += ['[sub_resource type="StandardMaterial3D" id="lava_material"]', "albedo_color = Color(1, 0.35, 0.05, 1)",
+                "emission_enabled = true", "emission = Color(1, 0.3, 0.05, 1)", "emission_energy_multiplier = 2.5", ""]
+        nodes += ['[node name="Lava" type="Node3D" parent="."]', ""]
+        for i, (x, z, radius) in enumerate(arena["lava"], 1):
+            sub += [f'[sub_resource type="CylinderMesh" id="lava_mesh_{i}"]', 'material = SubResource("lava_material")',
+                    f"top_radius = {radius}", f"bottom_radius = {radius}", "height = 0.06", "radial_segments = 20", "rings = 1", "",
+                    f'[sub_resource type="CylinderShape3D" id="lava_shape_{i}"]', "height = 1.0", f"radius = {radius}", ""]
+            nodes += [f'[node name="Pool{i}" type="Area3D" parent="Lava"]', f"transform = {transform((x, 0.04, z))}",
+                      "collision_layer = 0", "collision_mask = 2", f"script = {hazard}", "",
+                      f'[node name="Mesh" type="MeshInstance3D" parent="Lava/Pool{i}"]', f'mesh = SubResource("lava_mesh_{i}")', "",
+                      f'[node name="CollisionShape3D" type="CollisionShape3D" parent="Lava/Pool{i}"]',
+                      f"transform = {transform((0, 0.5, 0))}", f'shape = SubResource("lava_shape_{i}")', ""]
+
+    # --- Spawn points
+    nodes += ['[node name="PlayerSpawn" type="Marker3D" parent="."]', f"transform = {transform(PLAYER_SPAWN)}", "",
+              '[node name="EnemySpawns" type="Node3D" parent="."]', ""]
+    for i, pos in enumerate(ENEMY_SPAWNS, 1):
+        nodes += [f'[node name="Spawn{i}" type="Marker3D" parent="EnemySpawns" groups=["enemy_spawns"]]',
+                  f"transform = {transform(pos)}", ""]
+
+    header = f"[gd_scene load_steps={len(ext) + sub.count('') + 1} format=3]"
+    with open(f"scenes/arenas/{arena_id}.tscn", "w") as f:
+        f.write("\n".join([header, ""] + ext + [""] + sub + nodes))
 
 
-# Where robots appear, near the walls.
-ENEMY_SPAWNS = [
-    (-16, 0.1, -16), (0, 0.1, -17), (16, 0.1, -16), (-17, 0.1, 0),
-    (17, 0.1, 8), (-16, 0.1, 16), (16, 0.1, 16),
-]
-
-HEADER = """[gd_scene load_steps=12 format=3]
-
-[ext_resource type="Shader" path="res://shaders/grid.gdshader" id="1_grid"]
-[ext_resource type="Texture2D" path="res://assets/textures/floor_tiles.png" id="2_floor"]
-[ext_resource type="Texture2D" path="res://assets/textures/panel_dark.png" id="3_dark"]
-[ext_resource type="Texture2D" path="res://assets/textures/panel_light.png" id="4_light"]
-[ext_resource type="Texture2D" path="res://assets/textures/stripes_emission.png" id="5_stripes"]
-[ext_resource type="Script" path="res://scripts/arena.gd" id="6_arena"]
-
-[sub_resource type="NavigationMesh" id="navigation_mesh"]
-geometry_parsed_geometry_type = 1
-agent_height = 1.75
-agent_radius = 0.5
-
-[sub_resource type="ShaderMaterial" id="floor_material"]
-shader = ExtResource("1_grid")
-shader_parameter/floor_texture = ExtResource("2_floor")
-
-[sub_resource type="StandardMaterial3D" id="wall_material"]
-albedo_texture = ExtResource("3_dark")
-roughness = 0.8
-uv1_scale = Vector3(0.5, 0.5, 0.5)
-uv1_triplanar = true
-uv1_world_triplanar = true
-
-[sub_resource type="StandardMaterial3D" id="block_material"]
-albedo_texture = ExtResource("4_light")
-roughness = 0.6
-uv1_scale = Vector3(0.5, 0.5, 0.5)
-uv1_triplanar = true
-uv1_world_triplanar = true
-
-[sub_resource type="StandardMaterial3D" id="accent_material"]
-albedo_color = Color(0.75, 0.45, 0.85, 1)
-albedo_texture = ExtResource("3_dark")
-emission_enabled = true
-emission = Color(1, 0.24, 0.95, 1)
-emission_energy_multiplier = 1.5
-emission_operator = 1
-emission_texture = ExtResource("5_stripes")
-uv1_scale = Vector3(0.5, 0.5, 0.5)
-uv1_triplanar = true
-uv1_world_triplanar = true
-
-[node name="Arena" type="NavigationRegion3D"]
-navigation_mesh = SubResource("navigation_mesh")
-script = ExtResource("6_arena")
-"""
-
-out = [HEADER]
-prop_models = sorted({prop[0] for prop in PROPS})
-resources, shapes = [], []
-for model in prop_models:
-    lo, hi = glb_bounds(f"{PROP_DIR}{model}.glb")
-    size = [(h - l) * PROP_SCALE for l, h in zip(lo, hi)]
-    resources.append(f'[ext_resource type="PackedScene" path="res://{PROP_DIR}{model}.glb" id="prop_{slug(model)}"]')
-    shapes += [f'[sub_resource type="BoxShape3D" id="shape_{slug(model)}"]',
-               "size = Vector3(%.3f, %.3f, %.3f)" % tuple(size), ""]
-out[0] = out[0].replace("[sub_resource", "\n".join(resources) + "\n\n" + "\n".join(shapes) + "\n[sub_resource", 1)
-for name, size, pos, material, basis in BOXES:
-    out += [f'[node name="{name}" type="CSGBox3D" parent="."]',
-            f"transform = {transform(pos, basis)}",
-            "use_collision = true",
-            "size = Vector3(%g, %g, %g)" % size,
-            f'material = SubResource("{material}")', ""]
-out += ['[node name="EnemySpawns" type="Node3D" parent="."]', ""]
-for i, pos in enumerate(ENEMY_SPAWNS, 1):
-    out += [f'[node name="Spawn{i}" type="Marker3D" parent="EnemySpawns" groups=["enemy_spawns"]]',
-            f"transform = {transform(pos)}", ""]
-out += ['[node name="Props" type="Node3D" parent="."]', ""]
-for i, (model, x, z, yaw) in enumerate(PROPS, 1):
-    lo, hi = glb_bounds(f"{PROP_DIR}{model}.glb")
-    center = [(l + h) / 2 * PROP_SCALE for l, h in zip(lo, hi)]
-    ground_offset = -lo[1] * PROP_SCALE  # rest the model on the floor
-    name = f"Prop{i}"
-    scale = (PROP_SCALE, 0, 0, 0, PROP_SCALE, 0, 0, 0, PROP_SCALE)
-    out += [f'[node name="{name}" type="StaticBody3D" parent="Props"]',
-            f"transform = {transform((x, ground_offset, z), rot_y(yaw))}", "",
-            f'[node name="Model" parent="Props/{name}" instance=ExtResource("prop_{slug(model)}")]',
-            f"transform = {transform((0, 0, 0), scale)}", "",
-            f'[node name="CollisionShape3D" type="CollisionShape3D" parent="Props/{name}"]',
-            f"transform = {transform(center)}",
-            f'shape = SubResource("shape_{slug(model)}")', ""]
-open("scenes/arena.tscn", "w").write("\n".join(out))
+for arena_id in ORDER:
+    build(arena_id, ARENAS[arena_id])

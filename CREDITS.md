@@ -8,6 +8,8 @@ Tous les fichiers externes du jeu sont sous licence [CC0 1.0](https://creativeco
 | Fusil lourd, sniper, mitraillette, bazooka | [Blaster Kit 2.1](https://kenney.nl/assets/blaster-kit) | Kenney | `assets/models/blasters/` |
 | Hache | [Survival Kit](https://kenney.nl/assets/survival-kit) | Kenney | `assets/models/melee/` |
 | Éléments de décor de l'arène | [Space Station Kit 1.0](https://kenney.nl/assets/space-station-kit) | Kenney | `assets/models/station/` |
+| Rochers, cactus, arbres, statues | [Nature Kit](https://kenney.nl/assets/nature-kit) | Kenney | `assets/models/nature/` |
+| Immeubles | [City Kit (Commercial)](https://kenney.nl/assets/city-kit-commercial) | Kenney | `assets/models/city/` |
 | Sons de tir et d'explosion | [Sci-Fi Sounds 1.0](https://kenney.nl/assets/sci-fi-sounds) | Kenney | `assets/audio/kenney/` |
 | Musique | [Synthwave House Loop](https://opengameart.org/content/synthwave-house-loop) | Fupi | `assets/audio/music/` |
 

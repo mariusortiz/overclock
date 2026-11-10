@@ -8,19 +8,35 @@ const BOSS_SCORE := 1000
 const MENU_SCENE := "res://scenes/menu.tscn"
 const DAMAGE_VIBRATION_MS := 40
 const PERK_CHOICE_DELAY := 2.0
+## Arenas, in the order they are visited: a new one after each boss.
+const ARENAS: Array[PackedScene] = [
+	preload("res://scenes/arenas/station.tscn"),
+	preload("res://scenes/arenas/desert.tscn"),
+	preload("res://scenes/arenas/jungle.tscn"),
+	preload("res://scenes/arenas/volcano.tscn"),
+	preload("res://scenes/arenas/city.tscn"),
+]
 
 var score := 0
 
 var _mouse_was_captured := false
+var _arena: Arena
+var _arena_index := 0
+var _arena_change_pending := false
 
 @onready var player: Player = $Player
 @onready var hud: Hud = $HUD
 @onready var waves: WaveManager = $WaveManager
-@onready var _sun: DirectionalLight3D = $Sun
-@onready var _world: WorldEnvironment = $WorldEnvironment
 
 
 func _ready() -> void:
+	# Test option: "-- --arena=2" on the command line starts in that arena.
+	var first_arena := 0
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--arena="):
+			first_arena = argument.get_slice("=", 1).to_int()
+	_load_arena(first_arena)
+
 	hud.touch_controls.look.connect(_on_touch_look)
 	# Deferred: the scene must not be removed while the button is still handling its click.
 	hud.replay_pressed.connect(get_tree().reload_current_scene, CONNECT_DEFERRED)
@@ -48,7 +64,6 @@ func _ready() -> void:
 	hud.set_score(score)
 
 	Settings.changed.connect(_apply_quality)
-	_apply_quality()
 
 
 func _process(_delta: float) -> void:
@@ -78,11 +93,32 @@ func _unhandled_input(event: InputEvent) -> void:
 		# Test shortcut (debug and web builds): destroys every robot.
 		for enemy in get_tree().get_nodes_in_group("targets"):
 			enemy.take_damage(9999)
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_F10 \
+			and (OS.is_debug_build() or OS.has_feature("web")):
+		# Test shortcut (debug and web builds): jumps to the next arena.
+		_load_arena(_arena_index + 1)
+		hud.show_banner(_arena.display_name)
+
+
+## Replaces the current arena and puts the player at its starting point.
+func _load_arena(index: int) -> void:
+	if _arena:
+		remove_child(_arena)
+		_arena.queue_free()
+	# Projectiles, power-ups and other leftovers of the previous arena.
+	get_tree().call_group("transient", "queue_free")
+
+	_arena_index = index % ARENAS.size()
+	_arena = ARENAS[_arena_index].instantiate()
+	add_child(_arena)
+	move_child(_arena, 0)
+	player.global_position = _arena.player_spawn_position()
+	player.velocity = Vector3.ZERO
+	_apply_quality()
 
 
 func _apply_quality() -> void:
-	_sun.shadow_enabled = Settings.high_quality
-	_world.environment.glow_enabled = Settings.high_quality
+	_arena.apply_quality(Settings.high_quality)
 
 
 func _vibrate() -> void:
@@ -116,6 +152,7 @@ func _on_wave_cleared(number: int) -> void:
 	var bonus := WAVE_BONUS * number
 	_add_score(bonus)
 	player.heal(WAVE_HEAL)
+	_arena_change_pending = waves.is_boss_wave()
 	hud.show_banner("VAGUE %d TERMINÉE   +%d" % [number, bonus])
 
 	# A short breather, then pause and let the player pick a perk.
@@ -136,6 +173,14 @@ func _on_perk_chosen(type: Perk.Type) -> void:
 	get_tree().paused = false
 	if _mouse_was_captured:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+	# A boss was just beaten: travel to the next arena.
+	if _arena_change_pending:
+		_arena_change_pending = false
+		await hud.fade_to_black()
+		_load_arena(_arena_index + 1)
+		hud.show_banner(_arena.display_name)
+		hud.fade_from_black()
 
 
 func _on_enemies_left_changed(count: int) -> void:

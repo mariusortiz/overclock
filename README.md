@@ -65,6 +65,10 @@ Toutes les 5 vagues, un boss arrive avec trois robots. Sa barre de vie s'affiche
 
 Après la vague 20, les quatre boss reviennent, plus résistants.
 
+## Arènes
+
+La partie commence dans la station. Chaque boss battu t'emmène dans l'arène suivante : Station → Désert → Jungle → Volcan → Ville, puis on recommence. Dans le volcan, les flaques de lave blessent.
+
 ## Personnages et armes
 
 Ils se choisissent dans le menu et se débloquent avec le record.
@@ -94,7 +98,7 @@ Personnages (visuel seulement) : Soldat (0), Ouvrier (1000), Pillard (2500), Che
 - `scenes/` : scènes Godot (`.tscn`)
 - `scripts/` : code GDScript
 - `assets/` : modèles 3D, sons et musique CC0 (voir `CREDITS.md`), plus les textures générées par les scripts de `tools/`
-- `tools/` : scripts Python qui génèrent l'arène de test, les textures et les sons
+- `tools/` : scripts Python qui génèrent les arènes (`scenes/arenas/`), les textures et les sons
 - `ci/debug.keystore` : clé de debug publique (mot de passe `android`), utilisée uniquement pour les APK de test. La clé de release ne sera jamais commitée.
 - `.github/workflows/build.yml` : compilation de l'APK et de la version web
 
