@@ -61,8 +61,8 @@ ARENAS = {
     "desert": {
         "name": "DÉSERT",
         "sky_top": (0.25, 0.5, 0.85), "sky_horizon": (0.95, 0.8, 0.6),
-        "ambient": (0.9, 0.8, 0.65), "ambient_energy": 0.7,
-        "sun": (1, 0.93, 0.8), "sun_energy": 1.5,
+        "ambient": (0.9, 0.8, 0.65), "ambient_energy": 0.4,
+        "sun": (1, 0.93, 0.8), "sun_energy": 0.9,
         "floor": "sand", "wall_color": (0.8, 0.62, 0.4),
         "props": [
             prop(NATURE + "statue_obelisk.glb", 0, -4, 5.0, 0, 0.7),
@@ -79,7 +79,7 @@ ARENAS = {
     "jungle": {
         "name": "JUNGLE",
         "sky_top": (0.2, 0.45, 0.5), "sky_horizon": (0.6, 0.8, 0.6),
-        "ambient": (0.5, 0.7, 0.5), "ambient_energy": 0.6,
+        "ambient": (0.5, 0.7, 0.5), "ambient_energy": 0.45,
         "sun": (0.95, 1, 0.85), "sun_energy": 1.1,
         "floor": "grass", "wall_color": (0.3, 0.42, 0.25),
         "props": [

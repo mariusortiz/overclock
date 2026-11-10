@@ -78,7 +78,7 @@ def ground(base, amount, seed, speckles=400):
     return img
 
 
-ground((196, 164, 110), 8, seed=11).save(OUT + "sand.png")
+ground((168, 138, 92), 8, seed=11).save(OUT + "sand.png")
 ground((72, 118, 60), 10, seed=12).save(OUT + "grass.png")
 ground((48, 40, 42), 8, seed=13).save(OUT + "basalt.png")
 panels((58, 58, 66), 1, seed=14, rivets=False).save(OUT + "asphalt.png")
