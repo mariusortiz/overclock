@@ -28,9 +28,12 @@ var ammo := 0
 var damage_multiplier := 1
 ## Perk.Type -> level, shared with the player.
 var perks := {}
+## When set, the gun is held at this node (the character's hand).
+var hand: Node3D
 
 var _cooldown := 0.0
 var _reloading := false
+var _muzzle_offset := Vector3.ZERO
 var _use_aim_assist := DisplayServer.is_touchscreen_available()
 var _tracer_mesh := BoxMesh.new()
 var _lightning_mesh := BoxMesh.new()
@@ -69,7 +72,8 @@ func setup(data: Dictionary, owner_perks: Dictionary) -> void:
 	# Kenney models point toward +Z: turn them around.
 	model.transform = Transform3D(Basis.from_scale(Vector3(-size, size, -size)), data.offset)
 	_model_pivot.add_child(model)
-	_muzzle.position = data.muzzle
+	_muzzle_offset = data.muzzle
+	_muzzle.position = _muzzle_offset
 
 	ammo = get_magazine_size()
 	ammo_changed.emit(ammo, get_magazine_size(), false)
@@ -84,6 +88,13 @@ func on_perks_changed() -> void:
 	if not _reloading:
 		ammo = get_magazine_size()
 		ammo_changed.emit(ammo, get_magazine_size(), false)
+
+
+func _process(_delta: float) -> void:
+	# The gun sits in the hand but keeps pointing where the player aims.
+	if hand:
+		_model_pivot.global_position = hand.global_position
+		_muzzle.position = _model_pivot.position + _muzzle_offset
 
 
 func _physics_process(delta: float) -> void:

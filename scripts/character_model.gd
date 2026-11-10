@@ -11,6 +11,8 @@ const ACTIONS := {
 	&"idle": ["Idle", "Flying"],
 	&"walk": ["Walk", "Running", "Flying"],
 	&"shoot": ["Shoot_OneHanded", "Attack"],
+	# Same animation as "shoot", frozen on its first frame: arm stretched out.
+	&"aim": ["Shoot_OneHanded"],
 	&"melee": ["Punch", "Attack2", "Attack"],
 	&"die": ["Defeat", "Death"],
 }
@@ -50,7 +52,22 @@ func play(action: StringName, restart := false, speed := 1.0) -> void:
 	elif _current_action == action:
 		return
 	_current_action = action
-	_animation_player.play(_animations[action], 0.15, speed)
+	if action == &"aim":
+		_animation_player.play(_animations[action], 0.0, 0.0)
+	else:
+		_animation_player.play(_animations[action], 0.15, speed)
+
+
+## Returns a node that follows a bone (for example "Fist.R"), or null if the
+## model has no such bone.
+func get_attachment(bone_name: String) -> Node3D:
+	var skeleton: Skeleton3D = find_child("Skeleton3D", true, false)
+	if skeleton == null or skeleton.find_bone(bone_name) == -1:
+		return null
+	var attachment := BoneAttachment3D.new()
+	attachment.bone_name = bone_name
+	skeleton.add_child(attachment)
+	return attachment
 
 
 func _find_animation(suffix: String) -> StringName:

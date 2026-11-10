@@ -50,6 +50,8 @@ func _ready() -> void:
 	_model_pivot.add_child(_model)
 	weapon.setup(Loadout.selected_weapon(), perks)
 	melee.setup(Loadout.selected_melee())
+	weapon.hand = _model.get_attachment("Fist.R")
+	melee.hand = _model.get_attachment("Fist.L")
 	melee.swung.connect(_on_melee_swung)
 	_spring_arm.add_excluded_object(get_rid())
 	_spring_arm.rotation.x = deg_to_rad(-15.0)
@@ -161,7 +163,7 @@ func _update_animation() -> void:
 	if is_on_floor() and Vector2(velocity.x, velocity.z).length() > 0.5:
 		_model.play(&"walk", false, WALK_ANIMATION_SPEED)
 	else:
-		_model.play(&"idle")
+		_model.play(&"aim")
 
 
 func _die() -> void:

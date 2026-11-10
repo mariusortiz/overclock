@@ -94,7 +94,9 @@ Ils se choisissent dans le menu et se débloquent avec le record.
 | Corps à corps | Délai | Dégâts | Portée | Record requis |
 |---|---|---|---|---|
 | Couteau (une cible) | 0,5 s | 4 | 2,2 m | 0 |
-| Hache (tous les robots devant soi) | 1,1 s | 10 | 2,6 m | 3000 |
+| Lance (transperce les ennemis alignés) | 0,8 s | 6 | 4,5 m | 2000 |
+| Hache (tous les ennemis devant soi) | 1,1 s | 10 | 2,6 m | 3000 |
+| Masse (repousse l'ennemi) | 1 s | 8 | 2,4 m | 4500 |
 
 Personnages (visuel seulement) : Soldat (0), Cow-boy (1000), Pirate (2500), Viking (5000), Chevalier d'or (8000).
 

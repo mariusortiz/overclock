@@ -6,9 +6,9 @@ Tous les fichiers externes du jeu sont sous licence [CC0 1.0](https://creativeco
 |---|---|---|---|
 | Personnages et ennemis | [Ultimate Animated Character Pack](https://opengameart.org/content/animated-characters-pack) | Quaternius | `assets/models/quaternius/characters/` |
 | Boss (dragon, squelette, chauve-souris, slime) | [LowPoly Animated Monsters](https://opengameart.org/content/lowpoly-animated-monsters) | Quaternius | `assets/models/quaternius/monsters/` |
-| Blaster, couteau | [Mini Characters 2.0](https://kenney.nl/assets/mini-characters) | Kenney | `assets/models/characters/` |
+| Blaster, couteau, lance | [Mini Characters 2.0](https://kenney.nl/assets/mini-characters) | Kenney | `assets/models/characters/` |
 | Fusil lourd, sniper, mitraillette, bazooka | [Blaster Kit 2.1](https://kenney.nl/assets/blaster-kit) | Kenney | `assets/models/blasters/` |
-| Hache | [Survival Kit](https://kenney.nl/assets/survival-kit) | Kenney | `assets/models/melee/` |
+| Hache, masse | [Survival Kit](https://kenney.nl/assets/survival-kit) | Kenney | `assets/models/melee/` |
 | Éléments de décor de l'arène | [Space Station Kit 1.0](https://kenney.nl/assets/space-station-kit) | Kenney | `assets/models/station/` |
 | Rochers, cactus, arbres, statues | [Nature Kit](https://kenney.nl/assets/nature-kit) | Kenney | `assets/models/nature/` |
 | Immeubles | [City Kit (Commercial)](https://kenney.nl/assets/city-kit-commercial) | Kenney | `assets/models/city/` |

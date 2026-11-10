@@ -51,10 +51,16 @@ func _ready() -> void:
 	super()
 	# Monsters fight bare-handed.
 	$Visual/Gun.visible = false
+	_aim_animation = &"idle"
 	if kind == Kind.BRUTE:
 		_attack_animation = &"melee"
 	if kind == Kind.SUMMONER:
 		_shield = _create_shield()
+
+
+## Bosses are too heavy to be pushed around.
+func knockback(_direction: Vector3, _strength: float) -> void:
+	pass
 
 
 func take_damage(amount: int) -> void:

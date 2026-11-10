@@ -49,6 +49,9 @@ var _player: Player
 var _model: CharacterModel
 var _base_scale := Vector3.ONE
 var _attack_animation := &"shoot"
+var _aim_animation := &"aim"
+var _hand: Node3D
+var _stun_left := 0.0
 var _tween: Tween
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -56,6 +59,7 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var _visual: Node3D = $Visual
 @onready var _model_pivot: Node3D = $Visual/ModelPivot
 @onready var _muzzle: Marker3D = $Visual/Muzzle
+@onready var _gun: Node3D = $Visual/Gun
 @onready var _status_orb: MeshInstance3D = $Visual/StatusOrb
 @onready var _shot_sound: AudioStreamPlayer3D = $ShotSound
 @onready var _death_sound: AudioStreamPlayer3D = $DeathSound
@@ -71,6 +75,7 @@ func _ready() -> void:
 	_model.target_height = model_height
 	_model.hover_height = model_hover
 	_model_pivot.add_child(_model)
+	_hand = _model.get_attachment("Fist.R")
 	_fire_cooldown = fire_interval
 	_status_material.emission_enabled = true
 	_status_material.emission_energy_multiplier = 2.0
@@ -94,6 +99,15 @@ func take_damage(amount: int) -> void:
 	else:
 		_visual.scale = _base_scale * 1.2
 		_scale_visual_to(_base_scale, 0.12)
+
+
+## Mace: thrown back, and unable to act for a moment.
+func knockback(direction: Vector3, strength: float) -> void:
+	if _dead:
+		return
+	velocity.x = direction.x * strength
+	velocity.z = direction.z * strength
+	_stun_left = 0.35
 
 
 ## Fire perk: takes `damage_per_tick` twice a second for a few seconds.
@@ -136,6 +150,7 @@ func _physics_process(delta: float) -> void:
 		var to_player := _player.global_position - global_position
 		_face(to_player, delta)
 		if to_player.length() <= attack_range and _has_line_of_sight():
+			animation = _aim_animation
 			_fire_cooldown -= delta * slow
 			if _fire_cooldown <= 0.0:
 				_shoot()
@@ -149,9 +164,17 @@ func _physics_process(delta: float) -> void:
 	if not _dead and _shoot_animation_left <= 0.0:
 		_model.play(animation)
 
-	velocity.x = move_toward(velocity.x, wanted.x, acceleration * delta)
-	velocity.z = move_toward(velocity.z, wanted.z, acceleration * delta)
+	# While knocked back, the enemy slides to a stop instead of steering.
+	_stun_left -= delta
+	var target_velocity := Vector3.ZERO if _stun_left > 0.0 else wanted
+	velocity.x = move_toward(velocity.x, target_velocity.x, acceleration * delta)
+	velocity.z = move_toward(velocity.z, target_velocity.z, acceleration * delta)
 	move_and_slide()
+
+	# The gun sits in the hand but keeps pointing forward.
+	if _hand:
+		_gun.global_position = _hand.global_position
+		_muzzle.global_position = _gun.global_position - global_basis.z * 0.5 + Vector3.UP * 0.2
 
 
 func _face(to_player: Vector3, delta: float) -> void:

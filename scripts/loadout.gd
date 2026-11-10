@@ -54,12 +54,24 @@ const MELEE := [
 	{
 		"id": "knife", "name": "Couteau", "unlock": 0,
 		"model": "res://assets/models/characters/weapon-sword.glb", "scale": 1.3,
-		"damage": 4, "range": 2.2, "cooldown": 0.5, "sweep": false,
+		"damage": 4, "range": 2.2, "cooldown": 0.5, "sweep": false, "cone": 70.0, "knockback": 0.0,
+	},
+	{
+		# Long thrust that pierces every enemy lined up in front.
+		"id": "spear", "name": "Lance", "unlock": 2000,
+		"model": "res://assets/models/characters/weapon-spear.glb", "scale": 3.6,
+		"damage": 6, "range": 4.5, "cooldown": 0.8, "sweep": true, "cone": 18.0, "knockback": 0.0,
 	},
 	{
 		"id": "axe", "name": "Hache", "unlock": 3000,
 		"model": "res://assets/models/melee/tool-axe-upgraded.glb", "scale": 3.2,
-		"damage": 10, "range": 2.6, "cooldown": 1.1, "sweep": true,
+		"damage": 10, "range": 2.6, "cooldown": 1.1, "sweep": true, "cone": 70.0, "knockback": 0.0,
+	},
+	{
+		# Sends the enemy flying backward.
+		"id": "mace", "name": "Masse", "unlock": 4500,
+		"model": "res://assets/models/melee/tool-hammer-upgraded.glb", "scale": 5.0,
+		"damage": 8, "range": 2.4, "cooldown": 1.0, "sweep": false, "cone": 70.0, "knockback": 12.0,
 	},
 ]
 
