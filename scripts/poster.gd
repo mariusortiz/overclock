@@ -25,8 +25,8 @@ func _ready() -> void:
 	for fighter: Dictionary in CAST:
 		_add_fighter(fighter)
 
-	var dragon := _create_model(MONSTERS + "Dragon.fbx", 4.4, 1.2)
-	var dragon_holder := _add_holder(Vector3(0.0, 0.0, -4.5), 0.0)
+	var dragon := _create_model(MONSTERS + "Dragon.fbx", 4.6, 0.2)
+	var dragon_holder := _add_holder(Vector3(0.0, 0.0, -6.5), 0.0)
 	dragon_holder.add_child(dragon)
 	dragon.freeze(&"idle", 0.4)
 
