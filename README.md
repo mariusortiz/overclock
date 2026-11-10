@@ -18,6 +18,14 @@ https://mariusortiz.github.io/overclock-builds/
 
 Cette version web est mise à jour à chaque push sur `main`. Elle utilise un moteur de rendu plus simple que sur téléphone (WebGL 2) : le rendu et les FPS diffèrent un peu. Le téléphone reste la référence.
 
+## Contrôles
+
+| Action | Téléphone | Clavier / souris |
+|---|---|---|
+| Bouger | Joystick : poser le pouce n'importe où sur la moitié gauche | ZQSD (AZERTY) ou WASD (QWERTY), flèches |
+| Caméra | Glisser sur la moitié droite | Souris (clic dans le jeu pour la capturer, Échap pour la libérer) |
+| Sauter | Bouton SAUT en bas à droite | Espace |
+
 ## Développer en local (optionnel)
 
 1. Installe Godot 4.5.1 (la version standard, pas .NET).

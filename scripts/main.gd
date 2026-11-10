@@ -1,16 +1,23 @@
 extends Node3D
-## Step 1 test scene: proves the 3D pipeline runs on the phone.
+## Game root: wires input sources to the player.
 
-@onready var core: MeshInstance3D = $Core
-@onready var camera: Camera3D = $Camera3D
-@onready var fps_label: Label = $UI/FpsLabel
+@onready var player: Player = $Player
+@onready var hud: Hud = $HUD
 
 
 func _ready() -> void:
-	camera.look_at(Vector3(0, 1, 0))
+	hud.touch_controls.look.connect(_on_touch_look)
 
 
-func _process(delta: float) -> void:
-	core.rotate_y(delta * 1.2)
-	core.rotate_x(delta * 0.7)
-	fps_label.text = "%d FPS" % Engine.get_frames_per_second()
+func _unhandled_input(event: InputEvent) -> void:
+	# Desktop/web: click to capture the mouse, Escape to release it.
+	# Clicks emulated from touch are ignored (phones use the touch controls).
+	if event is InputEventMouseButton and event.pressed \
+			and event.device != InputEvent.DEVICE_ID_EMULATION:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	elif event.is_action_pressed("ui_cancel"):
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+
+func _on_touch_look(relative: Vector2) -> void:
+	player.look(relative, player.touch_sensitivity)

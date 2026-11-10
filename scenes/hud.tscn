@@ -1,0 +1,82 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://scripts/touch_controls.gd" id="2_touch"]
+
+[sub_resource type="Gradient" id="jump_gradient"]
+offsets = PackedFloat32Array(0, 0.86, 0.92, 1)
+colors = PackedColorArray(0, 0.9, 1, 0.15, 0, 0.9, 1, 0.15, 0, 0.9, 1, 0.7, 0, 0.9, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="jump_texture"]
+gradient = SubResource("jump_gradient")
+width = 160
+height = 160
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="jump_gradient_pressed"]
+offsets = PackedFloat32Array(0, 0.86, 0.92, 1)
+colors = PackedColorArray(0, 0.9, 1, 0.45, 0, 0.9, 1, 0.45, 0, 0.9, 1, 1, 0, 0.9, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="jump_texture_pressed"]
+gradient = SubResource("jump_gradient_pressed")
+width = 160
+height = 160
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="TouchControls" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_touch")
+
+[node name="JumpButton" type="TouchScreenButton" parent="TouchControls"]
+texture_normal = SubResource("jump_texture")
+texture_pressed = SubResource("jump_texture_pressed")
+action = "jump"
+visibility_mode = 1
+
+[node name="Label" type="Label" parent="TouchControls/JumpButton"]
+offset_right = 160.0
+offset_bottom = 160.0
+theme_override_font_sizes/font_size = 26
+text = "SAUT"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FpsLabel" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 16.0
+offset_right = 224.0
+offset_bottom = 50.0
+theme_override_font_sizes/font_size = 22
+text = "-- FPS"
+
+[node name="DesktopHint" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -420.0
+offset_top = -70.0
+offset_right = 420.0
+offset_bottom = 70.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 26
+text = "Clique pour jouer
+ZQSD : bouger · Souris : caméra · Espace : sauter · Échap : libérer la souris"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3

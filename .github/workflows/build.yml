@@ -58,7 +58,7 @@ jobs:
       - name: Smoke test (fails on script errors)
         run: |
           godot --headless --quit-after 120 2>&1 | tee run.log
-          if grep -E "SCRIPT ERROR|Parse Error" run.log; then exit 1; fi
+          if grep -E "SCRIPT ERROR|Parse Error|^ERROR:" run.log; then exit 1; fi
 
       - name: Export debug APK
         run: |
@@ -78,6 +78,11 @@ jobs:
         with:
           name: overclock-debug-apk
           path: build/overclock-debug.apk
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: overclock-web
+          path: build/web/
 
       # The code repo is private, so test APKs go to the public overclock-builds repo.
       # BUILDS_TOKEN: fine-grained token with Contents read/write on overclock-builds only.
