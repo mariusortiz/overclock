@@ -2,8 +2,9 @@
 
 Run from the repo root: python3 tools/make_arena.py
 Godot serializes Transform3D row by row: basis rows first, then the origin.
-Every arena is a 40 x 40 m walled square. The player starts at (0, 12) and the
-robots appear at ENEMY_SPAWNS, so keep those spots clear.
+Every arena is a SIZE x SIZE m walled square. Layouts are written for a 40 m
+arena and spread out by SPREAD; a second, inner ring of props is added
+automatically. The player and enemy spawn points are kept clear.
 """
 import json
 import math
@@ -14,11 +15,15 @@ STATION = "res://assets/models/station/"
 NATURE = "res://assets/models/nature/"
 CITY = "res://assets/models/city/"
 
+SIZE = 60
+SPREAD = SIZE / 40
+CHARACTERS = "res://assets/models/quaternius/characters/"
+
 ENEMY_SPAWNS = [
-    (-16, 0.1, -16), (0, 0.1, -17), (16, 0.1, -16), (-17, 0.1, 0),
-    (17, 0.1, 8), (-16, 0.1, 16), (16, 0.1, 16),
+    (-25, 0.1, -25), (0, 0.1, -26), (25, 0.1, -25), (-26, 0.1, 0),
+    (26, 0.1, 12), (-25, 0.1, 25), (25, 0.1, 25),
 ]
-PLAYER_SPAWN = (0, 0.1, 12)
+PLAYER_SPAWN = (0, 0.1, 18)
 
 
 def prop(model, x, z, height, yaw=0, collision=1.0):
@@ -35,7 +40,7 @@ def rot_x(deg):
 
 ARENAS = {
     "station": {
-        "name": "STATION",
+        "name": "STATION", "enemy": "BlueSoldier_Male.fbx",
         "sky_top": (0.03, 0.02, 0.12), "sky_horizon": (0.35, 0.08, 0.45),
         "ambient": (0.45, 0.42, 0.6), "ambient_energy": 0.5,
         "sun": (1, 1, 1), "sun_energy": 1.2,
@@ -59,7 +64,7 @@ ARENAS = {
         ],
     },
     "desert": {
-        "name": "DÉSERT",
+        "name": "DÉSERT", "enemy": "Ninja_Sand.fbx",
         "sky_top": (0.25, 0.5, 0.85), "sky_horizon": (0.95, 0.8, 0.6),
         "ambient": (0.9, 0.8, 0.65), "ambient_energy": 0.4,
         "sun": (1, 0.93, 0.8), "sun_energy": 0.9,
@@ -77,7 +82,7 @@ ARENAS = {
         ],
     },
     "jungle": {
-        "name": "JUNGLE",
+        "name": "JUNGLE", "enemy": "Goblin_Male.fbx",
         "sky_top": (0.2, 0.45, 0.5), "sky_horizon": (0.6, 0.8, 0.6),
         "ambient": (0.5, 0.7, 0.5), "ambient_energy": 0.45,
         "sun": (0.95, 1, 0.85), "sun_energy": 1.1,
@@ -100,7 +105,7 @@ ARENAS = {
         ],
     },
     "volcano": {
-        "name": "VOLCAN",
+        "name": "VOLCAN", "enemy": "Zombie_Male.fbx",
         "sky_top": (0.08, 0.02, 0.02), "sky_horizon": (0.7, 0.2, 0.05),
         "ambient": (0.7, 0.35, 0.25), "ambient_energy": 0.6,
         "sun": (1, 0.6, 0.4), "sun_energy": 1.0,
@@ -117,7 +122,7 @@ ARENAS = {
         "lava": [(-2, 6, 2.2), (9, -8, 2.5), (-9, 0, 2.2), (3, -14, 2.0), (-13, -12, 2.0), (13, 2, 2.0)],
     },
     "city": {
-        "name": "VILLE",
+        "name": "VILLE", "enemy": "Suit_Male.fbx",
         "sky_top": (0.05, 0.07, 0.2), "sky_horizon": (0.9, 0.45, 0.35),
         "ambient": (0.5, 0.5, 0.7), "ambient_energy": 0.6,
         "sun": (1, 0.75, 0.6), "sun_energy": 1.1,
@@ -171,6 +176,22 @@ def sun_basis():
     return mul(rot_y(30), rot_x(-50))
 
 
+def spread_props(arena):
+    """The arena's props moved outward by SPREAD, plus a copy of each one
+    turned a quarter around the center and brought closer, where there is room."""
+    placed = [dict(item, x=item["x"] * SPREAD, z=item["z"] * SPREAD) for item in arena.get("props", [])]
+    keep_clear = [(PLAYER_SPAWN[0], PLAYER_SPAWN[2], 6.0)] + [(x, z, 5.0) for x, _, z in ENEMY_SPAWNS]
+    keep_clear += [(pos[0], pos[2], max(size[0], size[2]) / 2 + 3.0) for _, size, pos, _, _ in arena.get("blocks", [])]
+    keep_clear += [(x * SPREAD, z * SPREAD, r * 1.3 + 2.0) for x, z, r in arena.get("lava", [])]
+    for item in list(placed):
+        x, z = -item["z"] * 0.55, item["x"] * 0.55
+        too_close = any(math.hypot(x - cx, z - cz) < radius for cx, cz, radius in keep_clear)
+        too_close = too_close or any(math.hypot(x - other["x"], z - other["z"]) < 4.5 for other in placed)
+        if not too_close:
+            placed.append(dict(item, x=x, z=z, yaw=item["yaw"] + 90))
+    return placed
+
+
 def build(arena_id, arena):
     ext, sub, nodes = [], [], []
     ext_ids = {}
@@ -191,7 +212,8 @@ def build(arena_id, arena):
             '[sub_resource type="Sky" id="sky"]', 'sky_material = SubResource("sky_material")', "",
             '[sub_resource type="Environment" id="environment"]', "background_mode = 2", 'sky = SubResource("sky")',
             "ambient_light_source = 2", f'ambient_light_color = {color(arena["ambient"])}',
-            f'ambient_light_energy = {arena["ambient_energy"]}', "tonemap_mode = 2", "glow_enabled = true", "",
+            f'ambient_light_energy = {arena["ambient_energy"]}', "tonemap_mode = 2", "glow_enabled = true",
+            "fog_enabled = true", f'fog_light_color = {color(arena["sky_horizon"])}', "fog_density = 0.012", "",
             '[sub_resource type="NavigationMesh" id="navigation_mesh"]', "geometry_parsed_geometry_type = 1",
             "agent_height = 1.75", "agent_radius = 0.5", ""]
 
@@ -220,18 +242,19 @@ def build(arena_id, arena):
 
     # --- Root, sky and sun
     nodes += ['[node name="Arena" type="NavigationRegion3D"]', 'navigation_mesh = SubResource("navigation_mesh")',
-              f"script = {script}", f'display_name = "{arena["name"]}"', "",
+              f"script = {script}", f'display_name = "{arena["name"]}"',
+              f'enemy_model = {ext_resource("PackedScene", CHARACTERS + arena["enemy"])}', "",
               '[node name="WorldEnvironment" type="WorldEnvironment" parent="."]', 'environment = SubResource("environment")', "",
               '[node name="Sun" type="DirectionalLight3D" parent="."]', f"transform = {transform((0, 10, 0), sun_basis())}",
               f'light_color = {color(arena["sun"])}', f'light_energy = {arena["sun_energy"]}', "shadow_enabled = true", ""]
 
     # --- Floor, walls, blocks
     boxes = [
-        ("Floor", (40, 1, 40), (0, -0.5, 0), "floor_material", IDENTITY),
-        ("WallNorth", (40, 4, 1), (0, 2, -20.5), "wall_material", IDENTITY),
-        ("WallSouth", (40, 4, 1), (0, 2, 20.5), "wall_material", IDENTITY),
-        ("WallWest", (1, 4, 42), (-20.5, 2, 0), "wall_material", IDENTITY),
-        ("WallEast", (1, 4, 42), (20.5, 2, 0), "wall_material", IDENTITY),
+        ("Floor", (SIZE, 1, SIZE), (0, -0.5, 0), "floor_material", IDENTITY),
+        ("WallNorth", (SIZE, 4, 1), (0, 2, -SIZE / 2 - 0.5), "wall_material", IDENTITY),
+        ("WallSouth", (SIZE, 4, 1), (0, 2, SIZE / 2 + 0.5), "wall_material", IDENTITY),
+        ("WallWest", (1, 4, SIZE + 2), (-SIZE / 2 - 0.5, 2, 0), "wall_material", IDENTITY),
+        ("WallEast", (1, 4, SIZE + 2), (SIZE / 2 + 0.5, 2, 0), "wall_material", IDENTITY),
     ] + arena.get("blocks", [])
     for name, size, pos, material, basis in boxes:
         nodes += [f'[node name="{name}" type="CSGBox3D" parent="."]', f"transform = {transform(pos, basis)}",
@@ -239,7 +262,7 @@ def build(arena_id, arena):
 
     # --- Props, with a box collision computed from the model bounds
     nodes += ['[node name="Props" type="Node3D" parent="."]', ""]
-    for i, item in enumerate(arena.get("props", []), 1):
+    for i, item in enumerate(spread_props(arena), 1):
         lo, hi = glb_bounds(item["model"])
         scale = item["height"] / (hi[1] - lo[1])
         name = f"Prop{i}"
@@ -264,7 +287,7 @@ def build(arena_id, arena):
         sub += ['[sub_resource type="StandardMaterial3D" id="lava_material"]', "albedo_color = Color(1, 0.35, 0.05, 1)",
                 "emission_enabled = true", "emission = Color(1, 0.3, 0.05, 1)", "emission_energy_multiplier = 2.5", ""]
         nodes += ['[node name="Lava" type="Node3D" parent="."]', ""]
-        for i, (x, z, radius) in enumerate(arena["lava"], 1):
+        for i, (x, z, radius) in enumerate([(x * SPREAD, z * SPREAD, r * 1.3) for x, z, r in arena["lava"]], 1):
             sub += [f'[sub_resource type="CylinderMesh" id="lava_mesh_{i}"]', 'material = SubResource("lava_material")',
                     f"top_radius = {radius}", f"bottom_radius = {radius}", "height = 0.06", "radial_segments = 20", "rings = 1", "",
                     f'[sub_resource type="CylinderShape3D" id="lava_shape_{i}"]', "height = 1.0", f"radius = {radius}", ""]

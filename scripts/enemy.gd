@@ -27,6 +27,10 @@ const CHILL_COLOR := Color(0.5, 0.85, 1.0)
 @export var model_scene: PackedScene
 ## Height of the point shots are aimed at.
 @export var aim_height := 1.0
+
+## Size of the fitted model (see CharacterModel).
+var model_height := 1.75
+var model_hover := 0.0
 @export var power_up_scene: PackedScene
 @export var drop_chance := 0.25
 
@@ -44,7 +48,7 @@ var _status_material := StandardMaterial3D.new()
 var _player: Player
 var _model: CharacterModel
 var _base_scale := Vector3.ONE
-var _attack_animation := &"holding-right-shoot"
+var _attack_animation := &"shoot"
 var _tween: Tween
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -64,6 +68,8 @@ func _ready() -> void:
 	var model: Node3D = model_scene.instantiate()
 	model.set_script(CharacterModel)
 	_model = model as CharacterModel
+	_model.target_height = model_height
+	_model.hover_height = model_hover
 	_model_pivot.add_child(_model)
 	_fire_cooldown = fire_interval
 	_status_material.emission_enabled = true
@@ -130,7 +136,6 @@ func _physics_process(delta: float) -> void:
 		var to_player := _player.global_position - global_position
 		_face(to_player, delta)
 		if to_player.length() <= attack_range and _has_line_of_sight():
-			animation = &"holding-right"
 			_fire_cooldown -= delta * slow
 			if _fire_cooldown <= 0.0:
 				_shoot()

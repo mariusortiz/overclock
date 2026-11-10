@@ -35,6 +35,7 @@ var _perk_options: Array = []
 @onready var _pause_button: Button = $PauseButton
 @onready var _boss_name: Label = $BossName
 @onready var _fade: ColorRect = $Fade
+@onready var _death_title: Label = $DeathTitle
 @onready var _boss_bar: ProgressBar = $BossBar
 @onready var _effects_label: RichTextLabel = $Effects
 @onready var _perk_choice: Control = $PerkChoice
@@ -154,7 +155,19 @@ func show_banner(text: String) -> void:
 	_banner_tween.tween_property(_banner, "modulate:a", 0.0, 0.5)
 
 
+## First beat of the death sequence: big title over the slowed-down game.
+func show_death_title() -> void:
+	_game_over = true
+	pause_menu.enabled = false
+	_pause_button.visible = false
+	touch_controls.visible = false
+	touch_controls.process_mode = Node.PROCESS_MODE_DISABLED
+	reticle.visible = false
+	_death_title.visible = true
+
+
 func show_game_over(score: int, best: int, is_record: bool) -> void:
+	_death_title.visible = false
 	_game_over = true
 	pause_menu.enabled = false
 	_pause_button.visible = false

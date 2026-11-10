@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://scripts/touch_controls.gd" id="2_touch"]
 [ext_resource type="Script" path="res://scripts/reticle.gd" id="3_reticle"]
 [ext_resource type="Script" path="res://scripts/pause_menu.gd" id="4_pause"]
+[ext_resource type="Script" path="res://scripts/minimap.gd" id="5_minimap"]
 
 [sub_resource type="Gradient" id="jump_gradient"]
 offsets = PackedFloat32Array(0, 0.86, 0.92, 1)
@@ -97,9 +98,9 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="FpsLabel" type="Label" parent="."]
-offset_left = 24.0
+offset_left = 186.0
 offset_top = 16.0
-offset_right = 224.0
+offset_right = 386.0
 offset_bottom = 50.0
 theme_override_font_sizes/font_size = 22
 text = "-- FPS"
@@ -139,9 +140,9 @@ value = 100.0
 show_percentage = false
 
 [node name="WaveLabel" type="Label" parent="."]
-offset_left = 24.0
+offset_left = 186.0
 offset_top = 48.0
-offset_right = 424.0
+offset_right = 586.0
 offset_bottom = 84.0
 theme_override_font_sizes/font_size = 24
 text = "VAGUE 1"
@@ -190,9 +191,9 @@ horizontal_alignment = 1
 
 [node name="Effects" type="RichTextLabel" parent="."]
 offset_left = 24.0
-offset_top = 92.0
+offset_top = 178.0
 offset_right = 424.0
-offset_bottom = 420.0
+offset_bottom = 500.0
 mouse_filter = 2
 theme_override_font_sizes/normal_font_size = 24
 bbcode_enabled = true
@@ -227,6 +228,31 @@ theme_override_styles/background = SubResource("health_background")
 theme_override_styles/fill = SubResource("boss_fill")
 value = 100.0
 show_percentage = false
+
+[node name="Minimap" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 16.0
+offset_right = 170.0
+offset_bottom = 166.0
+mouse_filter = 2
+script = ExtResource("5_minimap")
+
+[node name="DeathTitle" type="Label" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.15, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 110
+text = "ÉLIMINÉ"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="PauseButton" type="Button" parent="."]
 anchors_preset = 1

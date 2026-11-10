@@ -64,6 +64,10 @@ func _max_alive() -> int:
 
 
 func _configure(enemy: Enemy) -> void:
+	# Each arena has its own kind of enemy.
+	var arena := get_tree().get_first_node_in_group("arena") as Arena
+	if arena and arena.enemy_model:
+		enemy.model_scene = arena.enemy_model
 	@warning_ignore("integer_division")
 	enemy.max_health += (wave - 1) / 2
 	enemy.move_speed *= minf(1.0 + 0.06 * (wave - 1), 1.5)

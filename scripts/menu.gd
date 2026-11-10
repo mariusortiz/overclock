@@ -24,6 +24,7 @@ var _melee_index := 0
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Music.play_track(Music.Track.MAIN)
 	_best = SaveData.load_high_score()
 	_best_label.text = "Record : %d" % _best
 	_character_index = Loadout.CHARACTERS.find(Loadout.selected_character())

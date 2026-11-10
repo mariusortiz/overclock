@@ -8,6 +8,8 @@ const BOSS_SCORE := 1000
 const MENU_SCENE := "res://scenes/menu.tscn"
 const DAMAGE_VIBRATION_MS := 40
 const PERK_CHOICE_DELAY := 2.0
+const DEATH_SLOW_MOTION := 0.3
+const DEATH_TITLE_TIME := 3.0
 ## Arenas, in the order they are visited: a new one after each boss.
 const ARENAS: Array[PackedScene] = [
 	preload("res://scenes/arenas/station.tscn"),
@@ -36,6 +38,7 @@ func _ready() -> void:
 		if argument.begins_with("--arena="):
 			first_arena = argument.get_slice("=", 1).to_int()
 	_load_arena(first_arena)
+	Music.play_track(Music.Track.MAIN)
 
 	hud.touch_controls.look.connect(_on_touch_look)
 	# Deferred: the scene must not be removed while the button is still handling its click.
@@ -136,12 +139,14 @@ func _on_wave_started(number: int) -> void:
 
 
 func _on_boss_spawned(boss: Boss) -> void:
+	Music.play_track(Music.Track.BOSS)
 	hud.show_boss(Boss.INFO[boss.kind].name)
 	hud.set_boss_health(boss.max_health, boss.max_health)
 	boss.health_changed.connect(hud.set_boss_health)
 
 
 func _on_boss_killed() -> void:
+	Music.play_track(Music.Track.MAIN)
 	hud.hide_boss()
 	_add_score(BOSS_SCORE)
 
@@ -187,10 +192,21 @@ func _on_enemies_left_changed(count: int) -> void:
 	hud.set_wave(waves.wave, count)
 
 
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0
+
+
 func _on_player_died() -> void:
 	waves.stop()
 	Input.action_release("fire")
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+	# Slow motion and a big title, then the results.
+	Music.play_track(Music.Track.DEATH)
+	Engine.time_scale = DEATH_SLOW_MOTION
+	hud.show_death_title()
+	await get_tree().create_timer(DEATH_TITLE_TIME, true, false, true).timeout
+	Engine.time_scale = 1.0
 
 	var best := SaveData.load_high_score()
 	var is_record := score > best

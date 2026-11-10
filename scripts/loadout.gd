@@ -2,14 +2,14 @@ class_name Loadout
 ## Catalog of character skins and weapons, and the player's saved selection.
 ## Items unlock when the best score reaches their "unlock" value.
 
-const CHARACTER_DIR := "res://assets/models/characters/"
+const CHARACTER_DIR := "res://assets/models/quaternius/characters/"
 
 const CHARACTERS := [
-	{"id": "soldier", "name": "Soldat", "model": "character-soldier.glb", "unlock": 0},
-	{"id": "worker", "name": "Ouvrier", "model": "character-worker.glb", "unlock": 1000},
-	{"id": "raider", "name": "Pillard", "model": "character-raider.glb", "unlock": 2500},
-	{"id": "knight", "name": "Chevalier", "model": "character-knight.glb", "unlock": 5000},
-	{"id": "alien", "name": "Alien", "model": "character-alien.glb", "unlock": 8000},
+	{"id": "soldier", "name": "Soldat", "model": "Soldier_Male.fbx", "unlock": 0},
+	{"id": "cowboy", "name": "Cow-boy", "model": "Cowboy_Male.fbx", "unlock": 1000},
+	{"id": "pirate", "name": "Pirate", "model": "Pirate_Male.fbx", "unlock": 2500},
+	{"id": "viking", "name": "Viking", "model": "Viking_Male.fbx", "unlock": 5000},
+	{"id": "golden_knight", "name": "Chevalier d'or", "model": "Knight_Golden_Male.fbx", "unlock": 8000},
 ]
 
 ## "scale" and "offset" place the model in the hand; "muzzle" is where shots

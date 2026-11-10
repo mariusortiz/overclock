@@ -54,20 +54,30 @@ Un robot détruit laisse parfois un cube lumineux au sol. Marche dessus pour le 
 
 ## Boss
 
-Toutes les 5 vagues, un boss arrive avec trois robots. Sa barre de vie s'affiche en haut de l'écran. Le battre rapporte 1000 points et un power-up.
+Toutes les 5 vagues, un monstre arrive avec trois ennemis. Sa barre de vie s'affiche en haut de l'écran et la musique change. Le battre rapporte 1000 points et un power-up.
 
 | Vague | Boss | Comportement |
 |---|---|---|
-| 5 | Colosse | Lent, tire 5 projectiles en éventail |
-| 10 | Brute | Fonce sur toi et frappe au contact |
-| 15 | Artilleur | Reste loin et bombarde : un cercle rouge au sol annonce l'explosion |
-| 20 | Invocateur | Fait apparaître des robots et s'entoure d'un bouclier par moments |
+| 5 | Dragon | Lent, crache 5 projectiles en éventail |
+| 10 | Squelette géant | Fonce sur toi et frappe au contact |
+| 15 | Chauve-souris géante | Reste loin et bombarde : un cercle rouge au sol annonce l'explosion |
+| 20 | Slime royal | Fait apparaître des ennemis et s'entoure d'un bouclier par moments |
 
 Après la vague 20, les quatre boss reviennent, plus résistants.
 
 ## Arènes
 
-La partie commence dans la station. Chaque boss battu t'emmène dans l'arène suivante : Station → Désert → Jungle → Volcan → Ville, puis on recommence. Dans le volcan, les flaques de lave blessent.
+Les arènes font 60 m de côté. La partie commence dans la station, et chaque boss battu t'emmène dans la suivante. Chacune a ses ennemis :
+
+| Arène | Ennemis |
+|---|---|
+| Station | Gardes |
+| Désert | Assassins des sables |
+| Jungle | Gobelins |
+| Volcan | Zombies (et des flaques de lave qui blessent) |
+| Ville | Hommes en costume |
+
+Une mini-carte en haut à gauche montre les ennemis en rouge (les boss en plus gros) et les power-ups dans leur couleur.
 
 ## Personnages et armes
 
@@ -86,7 +96,7 @@ Ils se choisissent dans le menu et se débloquent avec le record.
 | Couteau (une cible) | 0,5 s | 4 | 2,2 m | 0 |
 | Hache (tous les robots devant soi) | 1,1 s | 10 | 2,6 m | 3000 |
 
-Personnages (visuel seulement) : Soldat (0), Ouvrier (1000), Pillard (2500), Chevalier (5000), Alien (8000).
+Personnages (visuel seulement) : Soldat (0), Cow-boy (1000), Pirate (2500), Viking (5000), Chevalier d'or (8000).
 
 ## Développer en local (optionnel)
 

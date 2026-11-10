@@ -1,18 +1,20 @@
 class_name Boss
 extends Enemy
-## Big enemy of every fifth wave. Each kind replaces the robot's single shot
+## Big monster of every fifth wave. Each kind replaces the robot's single shot
 ## with its own attack.
 
 signal summon_requested(count: int)
 
 enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER }
 
-const MODEL_DIR := "res://assets/models/characters/"
+const MODEL_DIR := "res://assets/models/quaternius/monsters/"
+## "height" is the model's height before the boss scene doubles it, and
+## "hover" how far it floats above the floor.
 const INFO := {
-	Kind.COLOSSUS: {"name": "COLOSSE", "model": "character-robot.glb", "health": 60, "speed": 2.2, "fire_interval": 2.2, "range": 14.0},
-	Kind.BRUTE: {"name": "BRUTE", "model": "character-zombie.glb", "health": 50, "speed": 6.0, "fire_interval": 1.0, "range": 2.6},
-	Kind.ARTILLERY: {"name": "ARTILLEUR", "model": "character-alien.glb", "health": 55, "speed": 3.0, "fire_interval": 2.0, "range": 24.0},
-	Kind.SUMMONER: {"name": "INVOCATEUR", "model": "character-knight.glb", "health": 70, "speed": 3.0, "fire_interval": 1.3, "range": 13.0},
+	Kind.COLOSSUS: {"name": "DRAGON", "model": "Dragon.fbx", "height": 1.7, "hover": 0.5, "health": 60, "speed": 2.2, "fire_interval": 2.2, "range": 14.0},
+	Kind.BRUTE: {"name": "SQUELETTE GÉANT", "model": "Skeleton.fbx", "height": 1.8, "hover": 0.0, "health": 50, "speed": 6.0, "fire_interval": 1.0, "range": 2.6},
+	Kind.ARTILLERY: {"name": "CHAUVE-SOURIS GÉANTE", "model": "Bat.fbx", "height": 1.3, "hover": 0.9, "health": 55, "speed": 3.0, "fire_interval": 2.0, "range": 24.0},
+	Kind.SUMMONER: {"name": "SLIME ROYAL", "model": "Slime.fbx", "height": 1.3, "hover": 0.0, "health": 70, "speed": 3.0, "fire_interval": 1.3, "range": 13.0},
 }
 const FAN_ANGLES_DEG: Array[float] = [-24.0, -12.0, 0.0, 12.0, 24.0]
 const BRUTE_DAMAGE := 18
@@ -40,14 +42,17 @@ func configure(boss_kind: Kind, health_scale: float) -> void:
 	fire_interval = info.fire_interval
 	attack_range = info.range
 	model_scene = load(MODEL_DIR + info.model)
+	model_height = info.height
+	model_hover = info.hover
 	drop_chance = 1.0
 
 
 func _ready() -> void:
 	super()
+	# Monsters fight bare-handed.
+	$Visual/Gun.visible = false
 	if kind == Kind.BRUTE:
-		$Visual/Gun.visible = false
-		_attack_animation = &"attack-melee-right"
+		_attack_animation = &"melee"
 	if kind == Kind.SUMMONER:
 		_shield = _create_shield()
 

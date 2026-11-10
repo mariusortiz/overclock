@@ -5,9 +5,12 @@ extends NavigationRegion3D
 ## never baked in the editor.
 
 @export var display_name := ""
+## Model of the regular enemies met in this arena.
+@export var enemy_model: PackedScene
 
 
 func _ready() -> void:
+	add_to_group("arena")
 	# CSG shapes build their collision during the first frames.
 	await get_tree().physics_frame
 	await get_tree().physics_frame

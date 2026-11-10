@@ -8,6 +8,8 @@ signal damaged
 signal died
 signal perks_changed
 
+const WALK_ANIMATION_SPEED := 1.8
+
 @export var max_health := 100
 @export var regen_per_second := 5.0
 @export var speed_boost := 1.4
@@ -127,7 +129,7 @@ func _process(delta: float) -> void:
 
 
 func _on_melee_swung() -> void:
-	_model.play(&"attack-melee-right", true)
+	_model.play(&"melee", true)
 	_action_animation_left = 0.4
 
 
@@ -155,12 +157,11 @@ func _physics_process(delta: float) -> void:
 func _update_animation() -> void:
 	if _action_animation_left > 0.0:
 		return
-	if not is_on_floor():
-		_model.play(&"fall" if velocity.y < 0.0 else &"jump")
-	elif Vector2(velocity.x, velocity.z).length() > 0.5:
-		_model.play(&"sprint" if has_effect(PowerUp.Type.SPEED) else &"walk")
+	# The walk cycle is sped up to match the running speed.
+	if is_on_floor() and Vector2(velocity.x, velocity.z).length() > 0.5:
+		_model.play(&"walk", false, WALK_ANIMATION_SPEED)
 	else:
-		_model.play(&"holding-right")
+		_model.play(&"idle")
 
 
 func _die() -> void:
