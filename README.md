@@ -48,11 +48,11 @@ Un robot détruit laisse parfois un cube lumineux au sol. Marche dessus pour le 
 
 - `scenes/` : scènes Godot (`.tscn`)
 - `scripts/` : code GDScript
-- `assets/` : textures et sons provisoires, générés par les scripts de `tools/`
+- `assets/` : modèles 3D, sons et musique CC0 (voir `CREDITS.md`), plus les textures générées par les scripts de `tools/`
 - `tools/` : scripts Python qui génèrent l'arène de test, les textures et les sons
 - `ci/debug.keystore` : clé de debug publique (mot de passe `android`), utilisée uniquement pour les APK de test. La clé de release ne sera jamais commitée.
 - `.github/workflows/build.yml` : compilation de l'APK et de la version web
 
 ## Licence des assets
 
-Voir `CREDITS.md` (à venir quand les premiers assets seront ajoutés).
+Tous les modèles, sons et musiques externes sont en CC0. Le détail est dans [CREDITS.md](CREDITS.md).

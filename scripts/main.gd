@@ -76,7 +76,6 @@ func _on_enemies_left_changed(count: int) -> void:
 
 
 func _on_player_died() -> void:
-	player.process_mode = Node.PROCESS_MODE_DISABLED
 	waves.stop()
 	Input.action_release("fire")
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -89,4 +88,5 @@ func _on_player_died() -> void:
 
 
 func _on_touch_look(relative: Vector2) -> void:
-	player.look(relative, player.touch_sensitivity)
+	if player.health > 0:
+		player.look(relative, player.touch_sensitivity)

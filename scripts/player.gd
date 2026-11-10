@@ -26,6 +26,7 @@ var _regen_buffer := 0.0
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var weapon: Weapon = $Weapon
+@onready var _model: CharacterModel = $Model
 @onready var _pickup_sound: AudioStreamPlayer = $PickupSound
 @onready var _spring_arm: SpringArm3D = $CameraPivot/SpringArm3D
 
@@ -66,7 +67,7 @@ func take_damage(amount: int) -> void:
 	health_changed.emit(health, max_health)
 	damaged.emit()
 	if health == 0:
-		died.emit()
+		_die()
 
 
 func heal(amount: int) -> void:
@@ -105,6 +106,24 @@ func _physics_process(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, target.z, acceleration * delta)
 
 	move_and_slide()
+	_update_animation()
+
+
+func _update_animation() -> void:
+	if not is_on_floor():
+		_model.play(&"fall" if velocity.y < 0.0 else &"jump")
+	elif Vector2(velocity.x, velocity.z).length() > 0.5:
+		_model.play(&"sprint" if has_effect(PowerUp.Type.SPEED) else &"walk")
+	else:
+		_model.play(&"holding-right")
+
+
+func _die() -> void:
+	set_physics_process(false)
+	set_process_unhandled_input(false)
+	weapon.set_physics_process(false)
+	_model.play(&"die")
+	died.emit()
 
 
 func _update_effects(delta: float) -> void:

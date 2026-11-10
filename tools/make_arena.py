@@ -3,7 +3,9 @@
 Run from the repo root: python3 tools/make_arena.py
 Godot serializes Transform3D row by row: basis rows first, then the origin.
 """
+import json
 import math
+import struct
 
 IDENTITY = (1, 0, 0, 0, 1, 0, 0, 0, 1)
 
@@ -24,17 +26,51 @@ BOXES = [
     ("WallSouth", (40, 4, 1), (0, 2, 20.5), "wall_material", IDENTITY),
     ("WallWest", (1, 4, 42), (-20.5, 2, 0), "wall_material", IDENTITY),
     ("WallEast", (1, 4, 42), (20.5, 2, 0), "wall_material", IDENTITY),
-    ("CoverA", (2, 1, 2), (-4, 0.5, 4), "block_material", IDENTITY),
-    ("CoverB", (4, 1.2, 1), (3, 0.6, 2), "block_material", IDENTITY),
-    ("CoverC", (1, 1.2, 4), (-8, 0.6, -4), "block_material", IDENTITY),
     ("Pillar", (2, 5, 2), (0, 2.5, -6), "accent_material", IDENTITY),
-    ("CrateStackLow", (2, 1, 2), (-12, 0.5, 8), "block_material", IDENTITY),
-    ("CrateStackHigh", (2, 2, 2), (-12, 1, 10), "block_material", IDENTITY),
     ("Platform", (4, 2, 4), (8, 1, 1.2), "block_material", IDENTITY),
     # Rises toward -Z, from the floor up to the top of Platform.
     ("Ramp", (2.4, 0.3, 6), (8, 0.9, 6), "accent_material", rot_x(20)),
     ("PlatformFar", (6, 1.5, 3), (10, 0.75, -12), "block_material", IDENTITY),
 ]
+
+# Cover objects: (model in assets/models/station, x, z, yaw in degrees).
+# Kenney models are sized for 0.84 m characters, hence the common scale.
+PROP_DIR = "assets/models/station/"
+PROP_SCALE = 2.1
+PROPS = [
+    ("container-tall", -4, 4, 0), ("container-tall", -12, 9, 0), ("container", -10, 10.5, 0),
+    ("structure-barrier", 2, 2, 0), ("structure-barrier", 4.1, 2, 0),
+    ("structure-barrier", -8, -3, 90), ("structure-barrier", -8, -5.1, 90),
+    ("container-flat", -5, -12, 90), ("container-flat", 12, 10, 0),
+    ("computer-system", -2.5, -14, 0), ("table-display", 13, -4, 90),
+    ("container-wide", 4, -14, 0), ("container-wide", 15, 3, 0),
+    ("container-tall", -15, -8, 0), ("container", 5, 13, 0), ("container", -14, 2, 0),
+]
+
+
+def glb_bounds(path):
+    """Min and max corners of all meshes of a .glb file."""
+    with open(path, "rb") as f:
+        f.read(12)
+        length, _ = struct.unpack("<I4s", f.read(8))
+        gltf = json.loads(f.read(length))
+    lo, hi = [1e9] * 3, [-1e9] * 3
+    for mesh in gltf["meshes"]:
+        for primitive in mesh["primitives"]:
+            accessor = gltf["accessors"][primitive["attributes"]["POSITION"]]
+            lo = [min(a, b) for a, b in zip(lo, accessor["min"])]
+            hi = [max(a, b) for a, b in zip(hi, accessor["max"])]
+    return lo, hi
+
+
+def slug(model):
+    return model.replace("-", "_")
+
+
+def rot_y(deg):
+    c, s = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+    return (c, 0, s, 0, 1, 0, -s, 0, c)
+
 
 # Where robots appear, near the walls.
 ENEMY_SPAWNS = [
@@ -92,6 +128,15 @@ script = ExtResource("6_arena")
 """
 
 out = [HEADER]
+prop_models = sorted({prop[0] for prop in PROPS})
+resources, shapes = [], []
+for model in prop_models:
+    lo, hi = glb_bounds(f"{PROP_DIR}{model}.glb")
+    size = [(h - l) * PROP_SCALE for l, h in zip(lo, hi)]
+    resources.append(f'[ext_resource type="PackedScene" path="res://{PROP_DIR}{model}.glb" id="prop_{slug(model)}"]')
+    shapes += [f'[sub_resource type="BoxShape3D" id="shape_{slug(model)}"]',
+               "size = Vector3(%.3f, %.3f, %.3f)" % tuple(size), ""]
+out[0] = out[0].replace("[sub_resource", "\n".join(resources) + "\n\n" + "\n".join(shapes) + "\n[sub_resource", 1)
 for name, size, pos, material, basis in BOXES:
     out += [f'[node name="{name}" type="CSGBox3D" parent="."]',
             f"transform = {transform(pos, basis)}",
@@ -102,4 +147,18 @@ out += ['[node name="EnemySpawns" type="Node3D" parent="."]', ""]
 for i, pos in enumerate(ENEMY_SPAWNS, 1):
     out += [f'[node name="Spawn{i}" type="Marker3D" parent="EnemySpawns" groups=["enemy_spawns"]]',
             f"transform = {transform(pos)}", ""]
+out += ['[node name="Props" type="Node3D" parent="."]', ""]
+for i, (model, x, z, yaw) in enumerate(PROPS, 1):
+    lo, hi = glb_bounds(f"{PROP_DIR}{model}.glb")
+    center = [(l + h) / 2 * PROP_SCALE for l, h in zip(lo, hi)]
+    ground_offset = -lo[1] * PROP_SCALE  # rest the model on the floor
+    name = f"Prop{i}"
+    scale = (PROP_SCALE, 0, 0, 0, PROP_SCALE, 0, 0, 0, PROP_SCALE)
+    out += [f'[node name="{name}" type="StaticBody3D" parent="Props"]',
+            f"transform = {transform((x, ground_offset, z), rot_y(yaw))}", "",
+            f'[node name="Model" parent="Props/{name}" instance=ExtResource("prop_{slug(model)}")]',
+            f"transform = {transform((0, 0, 0), scale)}", "",
+            f'[node name="CollisionShape3D" type="CollisionShape3D" parent="Props/{name}"]',
+            f"transform = {transform(center)}",
+            f'shape = SubResource("shape_{slug(model)}")', ""]
 open("scenes/arena.tscn", "w").write("\n".join(out))

@@ -8,6 +8,8 @@ signal died
 const REPATH_INTERVAL := 0.3
 const EYE_HEIGHT := 1.2
 const WORLD_MASK := 1
+const SHOOT_ANIMATION_TIME := 0.4
+const DEATH_ANIMATION_TIME := 1.0
 
 @export var max_health := 5
 @export var move_speed := 3.5
@@ -23,14 +25,17 @@ var _health := 0
 var _dead := false
 var _fire_cooldown := 0.0
 var _repath_left := 0.0
+var _shoot_animation_left := 0.0
 var _player: Player
 var _tween: Tween
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var _agent: NavigationAgent3D = $NavigationAgent3D
 @onready var _visual: Node3D = $Visual
+@onready var _model: CharacterModel = $Visual/Model
 @onready var _muzzle: Marker3D = $Visual/Muzzle
 @onready var _shot_sound: AudioStreamPlayer3D = $ShotSound
+@onready var _death_sound: AudioStreamPlayer3D = $DeathSound
 
 
 func _ready() -> void:
@@ -61,15 +66,24 @@ func _physics_process(delta: float) -> void:
 		velocity.y -= _gravity * delta
 
 	var wanted := Vector3.ZERO
+	var animation := &"idle"
 	if not _dead and _player and _player.health > 0:
 		var to_player := _player.global_position - global_position
 		_face(to_player, delta)
 		if to_player.length() <= attack_range and _has_line_of_sight():
+			animation = &"holding-right"
 			_fire_cooldown -= delta
 			if _fire_cooldown <= 0.0:
 				_shoot()
 		else:
 			wanted = _chase_direction(delta) * move_speed
+			if not wanted.is_zero_approx():
+				animation = &"walk"
+
+	# Let the one-shot shooting animation finish before switching back.
+	_shoot_animation_left -= delta
+	if not _dead and _shoot_animation_left <= 0.0:
+		_model.play(animation)
 
 	velocity.x = move_toward(velocity.x, wanted.x, acceleration * delta)
 	velocity.z = move_toward(velocity.z, wanted.z, acceleration * delta)
@@ -110,6 +124,8 @@ func _shoot() -> void:
 	projectile.direction = from.direction_to(_player.get_aim_position())
 	get_tree().current_scene.add_child(projectile)
 	_shot_sound.play()
+	_model.play(&"holding-right-shoot", true)
+	_shoot_animation_left = SHOOT_ANIMATION_TIME
 
 
 func _die() -> void:
@@ -119,7 +135,15 @@ func _die() -> void:
 	died.emit()
 	if randf() < drop_chance:
 		_drop_power_up()
-	_scale_visual_to(Vector3.ZERO, 0.2)
+	_model.play(&"die")
+	_death_sound.play()
+	# Fall over, then shrink away.
+	if _tween:
+		_tween.kill()
+	_visual.scale = Vector3.ONE
+	_tween = create_tween()
+	_tween.tween_interval(DEATH_ANIMATION_TIME)
+	_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.2)
 	_tween.tween_callback(queue_free)
 
 
