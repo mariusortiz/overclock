@@ -8,6 +8,8 @@ const MENU_SCENE := "res://scenes/menu.tscn"
 
 var score := 0
 
+var _mouse_was_captured := false
+
 @onready var player: Player = $Player
 @onready var hud: Hud = $HUD
 @onready var waves: WaveManager = $WaveManager
@@ -18,6 +20,7 @@ func _ready() -> void:
 	# Deferred: the scene must not be removed while the button is still handling its click.
 	hud.replay_pressed.connect(get_tree().reload_current_scene, CONNECT_DEFERRED)
 	hud.menu_pressed.connect(get_tree().change_scene_to_file.bind(MENU_SCENE), CONNECT_DEFERRED)
+	hud.perk_chosen.connect(_on_perk_chosen)
 
 	player.weapon.hit_confirmed.connect(hud.reticle.show_hit)
 	player.weapon.ammo_changed.connect(hud.set_ammo)
@@ -28,15 +31,16 @@ func _ready() -> void:
 	waves.wave_started.connect(_on_wave_started)
 	waves.wave_cleared.connect(_on_wave_cleared)
 	waves.enemy_killed.connect(_add_score.bind(KILL_SCORE))
+	waves.enemy_killed.connect(player.on_enemy_killed)
 	waves.enemies_left_changed.connect(_on_enemies_left_changed)
 
 	hud.set_health(player.health, player.max_health)
-	hud.set_ammo(player.weapon.ammo, player.weapon.magazine_size, false)
+	hud.set_ammo(player.weapon.ammo, player.weapon.get_magazine_size(), false)
 	hud.set_score(score)
 
 
 func _process(_delta: float) -> void:
-	hud.set_effects(player.get_effects())
+	hud.set_status(player.get_effects(), player.perks)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -65,10 +69,25 @@ func _on_wave_started(number: int) -> void:
 
 
 func _on_wave_cleared(number: int) -> void:
+	if player.health <= 0:
+		return
 	var bonus := WAVE_BONUS * number
 	_add_score(bonus)
 	player.heal(WAVE_HEAL)
-	hud.show_banner("VAGUE %d TERMINÉE   +%d" % [number, bonus])
+
+	# Pause and let the player pick a perk. The mouse is freed for the click.
+	_mouse_was_captured = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Input.action_release("fire")
+	get_tree().paused = true
+	hud.show_perk_choice("VAGUE %d TERMINÉE   +%d" % [number, bonus], Perk.pick_choices(3), player.perks)
+
+
+func _on_perk_chosen(type: Perk.Type) -> void:
+	player.add_perk(type)
+	get_tree().paused = false
+	if _mouse_was_captured:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
 func _on_enemies_left_changed(count: int) -> void:

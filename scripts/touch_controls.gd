@@ -32,7 +32,20 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	# A finger may still be down when the scene reloads.
+	_release_all()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PAUSED:
+		_release_all()
+
+
+## Fingers may still be down when the scene reloads or the game pauses.
+func _release_all() -> void:
+	_move_finger = -1
+	_look_finger = -1
+	_fire_finger = -1
+	_reload_finger = -1
 	_set_joystick(Vector2.ZERO)
 	Input.action_release("fire")
 	Input.action_release("reload")

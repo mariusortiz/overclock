@@ -5,6 +5,7 @@ extends CanvasLayer
 
 signal replay_pressed
 signal menu_pressed
+signal perk_chosen(type: Perk.Type)
 
 const BANNER_TIME := 2.5
 
@@ -12,6 +13,7 @@ var _is_touch := DisplayServer.is_touchscreen_available()
 var _game_over := false
 var _flash_tween: Tween
 var _banner_tween: Tween
+var _perk_options: Array = []
 
 @onready var touch_controls: TouchControls = $TouchControls
 @onready var reticle: Reticle = $Reticle
@@ -29,6 +31,9 @@ var _banner_tween: Tween
 @onready var _replay_button: Button = $GameOver/Center/Box/Replay
 @onready var _menu_button: Button = $GameOver/Center/Box/Menu
 @onready var _effects_label: RichTextLabel = $Effects
+@onready var _perk_choice: Control = $PerkChoice
+@onready var _perk_title: Label = $PerkChoice/Center/Box/Title
+@onready var _perk_buttons: Array[Node] = $PerkChoice/Center/Box/Options.get_children()
 
 
 func _ready() -> void:
@@ -36,6 +41,8 @@ func _ready() -> void:
 	_banner.modulate.a = 0.0
 	_replay_button.pressed.connect(replay_pressed.emit)
 	_menu_button.pressed.connect(menu_pressed.emit)
+	for i in _perk_buttons.size():
+		_perk_buttons[i].pressed.connect(_on_perk_button_pressed.bind(i))
 
 
 func _process(_delta: float) -> void:
@@ -61,15 +68,36 @@ func set_wave(number: int, enemies_left: int) -> void:
 	_wave_label.text = "VAGUE %d  ·  %d robot%s" % [number, enemies_left, "" if enemies_left == 1 else "s"]
 
 
-## `effects` maps a PowerUp.Type to its seconds left.
-func set_effects(effects: Dictionary) -> void:
+## Shows the timed power-ups (`effects`: PowerUp.Type -> seconds left) and the
+## perks owned (`perks`: Perk.Type -> level).
+func set_status(effects: Dictionary, perks: Dictionary) -> void:
 	var lines := PackedStringArray()
 	for type: PowerUp.Type in effects:
 		var info: Dictionary = PowerUp.INFO[type]
 		lines.append("[color=#%s]%s  %d[/color]" % [info.color.to_html(false), info.label, ceili(effects[type])])
+	for type: Perk.Type in perks:
+		var info: Dictionary = Perk.INFO[type]
+		lines.append("[font_size=18][color=#%s]%s %d[/color][/font_size]" % [info.color.to_html(false), info.name, perks[type]])
 	var text := "\n".join(lines)
 	if _effects_label.text != text:
 		_effects_label.text = text
+
+
+## Offers perks to pick from. `levels` (Perk.Type -> level) are the ones already owned.
+func show_perk_choice(title: String, options: Array, levels: Dictionary) -> void:
+	_perk_options = options
+	_perk_title.text = title
+	for i in _perk_buttons.size():
+		var button: Button = _perk_buttons[i]
+		var info: Dictionary = Perk.INFO[options[i]]
+		button.text = "%s\n\n%s\n\nNiveau %d" % [info.name, info.description, levels.get(options[i], 0) + 1]
+		button.add_theme_color_override("font_color", info.color)
+	_perk_choice.visible = true
+
+
+func _on_perk_button_pressed(index: int) -> void:
+	_perk_choice.visible = false
+	perk_chosen.emit(_perk_options[index])
 
 
 func flash_damage() -> void:

@@ -39,6 +39,28 @@ Un robot détruit laisse parfois un cube lumineux au sol. Marche dessus pour le 
 | Jaune | Vitesse : déplacement +40 % pendant 10 s |
 | Bleu | Bouclier : dégâts reçus divisés par deux pendant 10 s |
 
+## Pouvoirs
+
+À la fin de chaque vague, le jeu se met en pause et propose 3 pouvoirs au hasard. Celui que tu choisis dure jusqu'à la fin de la partie, et le reprendre augmente son niveau.
+
+| Famille | Pouvoirs |
+|---|---|
+| Éléments | Feu (les robots touchés brûlent), Glace (ils sont ralentis), Foudre (le tir rebondit sur un voisin) |
+| Arme | Cadence (+20 %), Chargeur (+50 %), Explosif (dégâts de zone) |
+| Survie | Vitalité (+25 PV max), Vol de vie (+3 PV par robot détruit), Agilité (+10 % de vitesse) |
+
+## Personnages et armes
+
+Ils se choisissent dans le menu et se débloquent avec le record.
+
+| Arme | Cadence | Dégâts | Chargeur | Record requis |
+|---|---|---|---|---|
+| Blaster | 8/s | 1 | 24 | 0 |
+| Fusil lourd | 2/s | 5 | 8 | 1500 |
+| Mitraillette | 14/s | 1 | 40 | 4000 |
+
+Personnages (visuel seulement) : Soldat (0), Ouvrier (1000), Pillard (2500), Chevalier (5000), Alien (8000).
+
 ## Développer en local (optionnel)
 
 1. Installe Godot 4.5.1 (la version standard, pas .NET).

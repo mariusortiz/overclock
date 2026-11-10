@@ -56,7 +56,7 @@ func _configure(enemy: Enemy) -> void:
 # --- Wave flow --------------------------------------------------------------
 
 func _start_next_wave(delay: float) -> void:
-	await get_tree().create_timer(delay).timeout
+	await get_tree().create_timer(delay, false).timeout
 	if _stopped:
 		return
 	wave += 1

@@ -10,6 +10,11 @@ const EYE_HEIGHT := 1.2
 const WORLD_MASK := 1
 const SHOOT_ANIMATION_TIME := 0.4
 const DEATH_ANIMATION_TIME := 1.0
+const BURN_DURATION := 3.0
+const BURN_TICK := 0.5
+const CHILL_DURATION := 2.5
+const BURN_COLOR := Color(1.0, 0.45, 0.1)
+const CHILL_COLOR := Color(0.5, 0.85, 1.0)
 
 @export var max_health := 5
 @export var move_speed := 3.5
@@ -26,6 +31,12 @@ var _dead := false
 var _fire_cooldown := 0.0
 var _repath_left := 0.0
 var _shoot_animation_left := 0.0
+var _burn_left := 0.0
+var _burn_tick_left := 0.0
+var _burn_damage := 0
+var _chill_left := 0.0
+var _chill_factor := 1.0
+var _status_material := StandardMaterial3D.new()
 var _player: Player
 var _tween: Tween
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -34,6 +45,7 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var _visual: Node3D = $Visual
 @onready var _model: CharacterModel = $Visual/Model
 @onready var _muzzle: Marker3D = $Visual/Muzzle
+@onready var _status_orb: MeshInstance3D = $Visual/StatusOrb
 @onready var _shot_sound: AudioStreamPlayer3D = $ShotSound
 @onready var _death_sound: AudioStreamPlayer3D = $DeathSound
 
@@ -42,6 +54,10 @@ func _ready() -> void:
 	add_to_group("targets")
 	_health = max_health
 	_fire_cooldown = fire_interval
+	_status_material.emission_enabled = true
+	_status_material.emission_energy_multiplier = 2.0
+	_status_orb.material_override = _status_material
+	_status_orb.visible = false
 	_player = get_tree().get_first_node_in_group("player") as Player
 
 
@@ -61,7 +77,37 @@ func take_damage(amount: int) -> void:
 		_scale_visual_to(Vector3.ONE, 0.12)
 
 
+## Fire perk: takes `damage_per_tick` twice a second for a few seconds.
+func ignite(damage_per_tick: int) -> void:
+	_burn_left = BURN_DURATION
+	_burn_damage = damage_per_tick
+
+
+## Ice perk: moves and shoots more slowly for a moment.
+func chill(level: int) -> void:
+	_chill_left = CHILL_DURATION
+	_chill_factor = maxf(pow(0.6, level), 0.3)
+
+
+func _update_statuses(delta: float) -> void:
+	_chill_left = maxf(_chill_left - delta, 0.0)
+	if _burn_left > 0.0:
+		_burn_left -= delta
+		_burn_tick_left -= delta
+		if _burn_tick_left <= 0.0:
+			_burn_tick_left = BURN_TICK
+			take_damage(_burn_damage)
+
+	_status_orb.visible = not _dead and (_burn_left > 0.0 or _chill_left > 0.0)
+	var color := BURN_COLOR if _burn_left > 0.0 else CHILL_COLOR
+	_status_material.albedo_color = color
+	_status_material.emission = color
+
+
 func _physics_process(delta: float) -> void:
+	_update_statuses(delta)
+	var slow := _chill_factor if _chill_left > 0.0 else 1.0
+
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 
@@ -72,11 +118,11 @@ func _physics_process(delta: float) -> void:
 		_face(to_player, delta)
 		if to_player.length() <= attack_range and _has_line_of_sight():
 			animation = &"holding-right"
-			_fire_cooldown -= delta
+			_fire_cooldown -= delta * slow
 			if _fire_cooldown <= 0.0:
 				_shoot()
 		else:
-			wanted = _chase_direction(delta) * move_speed
+			wanted = _chase_direction(delta) * move_speed * slow
 			if not wanted.is_zero_approx():
 				animation = &"walk"
 

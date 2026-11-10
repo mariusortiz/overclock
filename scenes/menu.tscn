@@ -1,53 +1,129 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/menu.gd" id="1_menu"]
 
-[node name="Menu" type="Control"]
+[sub_resource type="ProceduralSkyMaterial" id="sky_material"]
+sky_top_color = Color(0.03, 0.02, 0.12, 1)
+sky_horizon_color = Color(0.35, 0.08, 0.45, 1)
+ground_bottom_color = Color(0.02, 0.02, 0.05, 1)
+ground_horizon_color = Color(0.35, 0.08, 0.45, 1)
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("sky_material")
+
+[sub_resource type="Environment" id="environment"]
+background_mode = 2
+sky = SubResource("sky")
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.55, 0.75, 1)
+ambient_light_energy = 0.8
+tonemap_mode = 2
+
+[node name="Menu" type="Node3D"]
+script = ExtResource("1_menu")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.8660, 0.3214, -0.3830, 0.0000, 0.7660, 0.6428, 0.5000, -0.5567, 0.6634, 0, 5, 0)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 1.0, 4.6)
+fov = 50.0
+
+[node name="CharacterPivot" type="Node3D" parent="."]
+transform = Transform3D(2.1, 0, 0, 0, 2.1, 0, 0, 0, 2.1, 0, 0, 0)
+
+[node name="WeaponPivot" type="Node3D" parent="."]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, 1.5, 0.5, 0.6)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Panel" type="Control" parent="UI"]
 layout_mode = 3
 anchors_preset = 15
+anchor_left = 0.42
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_menu")
+mouse_filter = 2
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Center" type="CenterContainer" parent="UI/Panel"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.03, 0.02, 0.1, 1)
 
-[node name="Center" type="CenterContainer" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Box" type="VBoxContainer" parent="UI/Panel/Center"]
+theme_override_constants/separation = 12
 
-[node name="Box" type="VBoxContainer" parent="Center"]
-theme_override_constants/separation = 22
-
-[node name="Title" type="Label" parent="Center/Box"]
+[node name="Title" type="Label" parent="UI/Panel/Center/Box"]
 theme_override_colors/font_color = Color(0, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 120
+theme_override_font_sizes/font_size = 96
 text = "OVERCLOCK"
 horizontal_alignment = 1
 
-[node name="Tagline" type="Label" parent="Center/Box"]
-theme_override_font_sizes/font_size = 28
-text = "Survis aux vagues de robots"
-horizontal_alignment = 1
-
-[node name="Best" type="Label" parent="Center/Box"]
+[node name="Best" type="Label" parent="UI/Panel/Center/Box"]
 theme_override_colors/font_color = Color(1, 0.24, 0.95, 1)
 theme_override_font_sizes/font_size = 30
 text = "Record : 0"
 horizontal_alignment = 1
 
-[node name="Play" type="Button" parent="Center/Box"]
-custom_minimum_size = Vector2(360, 110)
+[node name="CharacterRow" type="HBoxContainer" parent="UI/Panel/Center/Box"]
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Previous" type="Button" parent="UI/Panel/Center/Box/CharacterRow"]
+custom_minimum_size = Vector2(84, 84)
+theme_override_font_sizes/font_size = 40
+text = "<"
+
+[node name="Name" type="Label" parent="UI/Panel/Center/Box/CharacterRow"]
+custom_minimum_size = Vector2(300, 0)
+theme_override_font_sizes/font_size = 34
+horizontal_alignment = 1
+
+[node name="Next" type="Button" parent="UI/Panel/Center/Box/CharacterRow"]
+custom_minimum_size = Vector2(84, 84)
+theme_override_font_sizes/font_size = 40
+text = ">"
+
+[node name="CharacterInfo" type="Label" parent="UI/Panel/Center/Box"]
+custom_minimum_size = Vector2(0, 30)
+theme_override_colors/font_color = Color(0.75, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+
+[node name="WeaponRow" type="HBoxContainer" parent="UI/Panel/Center/Box"]
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Previous" type="Button" parent="UI/Panel/Center/Box/WeaponRow"]
+custom_minimum_size = Vector2(84, 84)
+theme_override_font_sizes/font_size = 40
+text = "<"
+
+[node name="Name" type="Label" parent="UI/Panel/Center/Box/WeaponRow"]
+custom_minimum_size = Vector2(300, 0)
+theme_override_font_sizes/font_size = 34
+horizontal_alignment = 1
+
+[node name="Next" type="Button" parent="UI/Panel/Center/Box/WeaponRow"]
+custom_minimum_size = Vector2(84, 84)
+theme_override_font_sizes/font_size = 40
+text = ">"
+
+[node name="WeaponInfo" type="Label" parent="UI/Panel/Center/Box"]
+custom_minimum_size = Vector2(0, 30)
+theme_override_colors/font_color = Color(0.75, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+
+[node name="Play" type="Button" parent="UI/Panel/Center/Box"]
+custom_minimum_size = Vector2(360, 100)
 theme_override_font_sizes/font_size = 44
 text = "JOUER"

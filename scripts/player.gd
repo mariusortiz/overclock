@@ -6,6 +6,7 @@ extends CharacterBody3D
 signal health_changed(current: int, maximum: int)
 signal damaged
 signal died
+signal perks_changed
 
 @export var max_health := 100
 @export var regen_per_second := 5.0
@@ -20,13 +21,17 @@ signal died
 @export var max_pitch_deg := 35.0
 
 var health := 0
+## Perk.Type -> level. Shared with the weapon.
+var perks := {}
 
 var _effects := {}  # PowerUp.Type -> seconds left
 var _regen_buffer := 0.0
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var weapon: Weapon = $Weapon
-@onready var _model: CharacterModel = $Model
+var _model: CharacterModel
+
+@onready var _model_pivot: Node3D = $ModelPivot
 @onready var _pickup_sound: AudioStreamPlayer = $PickupSound
 @onready var _spring_arm: SpringArm3D = $CameraPivot/SpringArm3D
 
@@ -34,6 +39,9 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 func _ready() -> void:
 	add_to_group("player")
 	health = max_health
+	_model = Loadout.instantiate_character(Loadout.selected_character())
+	_model_pivot.add_child(_model)
+	weapon.setup(Loadout.selected_weapon(), perks)
 	_spring_arm.add_excluded_object(get_rid())
 	_spring_arm.rotation.x = deg_to_rad(-15.0)
 	weapon.rotation.x = _spring_arm.rotation.x
@@ -56,6 +64,20 @@ func has_effect(type: PowerUp.Type) -> bool:
 ## Active effects: PowerUp.Type -> seconds left.
 func get_effects() -> Dictionary:
 	return _effects
+
+
+func add_perk(type: Perk.Type) -> void:
+	perks[type] = perks.get(type, 0) + 1
+	if type == Perk.Type.VITALITY:
+		max_health += Perk.VITALITY_HEALTH
+		heal(Perk.VITALITY_HEALTH)
+	weapon.on_perks_changed()
+	perks_changed.emit()
+
+
+## Call when one of the player's shots or effects destroys a robot.
+func on_enemy_killed() -> void:
+	heal(Perk.LIFESTEAL_HEAL * perks.get(Perk.Type.LIFESTEAL, 0))
 
 
 func take_damage(amount: int) -> void:
@@ -100,6 +122,7 @@ func _physics_process(delta: float) -> void:
 
 	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var target := transform.basis * Vector3(input.x, 0.0, input.y) * move_speed
+	target *= 1.0 + Perk.SWIFT_BONUS * perks.get(Perk.Type.SWIFT, 0)
 	if has_effect(PowerUp.Type.SPEED):
 		target *= speed_boost
 	velocity.x = move_toward(velocity.x, target.x, acceleration * delta)
