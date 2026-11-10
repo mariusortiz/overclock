@@ -6,14 +6,16 @@ config_version=5
 [application]
 
 config/name="Overclock"
-config/version="0.7.0"
+config/version="0.8.0"
 run/main_scene="res://scenes/menu.tscn"
 config/features=PackedStringArray("4.5", "Mobile")
 config/icon="res://icon.svg"
+config/quit_on_go_back=false
 
 [autoload]
 
 Music="*res://scenes/music.tscn"
+Settings="*res://scripts/settings.gd"
 
 [display]
 

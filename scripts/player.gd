@@ -101,6 +101,7 @@ func heal(amount: int) -> void:
 
 ## Rotates the view. `relative` is a screen-space drag in pixels.
 func look(relative: Vector2, sensitivity: float) -> void:
+	sensitivity *= Settings.sensitivity
 	rotate_y(-relative.x * sensitivity)
 	var pitch := _spring_arm.rotation.x - relative.y * sensitivity
 	_spring_arm.rotation.x = clampf(pitch, deg_to_rad(min_pitch_deg), deg_to_rad(max_pitch_deg))

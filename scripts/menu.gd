@@ -34,6 +34,12 @@ func _ready() -> void:
 	_refresh()
 
 
+func _notification(what: int) -> void:
+	# Android back button.
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		get_tree().quit()
+
+
 func _process(delta: float) -> void:
 	_character_pivot.rotate_y(delta * SPIN_SPEED)
 	_weapon_pivot.rotate_y(-delta * SPIN_SPEED * 2.0)

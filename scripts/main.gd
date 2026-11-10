@@ -5,6 +5,7 @@ const KILL_SCORE := 100
 const WAVE_BONUS := 250  # multiplied by the wave number
 const WAVE_HEAL := 25
 const MENU_SCENE := "res://scenes/menu.tscn"
+const DAMAGE_VIBRATION_MS := 40
 
 var score := 0
 
@@ -13,6 +14,8 @@ var _mouse_was_captured := false
 @onready var player: Player = $Player
 @onready var hud: Hud = $HUD
 @onready var waves: WaveManager = $WaveManager
+@onready var _sun: DirectionalLight3D = $Sun
+@onready var _world: WorldEnvironment = $WorldEnvironment
 
 
 func _ready() -> void:
@@ -26,6 +29,7 @@ func _ready() -> void:
 	player.weapon.ammo_changed.connect(hud.set_ammo)
 	player.health_changed.connect(hud.set_health)
 	player.damaged.connect(hud.flash_damage)
+	player.damaged.connect(_vibrate)
 	player.died.connect(_on_player_died)
 
 	waves.wave_started.connect(_on_wave_started)
@@ -38,14 +42,17 @@ func _ready() -> void:
 	hud.set_ammo(player.weapon.ammo, player.weapon.get_magazine_size(), false)
 	hud.set_score(score)
 
+	Settings.changed.connect(_apply_quality)
+	_apply_quality()
+
 
 func _process(_delta: float) -> void:
 	hud.set_status(player.get_effects(), player.perks)
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Desktop/web: the first click captures the mouse, later clicks fire, Escape
-	# releases. Clicks emulated from touch are ignored (phones use the touch controls).
+	# Desktop/web: the first click captures the mouse, later clicks fire (Escape
+	# opens the pause menu). Clicks emulated from touch are ignored (phones use the touch controls).
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT \
 			and event.device != InputEvent.DEVICE_ID_EMULATION:
 		if not event.pressed:
@@ -54,9 +61,21 @@ func _unhandled_input(event: InputEvent) -> void:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		else:
 			Input.action_press("fire")
-	elif event.is_action_pressed("ui_cancel"):
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		Input.action_release("fire")
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_F9 \
+			and (OS.is_debug_build() or OS.has_feature("web")):
+		# Test shortcut (debug and web builds): destroys every robot.
+		for enemy in get_tree().get_nodes_in_group("targets"):
+			enemy.take_damage(9999)
+
+
+func _apply_quality() -> void:
+	_sun.shadow_enabled = Settings.high_quality
+	_world.environment.glow_enabled = Settings.high_quality
+
+
+func _vibrate() -> void:
+	if Settings.vibration_enabled:
+		Input.vibrate_handheld(DAMAGE_VIBRATION_MS)
 
 
 func _add_score(points: int) -> void:

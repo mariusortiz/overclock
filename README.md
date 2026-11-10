@@ -23,9 +23,10 @@ Cette version web est mise à jour à chaque push sur `main`. Elle utilise un mo
 | Action | Téléphone | Clavier / souris |
 |---|---|---|
 | Bouger | Joystick : poser le pouce n'importe où sur la moitié gauche | ZQSD (AZERTY) ou WASD (QWERTY), flèches |
-| Caméra | Glisser sur la moitié droite | Souris (clic dans le jeu pour la capturer, Échap pour la libérer) |
+| Caméra | Glisser sur la moitié droite | Souris (clic dans le jeu pour la capturer) |
 | Tirer | Bouton TIR en bas à droite (on peut viser en gardant le doigt dessus) | Clic gauche |
 | Recharger | Bouton RECH. à gauche du bouton TIR (automatique quand le chargeur est vide) | R |
+| Pause et réglages | Bouton II en haut à droite, ou bouton retour d'Android | Échap |
 | Sauter | Bouton SAUT au-dessus du bouton TIR | Espace |
 
 ## Power-ups

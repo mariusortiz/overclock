@@ -17,6 +17,7 @@ var _perk_options: Array = []
 
 @onready var touch_controls: TouchControls = $TouchControls
 @onready var reticle: Reticle = $Reticle
+@onready var pause_menu: PauseMenu = $PauseMenu
 @onready var _fps_label: Label = $FpsLabel
 @onready var _desktop_hint: Label = $DesktopHint
 @onready var _health_bar: ProgressBar = $HealthBar
@@ -30,6 +31,7 @@ var _perk_options: Array = []
 @onready var _best_score: Label = $GameOver/Center/Box/Best
 @onready var _replay_button: Button = $GameOver/Center/Box/Replay
 @onready var _menu_button: Button = $GameOver/Center/Box/Menu
+@onready var _pause_button: Button = $PauseButton
 @onready var _effects_label: RichTextLabel = $Effects
 @onready var _perk_choice: Control = $PerkChoice
 @onready var _perk_title: Label = $PerkChoice/Center/Box/Title
@@ -41,6 +43,8 @@ func _ready() -> void:
 	_banner.modulate.a = 0.0
 	_replay_button.pressed.connect(replay_pressed.emit)
 	_menu_button.pressed.connect(menu_pressed.emit)
+	_pause_button.pressed.connect(pause_menu.open)
+	pause_menu.menu_pressed.connect(menu_pressed.emit)
 	for i in _perk_buttons.size():
 		_perk_buttons[i].pressed.connect(_on_perk_button_pressed.bind(i))
 
@@ -121,6 +125,8 @@ func show_banner(text: String) -> void:
 
 func show_game_over(score: int, best: int, is_record: bool) -> void:
 	_game_over = true
+	pause_menu.enabled = false
+	_pause_button.visible = false
 	touch_controls.visible = false
 	touch_controls.process_mode = Node.PROCESS_MODE_DISABLED
 	reticle.visible = false
