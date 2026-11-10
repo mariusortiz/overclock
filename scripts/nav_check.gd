@@ -15,10 +15,12 @@ func _ready() -> void:
 		var arena: NavigationRegion3D = load("res://scenes/arenas/%s.tscn" % arena_name).instantiate()
 		add_child(arena)
 		# The navigation map is built in the background: wait until it answers.
-		var map := arena.get_navigation_map()
+		# (The map itself only exists once the first arena has entered the scene.)
+		var map := RID()
 		for i in MAX_WAIT_FRAMES:
 			await get_tree().physics_frame
 			OS.delay_msec(10)
+			map = arena.get_navigation_map()
 			if not NavigationServer3D.map_get_path(map, START, START + Vector3(0, 0, -4), true).is_empty():
 				break
 		for deck in DECKS:
