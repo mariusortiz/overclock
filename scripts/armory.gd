@@ -50,6 +50,15 @@ func _select_tab(index: int) -> void:
 	for i in _tab_bar.get_child_count():
 		(_tab_bar.get_child(i) as Button).button_pressed = i == index
 	_viewed = _equipped()
+	# Weapons are shown alone, floating; the character only in its own tab.
+	match _tabs[index].key:
+		Loadout.CHARACTER_KEY:
+			_stage.focus(CharacterStage.Focus.CHARACTER)
+		Loadout.MELEE_KEY:
+			_stage.focus(CharacterStage.Focus.MELEE)
+		_:
+			_stage.focus(CharacterStage.Focus.WEAPON)
+	_stage.show_loadout()
 	_refresh()
 
 

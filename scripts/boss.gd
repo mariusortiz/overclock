@@ -53,6 +53,7 @@ func configure(boss_kind: Kind, health_scale: float) -> void:
 	model_height = info.height
 	model_hover = info.hover
 	drop_chance = 1.0
+	kill_effects_enabled = false
 
 
 func _ready() -> void:

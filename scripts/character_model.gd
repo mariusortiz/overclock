@@ -62,6 +62,24 @@ func play(action: StringName, restart := false, speed := 1.0) -> void:
 		_animation_player.play(_animations[action], 0.15, speed)
 
 
+## Repaints the whole model in one color (death effects).
+func tint(color: Color, glow := 0.0) -> void:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	if glow > 0.0:
+		material.emission_enabled = true
+		material.emission = color
+		material.emission_energy_multiplier = glow
+	for mesh: MeshInstance3D in find_children("*", "MeshInstance3D", true, false):
+		mesh.material_override = material
+
+
+## Stops on the current frame.
+func stop() -> void:
+	_current_action = &""
+	_animation_player.pause()
+
+
 ## Holds one frame of an action, `seconds` into its animation.
 func freeze(action: StringName, seconds: float) -> void:
 	if not _animations.has(action):

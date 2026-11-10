@@ -35,6 +35,8 @@ const CHILL_COLOR := Color(0.5, 0.85, 1.0)
 ## Size of the fitted model (see CharacterModel).
 var model_height := 1.75
 var model_hover := 0.0
+## Bosses always die their own way.
+var kill_effects_enabled := true
 @export var power_up_scene: PackedScene
 @export var drop_chance := 0.25
 
@@ -55,6 +57,8 @@ var _base_scale := Vector3.ONE
 var _attack_animation := &"shoot"
 var _aim_animation := &"aim"
 var _stun_left := 0.0
+var _kill_style := &""
+var _kill_color := Color.WHITE
 var _tween: Tween
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -90,6 +94,12 @@ func _ready() -> void:
 ## Point the player's shots (and aim assist) should go for.
 func get_aim_position() -> Vector3:
 	return global_position + Vector3.UP * aim_height
+
+
+## Remembers how this enemy should die if the next damage kills it.
+func set_kill_effect(style: StringName, color: Color) -> void:
+	_kill_style = style
+	_kill_color = color
 
 
 ## True when a shot landing at `point` (world space) hits the head.
@@ -242,16 +252,52 @@ func _die() -> void:
 	died.emit()
 	if randf() < drop_chance:
 		_drop_power_up()
-	_model.play(&"die")
 	_death_sound.play()
-	# Fall over, then shrink away.
 	if _tween:
 		_tween.kill()
 	_visual.scale = _base_scale
 	_tween = create_tween()
-	_tween.tween_interval(DEATH_ANIMATION_TIME)
-	_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.2)
+	_play_death(_kill_style if kill_effects_enabled else &"")
 	_tween.tween_callback(queue_free)
+
+
+## Animates the death on `_tween`. The style comes from the skin of the gun
+## that made the kill.
+func _play_death(style: StringName) -> void:
+	var scene := get_tree().current_scene
+	var chest := get_aim_position()
+	match style:
+		&"melt":  # sinks into a puddle, bubbling
+			_model.play(&"die")
+			_model.tint(_kill_color, 0.6)
+			Effects.burst(scene, chest, _kill_color, 20, true)
+			_tween.tween_property(_visual, "scale", _base_scale * Vector3(1.5, 0.04, 1.5), 1.0)
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.3)
+		&"shatter":  # freezes solid, then breaks apart
+			_model.stop()
+			_model.tint(_kill_color.lerp(Color.WHITE, 0.4), 0.3)
+			_tween.tween_interval(0.45)
+			_tween.tween_callback(Effects.burst.bind(scene, chest, _kill_color, 36))
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.05)
+		&"burn":  # chars, glowing, with rising embers
+			_model.play(&"die")
+			_model.tint(Color(0.12, 0.08, 0.06).lerp(_kill_color, 0.35), 1.2)
+			Effects.burst(scene, chest, _kill_color, 28, true)
+			_tween.tween_property(_visual, "scale", _base_scale * Vector3(0.6, 0.15, 0.6), 1.0)
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.2)
+		&"vanish":  # stretches into a beam of light
+			_model.stop()
+			_model.tint(_kill_color, 2.5)
+			_tween.tween_property(_visual, "scale", _base_scale * Vector3(0.05, 2.6, 0.05), 0.4)
+			_tween.tween_callback(Effects.burst.bind(scene, chest + Vector3.UP, _kill_color, 14, true))
+		&"burst":  # explodes into a shower of pieces
+			Effects.burst(scene, chest, _kill_color, 48)
+			Effects.burst(scene, chest, Color.WHITE, 16)
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.08)
+		_:  # falls over, then shrinks away
+			_model.play(&"die")
+			_tween.tween_interval(DEATH_ANIMATION_TIME)
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.2)
 
 
 func _scale_visual_to(target_scale: Vector3, duration: float) -> void:

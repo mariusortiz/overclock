@@ -34,6 +34,10 @@ Un robot détruit laisse parfois un cube lumineux au sol. Marche dessus pour le 
 | Jaune | Vitesse : déplacement +40 % pendant 10 s |
 | Bleu | Bouclier : dégâts reçus divisés par deux pendant 10 s |
 
+## Caisses d'armes
+
+À chaque vague, une caisse tombe du ciel sous un parachute, à quelques mètres de toi. Un faisceau orange la signale une fois posée, et elle apparaît en orange sur la mini-carte. Marche dessus : tu reçois une arme au hasard pour trois chargeurs, puis ton arme revient. Une caisse disparaît au bout de 40 s.
+
 ## Pouvoirs
 
 À la fin de chaque vague, le jeu se met en pause et propose 3 pouvoirs au hasard. Celui que tu choisis dure jusqu'à la fin de la partie, et le reprendre augmente son niveau.
@@ -79,7 +83,7 @@ Chaque partie rapporte de l'XP (un dixième du score). Le passe compte 30 palier
 
 ## Arsenal
 
-L'arsenal, accessible depuis l'accueil, a quatre onglets : personnage, arme, corps à corps et skin. Un élément verrouillé peut être prévisualisé, mais pas équipé.
+L'arsenal, accessible depuis l'accueil, a quatre onglets : personnage, arme, corps à corps et skin. Un élément verrouillé peut être prévisualisé, mais pas équipé. Dans les onglets d'armes et de skins, l'arme est montrée seule : elle flotte et tourne sur elle-même.
 
 | Arme | Cadence | Dégâts | Chargeur |
 |---|---|---|---|
@@ -98,7 +102,7 @@ Un tir dans la tête fait le double de dégâts : le marqueur de touche devient 
 | Hache (tous les ennemis devant soi) | 1,1 s | 10 | 2,6 m |
 | Masse (repousse l'ennemi) | 1 s | 8 | 2,4 m |
 
-Les skins d'armes sont des finitions : ils gardent la forme de l'arme et la repeignent d'un motif (néon, camouflage, fibre de carbone, lave…), certains la font briller ou lui ajoutent une lunette ou un silencieux, et chacun change la couleur du tir. Les statistiques ne changent pas. Le skin Champion ne s'obtient qu'en battant le boss final. Il y a 13 personnages, purement visuels.
+Les skins d'armes sont des finitions : ils gardent la forme de l'arme et la repeignent d'un motif (néon, camouflage, fibre de carbone, lave…), certains la font briller ou lui ajoutent une lunette ou un silencieux, et chacun change la couleur du tir. Les statistiques ne changent pas. Le skin décide aussi de la façon dont meurent les ennemis abattus : ils fondent en flaque (Toxique, Océan), gèlent puis éclatent (Glace, Or), se consument (Lave, Solaire), se dissipent en rayon de lumière (Néon, Royal) ou explosent en morceaux (Sakura, Champion). Le skin Champion ne s'obtient qu'en battant le boss final. Il y a 13 personnages, purement visuels.
 
 ## Développer en local (optionnel)
 

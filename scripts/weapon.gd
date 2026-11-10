@@ -7,10 +7,14 @@ extends Node3D
 ## `headshot` is true when the shot hit the head.
 signal hit_confirmed(headshot: bool)
 signal ammo_changed(current: int, magazine: int, reloading: bool)
+## A gun was taken in hand (the player's own, or one found in a crate).
+signal equipped(weapon_name: String)
 
 const TRACER_COLOR := Color(0, 0.9, 1)
 const FLASH_TIME := 0.04
 const HEADSHOT_MULTIPLIER := 2
+## Magazines that come with a gun found in a crate.
+const TEMPORARY_MAGAZINES := 3
 const ROCKET_SCENE := preload("res://scenes/rocket.tscn")
 
 @export var max_range := 200.0
@@ -30,12 +34,19 @@ var ammo := 0
 var damage_multiplier := 1
 ## Perk.Type -> level, shared with the player.
 var perks := {}
+## The Loadout.WEAPONS entry in hand.
+var current_data := {}
 ## When set, the gun is held in this character's right hand.
 var holder: CharacterModel
 
 var _cooldown := 0.0
 var _reloading := false
 var _muzzle_offset := Vector3.ZERO
+## The player's own gun, to come back to after a temporary one.
+var _own_data := {}
+var _temporary_magazines := 0
+var _kill_style := &""
+var _kill_color := Color.WHITE
 var _use_aim_assist := DisplayServer.is_touchscreen_available()
 var _tracer_mesh := BoxMesh.new()
 var _lightning_mesh := BoxMesh.new()
@@ -62,6 +73,20 @@ func _ready() -> void:
 ## Applies a Loadout.WEAPONS entry: model, stats, full magazine.
 func setup(data: Dictionary, owner_perks: Dictionary) -> void:
 	perks = owner_perks
+	_own_data = data
+	_equip(data)
+
+
+## Swaps to a gun found in a crate. It lasts a few magazines, then the
+## player's own gun comes back.
+func equip_temporary(data: Dictionary) -> void:
+	_temporary_magazines = TEMPORARY_MAGAZINES
+	_equip(data)
+
+
+func _equip(data: Dictionary) -> void:
+	current_data = data
+	_reloading = false
 	fire_rate = data.fire_rate
 	damage = data.damage
 	magazine_size = data.magazine
@@ -69,9 +94,15 @@ func setup(data: Dictionary, owner_perks: Dictionary) -> void:
 	zoom_fov = data.zoom_fov
 	blast_radius = data.get("blast_radius", 0.0)
 
+	for old in _model_pivot.get_children():
+		_model_pivot.remove_child(old)
+		old.queue_free()
 	_model_pivot.add_child(Loadout.instantiate_weapon(data))
-	# The skin also colors the shots.
-	var shot_color: Color = Loadout.selected_skin().shot
+	# The skin also colors the shots and decides how enemies die.
+	var skin := Loadout.selected_skin()
+	var shot_color: Color = skin.shot
+	_kill_style = skin.kill
+	_kill_color = shot_color
 	(_tracer_mesh.material as StandardMaterial3D).albedo_color = shot_color
 	(_impact_mesh.material as StandardMaterial3D).albedo_color = shot_color
 	($Muzzle/Flash/Mesh as MeshInstance3D).material_override = _fx_material(shot_color.lerp(Color.WHITE, 0.5))
@@ -81,6 +112,7 @@ func setup(data: Dictionary, owner_perks: Dictionary) -> void:
 
 	ammo = get_magazine_size()
 	ammo_changed.emit(ammo, get_magazine_size(), false)
+	equipped.emit(data.name)
 
 
 func get_magazine_size() -> int:
@@ -178,7 +210,13 @@ func _on_rocket_exploded(at: Vector3) -> void:
 
 
 ## Damages an enemy and applies the fire and ice perks.
+## Makes `enemy` die the way the equipped skin kills, if it dies next.
+func tag_kill(enemy: Node3D) -> void:
+	enemy.set_kill_effect(_kill_style, _kill_color)
+
+
 func _damage_with_elements(enemy: Node3D, multiplier := 1) -> void:
+	tag_kill(enemy)
 	enemy.take_damage(damage * damage_multiplier * multiplier)
 	if _level(Perk.Type.FIRE) > 0:
 		enemy.ignite(_level(Perk.Type.FIRE))
@@ -210,6 +248,7 @@ func _chain_lightning(from_enemy: Node3D) -> void:
 			closest_distance = distance
 	if closest:
 		_spawn_tracer(_lightning_mesh, from, closest.get_aim_position(), 0.15)
+		tag_kill(closest)
 		closest.take_damage(_level(Perk.Type.LIGHTNING))
 
 
@@ -218,13 +257,23 @@ func _explode(point: Vector3, direct_hit: Node3D) -> void:
 	_spawn_fx(_explosion_mesh, point, 0.2)
 	for target: Node3D in get_tree().get_nodes_in_group("targets"):
 		if target != direct_hit and point.distance_to(target.get_aim_position()) <= Perk.EXPLOSION_RADIUS:
+			tag_kill(target)
 			target.take_damage(_level(Perk.Type.EXPLOSIVE))
 
 
 func _reload() -> void:
+	# A temporary gun is dropped once its magazines are spent.
+	if _temporary_magazines > 0:
+		_temporary_magazines -= 1
+		if _temporary_magazines == 0:
+			_equip(_own_data)
+			return
 	_reloading = true
 	ammo_changed.emit(ammo, get_magazine_size(), true)
+	var reloaded := current_data
 	await get_tree().create_timer(reload_time, false).timeout
+	if current_data != reloaded:
+		return  # the gun changed while reloading
 	ammo = get_magazine_size()
 	_reloading = false
 	ammo_changed.emit(ammo, get_magazine_size(), false)

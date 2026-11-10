@@ -11,6 +11,10 @@ const PERK_CHOICE_DELAY := 2.0
 const DEATH_SLOW_MOTION := 0.3
 const DEATH_TITLE_TIME := 3.0
 const VICTORY_TIME := 5.0
+## Seconds into a wave before its weapon crate is dropped.
+const CRATE_DELAY := 8.0
+## Crates land within this distance of the arena center, on each axis.
+const CRATE_AREA := 24.0
 ## Arenas, in the order they are visited: a new one after each boss.
 const ARENAS: Array[PackedScene] = [
 	preload("res://scenes/arenas/station.tscn"),
@@ -53,6 +57,7 @@ func _ready() -> void:
 	player.weapon.hit_confirmed.connect(hud.reticle.show_hit)
 	player.melee.hit_confirmed.connect(hud.reticle.show_hit)
 	player.weapon.ammo_changed.connect(hud.set_ammo)
+	player.weapon.equipped.connect(_on_weapon_equipped)
 	player.health_changed.connect(hud.set_health)
 	player.damaged.connect(hud.flash_damage)
 	player.damaged.connect(_vibrate)
@@ -99,7 +104,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			and (OS.is_debug_build() or OS.has_feature("web")):
 		# Test shortcut (debug and web builds): destroys every robot.
 		for enemy in get_tree().get_nodes_in_group("targets"):
+			player.weapon.tag_kill(enemy)
 			enemy.take_damage(9999)
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_F7 \
+			and (OS.is_debug_build() or OS.has_feature("web")):
+		# Test shortcut (debug and web builds): drops a weapon crate.
+		_drop_crate()
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_F8 \
 			and (OS.is_debug_build() or OS.has_feature("web")):
 		# Test shortcut (debug and web builds): the next wave is a boss wave.
@@ -153,6 +163,28 @@ func _add_score(points: int) -> void:
 func _on_wave_started(number: int) -> void:
 	get_tree().call_group("chests", "close")
 	hud.show_banner("VAGUE %d  ·  BOSS" % number if waves.is_boss_wave() else "VAGUE %d" % number)
+	# One weapon crate per wave, a moment after it starts.
+	var arena := _arena
+	await get_tree().create_timer(CRATE_DELAY, false).timeout
+	if arena == _arena and not _arena_change_pending:
+		_drop_crate()
+
+
+## Drops a weapon crate a few meters from the player.
+func _drop_crate() -> void:
+	if player.health <= 0:
+		return
+	var offset := Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU) * randf_range(8.0, 14.0)
+	var at := player.global_position + offset
+	var crate := SupplyCrate.new()
+	crate.position = Vector3(clampf(at.x, -CRATE_AREA, CRATE_AREA), 0, clampf(at.z, -CRATE_AREA, CRATE_AREA))
+	crate.collected.connect(player.weapon.equip_temporary)
+	add_child(crate)
+	hud.show_banner("CAISSE D'ARME EN APPROCHE")
+
+
+func _on_weapon_equipped(weapon_name: String) -> void:
+	hud.show_banner(weapon_name.to_upper())
 
 
 func _on_boss_spawned(boss: Boss) -> void:
