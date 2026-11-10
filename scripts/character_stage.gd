@@ -10,11 +10,14 @@ const TURN_SPEED := 0.35
 const TURN_RANGE := 0.5  # radians each side of facing the camera
 const SPIN_SPEED := 0.9
 const FLOAT_HEIGHT := 1.05
-const FLOAT_SCALE := {Focus.WEAPON: 2.6, Focus.MELEE: 1.6}
+## A gun shown alone is scaled to this length, in meters.
+const FLOAT_GUN_LENGTH := 1.25
+const FLOAT_MELEE_SCALE := 1.6
 
 var _time := 0.0
 var _character: CharacterModel
 var _focus := Focus.CHARACTER
+var _gun_scale := 1.0
 
 @onready var _pivot: Node3D = $SubViewport/World/Pivot
 @onready var _weapon_holder: Node3D = $SubViewport/World/Pivot/WeaponHolder
@@ -30,6 +33,7 @@ func _process(delta: float) -> void:
 		var holder := _weapon_holder if _focus == Focus.WEAPON else _melee_holder
 		holder.position = Vector3(0, FLOAT_HEIGHT + sin(_time * 1.6) * 0.05, 0)
 		holder.rotation = Vector3(0, _time * SPIN_SPEED, 0)
+		holder.scale = Vector3.ONE * (_gun_scale if _focus == Focus.WEAPON else FLOAT_MELEE_SCALE)
 		return
 	_pivot.rotation.y = PI + sin(_time * TURN_SPEED) * TURN_RANGE
 	if _character:
@@ -47,9 +51,6 @@ func focus(what: Focus) -> void:
 	_melee_holder.visible = what != Focus.WEAPON
 	for holder: Node3D in [_weapon_holder, _melee_holder]:
 		holder.transform = Transform3D.IDENTITY
-	if what != Focus.CHARACTER:
-		var holder := _weapon_holder if what == Focus.WEAPON else _melee_holder
-		holder.scale = Vector3.ONE * FLOAT_SCALE[what]
 
 
 func show_character(item: Dictionary) -> void:
@@ -64,6 +65,7 @@ func show_character(item: Dictionary) -> void:
 
 ## `skin` defaults to the equipped one.
 func show_weapon(item: Dictionary, skin := {}) -> void:
+	_gun_scale = FLOAT_GUN_LENGTH / item.length
 	_replace(_weapon_holder, Loadout.instantiate_weapon(item, skin))
 
 

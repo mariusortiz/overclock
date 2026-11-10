@@ -83,6 +83,8 @@ func _refresh() -> void:
 		var card := Button.new()
 		card.custom_minimum_size = CARD_SIZE
 		card.toggle_mode = true
+		# Long names wrap instead of widening the grid past the screen.
+		card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		card.button_pressed = item == _viewed
 		card.disabled = false
 		var status := ""
