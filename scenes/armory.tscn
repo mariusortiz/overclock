@@ -1,0 +1,87 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/armory.gd" id="main"]
+[ext_resource type="Script" path="res://scripts/tech_background.gd" id="bg"]
+[ext_resource type="Script" path="res://scripts/logo.gd" id="logo"]
+[ext_resource type="PackedScene" path="res://scenes/ui/character_stage.tscn" id="stage"]
+
+[node name="Armory" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("main")
+
+[node name="Background" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("bg")
+
+[node name="Stage" parent="." instance=ExtResource("stage")]
+anchor_left = 0.0
+anchor_top = 0.08
+anchor_right = 0.4
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Back" type="Button" parent="."]
+offset_left = 28.0
+offset_top = 20.0
+offset_right = 228.0
+offset_bottom = 84.0
+theme_override_font_sizes/font_size = 26
+text = "< RETOUR"
+
+[node name="Right" type="MarginContainer" parent="."]
+anchor_left = 0.4
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 20
+
+[node name="Box" type="VBoxContainer" parent="Right"]
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Right/Box"]
+theme_override_colors/font_color = Color(0.16, 0.83, 1, 1)
+theme_override_font_sizes/font_size = 44
+text = "ARSENAL"
+
+[node name="Tabs" type="HBoxContainer" parent="Right/Box"]
+theme_override_constants/separation = 10
+
+[node name="Scroll" type="ScrollContainer" parent="Right/Box"]
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Grid" type="GridContainer" parent="Right/Box/Scroll"]
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 3
+
+[node name="Detail" type="PanelContainer" parent="Right/Box"]
+
+[node name="Box" type="VBoxContainer" parent="Right/Box/Detail"]
+theme_override_constants/separation = 6
+
+[node name="Name" type="Label" parent="Right/Box/Detail/Box"]
+theme_override_font_sizes/font_size = 32
+
+[node name="Status" type="Label" parent="Right/Box/Detail/Box"]
+theme_override_colors/font_color = Color(1, 0.24, 0.95, 1)
+theme_override_font_sizes/font_size = 20
+
+[node name="Stats" type="VBoxContainer" parent="Right/Box/Detail/Box"]
+theme_override_constants/separation = 4

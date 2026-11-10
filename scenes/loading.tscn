@@ -1,0 +1,79 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/loading.gd" id="main"]
+[ext_resource type="Script" path="res://scripts/tech_background.gd" id="bg"]
+[ext_resource type="Script" path="res://scripts/logo.gd" id="logo"]
+[ext_resource type="PackedScene" path="res://scenes/ui/character_stage.tscn" id="stage"]
+
+[node name="Loading" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("main")
+
+[node name="Background" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("bg")
+
+[node name="Stage" parent="." instance=ExtResource("stage")]
+anchor_left = 0.15
+anchor_top = 0.0
+anchor_right = 0.85
+anchor_bottom = 0.78
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Logo" type="Control" parent="."]
+anchor_left = 0.5
+anchor_top = 0.62
+anchor_right = 0.5
+anchor_bottom = 0.62
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = -330.0
+offset_right = 330.0
+offset_bottom = 130.0
+script = ExtResource("logo")
+
+[node name="Bottom" type="VBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = -260.0
+offset_top = -96.0
+offset_right = 260.0
+offset_bottom = -36.0
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="Bottom"]
+theme_override_font_sizes/font_size = 24
+text = "CHARGEMENT…"
+horizontal_alignment = 1
+
+[node name="Bar" type="ProgressBar" parent="Bottom"]
+custom_minimum_size = Vector2(0, 16)
+show_percentage = false
+
+[node name="Version" type="Label" parent="."]
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = 24.0
+offset_top = -44.0
+offset_right = 300.0
+offset_bottom = -16.0
+theme_override_colors/font_color = Color(0.6, 0.7, 0.9, 1)
+theme_override_font_sizes/font_size = 16

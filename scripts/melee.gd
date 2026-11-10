@@ -34,9 +34,7 @@ func setup(data: Dictionary) -> void:
 	sweep = data.sweep
 	cone_deg = data.cone
 	knockback = data.knockback
-	var model: Node3D = load(data.model).instantiate()
-	model.scale = Vector3.ONE * data.scale
-	_model_pivot.add_child(model)
+	_model_pivot.add_child(Loadout.instantiate_melee(data))
 
 
 func _process(_delta: float) -> void:

@@ -1,0 +1,42 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/character_stage.gd" id="1_stage"]
+
+[sub_resource type="Environment" id="environment"]
+ambient_light_source = 2
+ambient_light_color = Color(0.7, 0.75, 1, 1)
+ambient_light_energy = 0.9
+tonemap_mode = 2
+
+[node name="CharacterStage" type="SubViewportContainer"]
+mouse_filter = 2
+stretch = true
+script = ExtResource("1_stage")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+own_world_3d = true
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(640, 720)
+render_target_update_mode = 4
+
+[node name="World" type="Node3D" parent="SubViewport"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="SubViewport/World"]
+environment = SubResource("environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="SubViewport/World"]
+transform = Transform3D(0.8660, 0.3214, -0.3830, 0.0000, 0.7660, 0.6428, 0.5000, -0.5567, 0.6634, 0, 5, 0)
+light_energy = 1.2
+
+[node name="Camera3D" type="Camera3D" parent="SubViewport/World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 4.4)
+fov = 40.0
+
+[node name="Pivot" type="Node3D" parent="SubViewport/World"]
+
+[node name="WeaponHolder" type="Node3D" parent="SubViewport/World/Pivot"]
+
+[node name="MeleeHolder" type="Node3D" parent="SubViewport/World/Pivot"]
+
+[node name="Extras" type="Node3D" parent="SubViewport/World"]

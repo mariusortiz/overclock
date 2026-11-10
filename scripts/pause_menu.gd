@@ -1,6 +1,6 @@
 class_name PauseMenu
 extends Control
-## Pause screen with the settings. Keeps running while the game is paused.
+## Pause screen; the settings come from SettingsControls. Keeps running while the game is paused.
 ## Opens with the pause button, Escape, or the Android back button.
 
 signal menu_pressed
@@ -12,25 +12,12 @@ var _mouse_was_captured := false
 
 @onready var _resume_button: Button = $Center/Box/Resume
 @onready var _menu_button: Button = $Center/Box/Menu
-@onready var _sensitivity: HSlider = $Center/Box/SensitivityRow/Slider
-@onready var _music: CheckButton = $Center/Box/Music
-@onready var _vibration: CheckButton = $Center/Box/Vibration
-@onready var _quality: CheckButton = $Center/Box/Quality
 
 
 func _ready() -> void:
 	visible = false
 	_resume_button.pressed.connect(close)
 	_menu_button.pressed.connect(_on_menu_pressed)
-
-	_sensitivity.value = Settings.sensitivity
-	_music.button_pressed = Settings.music_enabled
-	_vibration.button_pressed = Settings.vibration_enabled
-	_quality.button_pressed = Settings.high_quality
-	_sensitivity.value_changed.connect(_on_sensitivity_changed)
-	_music.toggled.connect(func(on: bool) -> void: Settings.set_value(&"music_enabled", on))
-	_vibration.toggled.connect(func(on: bool) -> void: Settings.set_value(&"vibration_enabled", on))
-	_quality.toggled.connect(func(on: bool) -> void: Settings.set_value(&"high_quality", on))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -68,10 +55,6 @@ func close() -> void:
 	get_tree().paused = false
 	if _mouse_was_captured:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-
-
-func _on_sensitivity_changed(value: float) -> void:
-	Settings.set_value(&"sensitivity", value)
 
 
 func _on_menu_pressed() -> void:

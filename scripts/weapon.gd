@@ -67,11 +67,7 @@ func setup(data: Dictionary, owner_perks: Dictionary) -> void:
 	zoom_fov = data.zoom_fov
 	blast_radius = data.get("blast_radius", 0.0)
 
-	var model := Loadout.instantiate_weapon(data)
-	var size: float = data.scale
-	# Kenney models point toward +Z: turn them around.
-	model.transform = Transform3D(Basis.from_scale(Vector3(-size, size, -size)), data.offset)
-	_model_pivot.add_child(model)
+	_model_pivot.add_child(Loadout.instantiate_weapon(data))
 	_muzzle_offset = data.muzzle
 	_muzzle.position = _muzzle_offset
 

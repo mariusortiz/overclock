@@ -12,6 +12,7 @@ Tous les fichiers externes du jeu sont sous licence [CC0 1.0](https://creativeco
 | Éléments de décor de l'arène | [Space Station Kit 1.0](https://kenney.nl/assets/space-station-kit) | Kenney | `assets/models/station/` |
 | Rochers, cactus, arbres, statues | [Nature Kit](https://kenney.nl/assets/nature-kit) | Kenney | `assets/models/nature/` |
 | Immeubles | [City Kit (Commercial)](https://kenney.nl/assets/city-kit-commercial) | Kenney | `assets/models/city/` |
+| Police de l'interface | [Kenney Fonts](https://kenney.nl/assets/kenney-fonts) | Kenney | `assets/ui/fonts/` |
 | Sons de tir et d'explosion | [Sci-Fi Sounds 1.0](https://kenney.nl/assets/sci-fi-sounds) | Kenney | `assets/audio/kenney/` |
 | Musique principale | [Synthwave House Loop](https://opengameart.org/content/synthwave-house-loop) | Fupi | `assets/audio/music/` |
 | Musique de boss | [Boss Battle (loop)](https://opengameart.org/content/boss-battle-loop) | Alex McCulloch | `assets/audio/music/` |

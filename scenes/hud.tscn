@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://scripts/reticle.gd" id="3_reticle"]
 [ext_resource type="Script" path="res://scripts/pause_menu.gd" id="4_pause"]
 [ext_resource type="Script" path="res://scripts/minimap.gd" id="5_minimap"]
+[ext_resource type="Script" path="res://scripts/settings_controls.gd" id="6_settings"]
 
 [sub_resource type="Gradient" id="jump_gradient"]
 offsets = PackedFloat32Array(0, 0.86, 0.92, 1)
@@ -310,37 +311,8 @@ custom_minimum_size = Vector2(0, 88)
 theme_override_font_sizes/font_size = 34
 text = "REPRENDRE"
 
-[node name="SensitivityRow" type="HBoxContainer" parent="PauseMenu/Center/Box"]
-custom_minimum_size = Vector2(0, 64)
-theme_override_constants/separation = 16
-
-[node name="Label" type="Label" parent="PauseMenu/Center/Box/SensitivityRow"]
-theme_override_font_sizes/font_size = 28
-text = "Sensibilité"
-
-[node name="Slider" type="HSlider" parent="PauseMenu/Center/Box/SensitivityRow"]
-custom_minimum_size = Vector2(260, 48)
-size_flags_horizontal = 3
-size_flags_vertical = 4
-min_value = 0.4
-max_value = 2.0
-step = 0.1
-value = 1.0
-
-[node name="Music" type="CheckButton" parent="PauseMenu/Center/Box"]
-custom_minimum_size = Vector2(0, 64)
-theme_override_font_sizes/font_size = 28
-text = "Musique"
-
-[node name="Vibration" type="CheckButton" parent="PauseMenu/Center/Box"]
-custom_minimum_size = Vector2(0, 64)
-theme_override_font_sizes/font_size = 28
-text = "Vibrations"
-
-[node name="Quality" type="CheckButton" parent="PauseMenu/Center/Box"]
-custom_minimum_size = Vector2(0, 64)
-theme_override_font_sizes/font_size = 28
-text = "Graphismes élevés"
+[node name="Settings" type="VBoxContainer" parent="PauseMenu/Center/Box"]
+script = ExtResource("6_settings")
 
 [node name="Menu" type="Button" parent="PauseMenu/Center/Box"]
 custom_minimum_size = Vector2(0, 72)

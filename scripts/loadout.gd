@@ -107,8 +107,25 @@ static func instantiate_character(item: Dictionary) -> CharacterModel:
 	return model as CharacterModel
 
 
+## Creates a weapon model, scaled and turned to point toward -Z, with its
+## grip at the origin.
 static func instantiate_weapon(item: Dictionary) -> Node3D:
-	return load(item.model).instantiate()
+	var model: Node3D = load(item.model).instantiate()
+	var size: float = item.scale
+	# Kenney models point toward +Z: turn them around.
+	model.transform = Transform3D(Basis.from_scale(Vector3(-size, size, -size)), item.offset)
+	return model
+
+
+static func instantiate_melee(item: Dictionary) -> Node3D:
+	var model: Node3D = load(item.model).instantiate()
+	model.scale = Vector3.ONE * item.scale
+	return model
+
+
+## Why a locked item is locked, for the menus.
+static func unlock_text(item: Dictionary) -> String:
+	return "Record de %d requis" % item.unlock
 
 
 static func _selected(items: Array, key: String) -> Dictionary:
