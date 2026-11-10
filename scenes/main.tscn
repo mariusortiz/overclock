@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/arena.tscn" id="2_arena"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_player"]
 [ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="4_hud"]
-[ext_resource type="Script" path="res://scripts/enemy_spawner.gd" id="5_spawner"]
+[ext_resource type="Script" path="res://scripts/wave_manager.gd" id="5_waves"]
 [ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="6_enemy"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_material"]
@@ -43,6 +43,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 12)
 
 [node name="HUD" parent="." instance=ExtResource("4_hud")]
 
-[node name="EnemySpawner" type="Node" parent="."]
-script = ExtResource("5_spawner")
+[node name="WaveManager" type="Node" parent="."]
+script = ExtResource("5_waves")
 enemy_scene = ExtResource("6_enemy")

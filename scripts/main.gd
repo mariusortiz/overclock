@@ -1,18 +1,35 @@
 extends Node3D
-## Game root: wires input sources to the player and the HUD.
+## Game root: wires the player, the waves and the HUD together, and keeps the score.
 
-const RESTART_DELAY := 2.0
+const KILL_SCORE := 100
+const WAVE_BONUS := 250  # multiplied by the wave number
+const WAVE_HEAL := 25
+
+var score := 0
 
 @onready var player: Player = $Player
 @onready var hud: Hud = $HUD
+@onready var waves: WaveManager = $WaveManager
 
 
 func _ready() -> void:
 	hud.touch_controls.look.connect(_on_touch_look)
+	hud.replay_pressed.connect(get_tree().reload_current_scene)
+
 	player.weapon.hit_confirmed.connect(hud.reticle.show_hit)
-	player.health_changed.connect(_on_player_health_changed)
+	player.weapon.ammo_changed.connect(hud.set_ammo)
+	player.health_changed.connect(hud.set_health)
+	player.damaged.connect(hud.flash_damage)
 	player.died.connect(_on_player_died)
+
+	waves.wave_started.connect(_on_wave_started)
+	waves.wave_cleared.connect(_on_wave_cleared)
+	waves.enemy_killed.connect(_add_score.bind(KILL_SCORE))
+	waves.enemies_left_changed.connect(_on_enemies_left_changed)
+
 	hud.set_health(player.health, player.max_health)
+	hud.set_ammo(player.weapon.ammo, player.weapon.magazine_size, false)
+	hud.set_score(score)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -31,17 +48,37 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.action_release("fire")
 
 
-func _on_player_health_changed(current: int, maximum: int) -> void:
-	hud.set_health(current, maximum)
-	hud.flash_damage()
+func _add_score(points: int) -> void:
+	score += points
+	hud.set_score(score)
+
+
+func _on_wave_started(number: int) -> void:
+	hud.show_banner("VAGUE %d" % number)
+
+
+func _on_wave_cleared(number: int) -> void:
+	var bonus := WAVE_BONUS * number
+	_add_score(bonus)
+	player.heal(WAVE_HEAL)
+	hud.show_banner("VAGUE %d TERMINÉE   +%d" % [number, bonus])
+
+
+func _on_enemies_left_changed(count: int) -> void:
+	hud.set_wave(waves.wave, count)
 
 
 func _on_player_died() -> void:
 	player.process_mode = Node.PROCESS_MODE_DISABLED
+	waves.stop()
 	Input.action_release("fire")
-	hud.show_death()
-	await get_tree().create_timer(RESTART_DELAY).timeout
-	get_tree().reload_current_scene()
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+	var best := SaveData.load_high_score()
+	var is_record := score > best
+	if is_record:
+		SaveData.save_high_score(score)
+	hud.show_game_over(score, maxi(score, best), is_record)
 
 
 func _on_touch_look(relative: Vector2) -> void:

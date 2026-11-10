@@ -4,18 +4,24 @@ extends Node3D
 ## drawn from the muzzle to the hit point.
 
 signal hit_confirmed
+signal ammo_changed(current: int, magazine: int, reloading: bool)
 
 const TRACER_COLOR := Color(0, 0.9, 1)
 const FLASH_TIME := 0.04
 
 @export var fire_rate := 8.0
 @export var damage := 1
+@export var magazine_size := 24
+@export var reload_time := 1.4
 @export var max_range := 200.0
 ## Touch only: a shot that misses still hits a target within this angle of the reticle.
 @export var aim_assist_deg := 3.0
 @export_flags_3d_physics var hit_mask := 5  # world + targets, not the player
 
+var ammo := 0
+
 var _cooldown := 0.0
+var _reloading := false
 var _use_aim_assist := DisplayServer.is_touchscreen_available()
 var _tracer_mesh := BoxMesh.new()
 var _impact_mesh := SphereMesh.new()
@@ -27,6 +33,7 @@ var _impact_mesh := SphereMesh.new()
 
 
 func _ready() -> void:
+	ammo = magazine_size
 	var material := StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.albedo_color = TRACER_COLOR
@@ -42,7 +49,11 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_cooldown = maxf(_cooldown - delta, 0.0)
-	if Input.is_action_pressed("fire") and _cooldown == 0.0:
+	if _reloading:
+		return
+	if Input.is_action_just_pressed("reload") and ammo < magazine_size:
+		_reload()
+	elif Input.is_action_pressed("fire") and _cooldown == 0.0:
 		_fire()
 
 
@@ -71,6 +82,20 @@ func _fire() -> void:
 	_show_flash()
 	_shot_sound.pitch_scale = randf_range(0.94, 1.06)
 	_shot_sound.play()
+
+	ammo -= 1
+	ammo_changed.emit(ammo, magazine_size, false)
+	if ammo == 0:
+		_reload()
+
+
+func _reload() -> void:
+	_reloading = true
+	ammo_changed.emit(ammo, magazine_size, true)
+	await get_tree().create_timer(reload_time).timeout
+	ammo = magazine_size
+	_reloading = false
+	ammo_changed.emit(ammo, magazine_size, false)
 
 
 func _cast(from: Vector3, to: Vector3) -> Dictionary:

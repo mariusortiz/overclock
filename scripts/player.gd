@@ -4,6 +4,7 @@ extends CharacterBody3D
 ## Yaw rotates the whole body, pitch only tilts the camera arm.
 
 signal health_changed(current: int, maximum: int)
+signal damaged
 signal died
 
 @export var max_health := 100
@@ -41,8 +42,16 @@ func take_damage(amount: int) -> void:
 		return
 	health = maxi(health - amount, 0)
 	health_changed.emit(health, max_health)
+	damaged.emit()
 	if health == 0:
 		died.emit()
+
+
+func heal(amount: int) -> void:
+	if health <= 0:
+		return
+	health = mini(health + amount, max_health)
+	health_changed.emit(health, max_health)
 
 
 ## Rotates the view. `relative` is a screen-space drag in pixels.
