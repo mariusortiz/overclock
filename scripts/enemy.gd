@@ -61,8 +61,9 @@ func _ready() -> void:
 	add_to_group("targets")
 	_health = max_health
 	_base_scale = _visual.scale
-	_model = model_scene.instantiate()
-	_model.set_script(CharacterModel)
+	var model: Node3D = model_scene.instantiate()
+	model.set_script(CharacterModel)
+	_model = model as CharacterModel
 	_model_pivot.add_child(_model)
 	_fire_cooldown = fire_interval
 	_status_material.emission_enabled = true
