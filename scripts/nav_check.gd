@@ -3,7 +3,7 @@ extends Node
 ## deck of every arena. Prints one NAV line per deck and exits with an error
 ## if a deck cannot be reached.
 
-const ARENAS: Array[String] = ["station", "desert", "jungle", "volcano", "city"]
+const ARENAS: Array[String] = ["desert", "station", "jungle", "volcano", "city"]
 const START := Vector3(0.0, 0.2, 18.0)
 const DECKS: Array[Vector3] = [Vector3(-24.5, 3.1, 0.0), Vector3(24.5, 3.1, 0.0)]
 const MAX_WAIT_FRAMES := 600
@@ -23,6 +23,7 @@ func _ready() -> void:
 			map = arena.get_navigation_map()
 			if not NavigationServer3D.map_get_path(map, START, START + Vector3(0, 0, -4), true).is_empty():
 				break
+		print("NAV info %s: %d navigation polygons" % [arena_name, arena.navigation_mesh.get_polygon_count()])
 		for deck in DECKS:
 			var path := NavigationServer3D.map_get_path(map, START, deck, true)
 			var reached := not path.is_empty() and path[-1].distance_to(deck) < 1.5
