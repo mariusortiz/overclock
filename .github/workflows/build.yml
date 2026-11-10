@@ -53,7 +53,9 @@ jobs:
           cat ~/.config/godot/editor_settings-${minor}.tres
 
       - name: Import assets
-        run: godot --headless --import
+        run: |
+          godot --headless --import
+          grep -H "mipmaps/generate" assets/textures/*.import
 
       - name: Smoke test (fails on script errors)
         run: |

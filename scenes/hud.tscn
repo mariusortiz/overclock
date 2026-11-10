@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://scripts/touch_controls.gd" id="2_touch"]
+[ext_resource type="Script" path="res://scripts/reticle.gd" id="3_reticle"]
 
 [sub_resource type="Gradient" id="jump_gradient"]
 offsets = PackedFloat32Array(0, 0.86, 0.92, 1)
@@ -29,6 +30,16 @@ fill_to = Vector2(1, 0.5)
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
+
+[node name="Reticle" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_reticle")
 
 [node name="TouchControls" type="Control" parent="."]
 layout_mode = 3
@@ -69,14 +80,14 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -420.0
-offset_top = -70.0
+offset_top = 40.0
 offset_right = 420.0
-offset_bottom = 70.0
+offset_bottom = 180.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 26
 text = "Clique pour jouer
-ZQSD : bouger · Souris : caméra · Espace : sauter · Échap : libérer la souris"
+ZQSD : bouger · Souris : viser · Clic : tirer · Espace : sauter · Échap : libérer la souris"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3

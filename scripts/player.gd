@@ -13,12 +13,14 @@ extends CharacterBody3D
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
+@onready var weapon: Weapon = $Weapon
 @onready var _spring_arm: SpringArm3D = $CameraPivot/SpringArm3D
 
 
 func _ready() -> void:
 	_spring_arm.add_excluded_object(get_rid())
 	_spring_arm.rotation.x = deg_to_rad(-15.0)
+	weapon.rotation.x = _spring_arm.rotation.x
 
 
 ## Rotates the view. `relative` is a screen-space drag in pixels.
@@ -26,6 +28,7 @@ func look(relative: Vector2, sensitivity: float) -> void:
 	rotate_y(-relative.x * sensitivity)
 	var pitch := _spring_arm.rotation.x - relative.y * sensitivity
 	_spring_arm.rotation.x = clampf(pitch, deg_to_rad(min_pitch_deg), deg_to_rad(max_pitch_deg))
+	weapon.rotation.x = _spring_arm.rotation.x
 
 
 func _unhandled_input(event: InputEvent) -> void:

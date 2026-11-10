@@ -1,10 +1,11 @@
 class_name Hud
 extends CanvasLayer
-## On-screen UI: FPS counter, desktop hint, touch controls.
+## On-screen UI: reticle, FPS counter, desktop hint, touch controls.
 
 var _is_touch := DisplayServer.is_touchscreen_available()
 
 @onready var touch_controls: TouchControls = $TouchControls
+@onready var reticle: Reticle = $Reticle
 @onready var _fps_label: Label = $FpsLabel
 @onready var _desktop_hint: Label = $DesktopHint
 

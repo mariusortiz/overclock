@@ -1,0 +1,30 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/target.gd" id="1_target"]
+
+[sub_resource type="SphereShape3D" id="shape"]
+radius = 0.55
+
+[sub_resource type="StandardMaterial3D" id="material"]
+albedo_color = Color(1, 0.45, 0.1, 1)
+emission_enabled = true
+emission = Color(1, 0.35, 0.05, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="SphereMesh" id="mesh"]
+material = SubResource("material")
+radius = 0.5
+height = 1.0
+radial_segments = 8
+rings = 4
+
+[node name="Target" type="StaticBody3D"]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("1_target")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("mesh")

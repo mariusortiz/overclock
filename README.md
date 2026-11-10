@@ -24,7 +24,8 @@ Cette version web est mise à jour à chaque push sur `main`. Elle utilise un mo
 |---|---|---|
 | Bouger | Joystick : poser le pouce n'importe où sur la moitié gauche | ZQSD (AZERTY) ou WASD (QWERTY), flèches |
 | Caméra | Glisser sur la moitié droite | Souris (clic dans le jeu pour la capturer, Échap pour la libérer) |
-| Sauter | Bouton SAUT en bas à droite | Espace |
+| Tirer | Bouton TIR en bas à droite (on peut viser en gardant le doigt dessus) | Clic gauche |
+| Sauter | Bouton SAUT au-dessus du bouton TIR | Espace |
 
 ## Développer en local (optionnel)
 
@@ -35,6 +36,8 @@ Cette version web est mise à jour à chaque push sur `main`. Elle utilise un mo
 
 - `scenes/` : scènes Godot (`.tscn`)
 - `scripts/` : code GDScript
+- `assets/` : textures et sons provisoires, générés par les scripts de `tools/`
+- `tools/` : scripts Python qui génèrent l'arène de test, les textures et les sons
 - `ci/debug.keystore` : clé de debug publique (mot de passe `android`), utilisée uniquement pour les APK de test. La clé de release ne sera jamais commitée.
 - `.github/workflows/build.yml` : compilation de l'APK et de la version web
 
