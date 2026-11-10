@@ -14,7 +14,8 @@ var score := 0
 
 func _ready() -> void:
 	hud.touch_controls.look.connect(_on_touch_look)
-	hud.replay_pressed.connect(get_tree().reload_current_scene)
+	# Deferred: the scene must not be removed while the button is still handling its click.
+	hud.replay_pressed.connect(get_tree().reload_current_scene, CONNECT_DEFERRED)
 
 	player.weapon.hit_confirmed.connect(hud.reticle.show_hit)
 	player.weapon.ammo_changed.connect(hud.set_ammo)
