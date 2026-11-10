@@ -102,7 +102,7 @@ L'arsenal, accessible depuis l'accueil, a quatre onglets : personnage, arme, cor
 | Hache (tous les ennemis devant soi) | 1,1 s | 10 | 2,6 m |
 | Masse (repousse l'ennemi) | 1 s | 8 | 2,4 m |
 
-Les 12 skins d'armes (Néon, Glace, Lave, Or…) s'appliquent à toutes les armes : ils teintent le modèle et changent la couleur du tir. Il y a 13 personnages, purement visuels.
+Les 12 skins d'armes (Néon, Glace, Lave, Or…) s'appliquent à toutes les armes. Chaque arme existe en trois modèles : le skin choisit le modèle, lui ajoute éventuellement une lunette ou un silencieux, le teinte et change la couleur du tir. Les statistiques ne changent pas. Il y a 13 personnages, purement visuels.
 
 ## Développer en local (optionnel)
 

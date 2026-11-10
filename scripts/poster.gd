@@ -42,7 +42,7 @@ func _add_fighter(fighter: Dictionary) -> void:
 	holder.add_child(model)
 	model.freeze(fighter.action, fighter.time)
 	if fighter.weapon != "":
-		_hold(holder, Loadout.instantiate_weapon(Loadout.find(fighter.weapon).item), model.get_attachment("Fist.R"))
+		_hold(holder, Loadout.instantiate_weapon(Loadout.find(fighter.weapon).item, Loadout.SKINS[0]), model.get_attachment("Fist.R"))
 	if fighter.melee != "":
 		_hold(holder, Loadout.instantiate_melee(Loadout.find(fighter.melee).item), model.get_attachment("Fist.R"))
 

@@ -74,7 +74,7 @@ func setup(data: Dictionary, owner_perks: Dictionary) -> void:
 	(_impact_mesh.material as StandardMaterial3D).albedo_color = shot_color
 	($Muzzle/Flash/Mesh as MeshInstance3D).material_override = _fx_material(shot_color.lerp(Color.WHITE, 0.5))
 	($Muzzle/Flash/Light as OmniLight3D).light_color = shot_color
-	_muzzle_offset = data.muzzle
+	_muzzle_offset = Loadout.weapon_layout(data, Loadout.selected_skin()).muzzle
 	_muzzle.position = _muzzle_offset
 
 	ammo = get_magazine_size()
