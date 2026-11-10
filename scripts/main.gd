@@ -109,6 +109,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		for enemy in get_tree().get_nodes_in_group("targets"):
 			player.weapon.tag_kill(enemy)
 			enemy.take_damage(9999)
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_F4 \
+			and (OS.is_debug_build() or OS.has_feature("web")):
+		# Test shortcut (debug and web builds): nothing can hurt the player.
+		player.invulnerable = true
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_F6 \
 			and (OS.is_debug_build() or OS.has_feature("web")):
 		# Test shortcut (debug and web builds): charges the ultimate.
