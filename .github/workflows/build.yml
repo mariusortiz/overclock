@@ -62,7 +62,8 @@ jobs:
           # The menu, then 15 s of the game scene.
           godot --headless --fixed-fps 60 --quit-after 60 2>&1 | tee run.log
           godot --headless --fixed-fps 60 --quit-after 900 res://scenes/main.tscn 2>&1 | tee -a run.log
-          if grep -E "SCRIPT ERROR|Parse Error|^ERROR:" run.log; then exit 1; fi
+          # "still in use at exit" only reports the music playing when --quit-after stops the game.
+          if grep -E "SCRIPT ERROR|Parse Error|^ERROR:" run.log | grep -v "still in use at exit"; then exit 1; fi
 
       - name: Export debug APK
         run: |
