@@ -115,7 +115,7 @@ L'arsenal, accessible depuis l'accueil, a quatre onglets : personnage, arme, cor
 | Pistolet | 4/s | 2 | 12 |
 | Fusil d'assaut | 10/s | 1 | 30 |
 | Fusil de précision (zoom plus fort) | 1/s | 8 | 5 |
-| Pistolet-mitrailleur | 14/s | 1 | 40 |
+| PM (pistolet-mitrailleur) | 14/s | 1 | 40 |
 | Lance-roquettes (explosion de 4 m) | 0,8/s | 10 | 1 |
 
 Le pack d'armes complet est disponible : 40 armes en comptant ces cinq-là (pistolets, revolvers, fusils d'assaut, bullpups, fusils à pompe, pistolets-mitrailleurs, fusils de précision). Les revolvers tirent lentement mais fort, avec 6 coups. Les fusils à pompe tirent plusieurs plombs à la fois, en cône : redoutables de près, faibles de loin. Les statistiques de chaque arme sont dans l'arsenal et dans `scripts/loadout.gd`.

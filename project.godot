@@ -29,6 +29,10 @@ window/handheld/orientation=4
 
 theme/custom="res://assets/ui/theme.tres"
 
+[editor]
+
+movie_writer/fps=30
+
 [input]
 
 move_forward={

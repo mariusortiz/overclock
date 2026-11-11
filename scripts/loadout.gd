@@ -61,7 +61,7 @@ const WEAPONS := [
 		"fire_rate": 1.0, "damage": 8, "magazine": 5, "reload_time": 2.0, "zoom_fov": 20.0,
 	},
 	{
-		"id": "smg", "name": "Pistolet-mitrailleur", "model": "SubmachineGun_1", "length": 0.62,
+		"id": "smg", "name": "PM", "model": "SubmachineGun_1", "length": 0.62,
 		"fire_rate": 14.0, "damage": 1, "magazine": 40, "reload_time": 1.6, "zoom_fov": 40.0,
 	},
 	{

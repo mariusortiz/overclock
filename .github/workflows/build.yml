@@ -91,6 +91,11 @@ jobs:
           touch "$site/.nojekyll"
           cd "$site"
           git init -q -b gh-pages
+          # The trailer is published by its own workflow: carry it over.
+          url="https://x-access-token:${GH_TOKEN}@github.com/${BUILDS_REPO}.git"
+          if git fetch -q --depth 1 "$url" gh-pages; then
+            git checkout -q FETCH_HEAD -- trailer.mp4 trailer.html 2>/dev/null || true
+          fi
           git add -A
           git -c user.name="github-actions" -c user.email="github-actions@users.noreply.github.com" \
             commit -q -m "Web build from ${GITHUB_SHA::7}"
