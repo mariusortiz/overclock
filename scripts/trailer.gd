@@ -17,6 +17,9 @@ const AIM_TOLERANCE := 0.05
 const AIM_SPEED := 9.0
 ## A choice panel stays on screen this long before the bot answers it.
 const PANEL_TIME := 1.4
+const WORLD_LAYER := 1
+## The bot walks up to a target farther than this.
+const APPROACH_DISTANCE := 16.0
 
 var _clock := 0.0
 var _main: Node
@@ -119,7 +122,7 @@ func _run() -> void:
 	await _until(72.0)
 
 	_stage(4, 25)
-	_give("bazooka", "skin_champion")
+	_give("rifle_5", "skin_champion")
 	_show_card("ET AU BOUT DE LA VILLE…")
 	await _until(77.0)
 	await _ensure_boss(4, 25)
@@ -241,7 +244,17 @@ func _process(delta: float) -> void:
 			_cine_center = _cine_target.global_position + Vector3.UP * 1.2
 		_cine_angle += _cine_speed * delta
 		var offset := Vector3(cos(_cine_angle), 0, sin(_cine_angle)) * _cine_radius + Vector3.UP * _cine_height
-		_cine.look_at_from_position(_cine_center + offset, _cine_center)
+		_cine.look_at_from_position(_cine_center + _clear_of_walls(offset), _cine_center)
+
+
+## Shortens the camera's offset so that no wall stands between it and its subject.
+func _clear_of_walls(offset: Vector3) -> Vector3:
+	var query := PhysicsRayQueryParameters3D.create(_cine_center, _cine_center + offset, WORLD_LAYER)
+	var hit := _cine.get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return offset
+	var free := maxf(_cine_center.distance_to(hit.position) - 0.6, 2.0)
+	return offset.normalized() * free
 
 
 ## The game pauses on its choice panels: leave them up a moment, then answer.
@@ -273,7 +286,9 @@ func _physics_process(delta: float) -> void:
 	_set_action("move_right", not left)
 	_set_action("jump", fmod(_clock, 4.0) < 0.1)
 	var target := _nearest_enemy()
-	_set_action("move_back", target != null and target.global_position.distance_to(_player.global_position) < 6.0)
+	var distance := INF if target == null else target.global_position.distance_to(_player.global_position)
+	_set_action("move_back", distance < 6.0)
+	_set_action("move_forward", _bot and target != null and distance > APPROACH_DISTANCE)
 	if not _bot or target == null:
 		Input.action_release("fire")
 		return
@@ -300,9 +315,13 @@ func _set_action(action: StringName, pressed: bool) -> void:
 		Input.action_release(action)
 
 
+## The boss when there is one (it is the subject of the shot), else the nearest enemy.
 func _nearest_enemy() -> Node3D:
+	var boss := _boss()
+	if boss:
+		return boss
 	var nearest: Node3D = null
-	var best := 45.0
+	var best := 80.0
 	for enemy: Node3D in get_tree().get_nodes_in_group("targets"):
 		var distance := _player.global_position.distance_to(enemy.global_position)
 		if distance < best:
