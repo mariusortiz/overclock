@@ -18,6 +18,8 @@ const AIM_SPEED := 9.0
 ## A choice panel stays on screen this long before the bot answers it.
 const PANEL_TIME := 1.4
 const WORLD_LAYER := 1
+## Share of its health a boss keeps whatever the bot does to it.
+const BOSS_FLOOR := 0.3
 ## The bot walks up to a target farther than this.
 const APPROACH_DISTANCE := 16.0
 
@@ -239,6 +241,10 @@ func _process(delta: float) -> void:
 	if _main == null:
 		return
 	_answer_panels(delta)
+	# A boss falls when the timeline says so, not before.
+	var boss := _boss()
+	if boss:
+		boss._health = maxi(boss._health, roundi(boss.max_health * BOSS_FLOOR))
 	if _cine_on:
 		if is_instance_valid(_cine_target):
 			_cine_center = _cine_target.global_position + Vector3.UP * 1.2
