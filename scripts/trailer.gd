@@ -38,8 +38,8 @@ const FORMATION: Array[Vector3] = [
 ]
 const WALK_SPEED := 1.0
 
-const GUN_SPACING := 1.9
-const GUN_LENGTH := 1.15
+const GUN_SPACING := 2.3
+const GUN_LENGTH := 1.3
 const GUN_HEIGHT := 1.3
 const HERO_SPACING := 2.1
 ## The gun each hero holds in the line-up, in the order of Loadout.CHARACTERS.
@@ -151,8 +151,8 @@ func _run() -> void:
 	_flash()
 	_line_up_guns()
 	var last_gun := (Loadout.WEAPONS.size() - 1) * GUN_SPACING
-	_dolly(Vector3(-1.5, 1.35, 4.3), Vector3(last_gun + 1.5, 1.35, 4.3),
-			Vector3(-1.0, 1.05, 0), Vector3(last_gun + 2.0, 1.05, 0), 15.0)
+	_dolly(Vector3(-1.5, 1.2, 3.3), Vector3(last_gun + 1.5, 1.2, 3.3),
+			Vector3(-1.5, 1.05, 0), Vector3(last_gun + 1.5, 1.05, 0), 15.0)
 	_show_caption("ARSENAL", "%d ARMES · %d SKINS" % [Loadout.WEAPONS.size(), Loadout.SKINS.size()], 13.5)
 	await _until(92.0)
 
@@ -161,8 +161,8 @@ func _run() -> void:
 	_flash()
 	_line_up_heroes()
 	var last_hero := (Loadout.CHARACTERS.size() - 1) * HERO_SPACING
-	_dolly(Vector3(-1.0, 1.35, 4.4), Vector3(last_hero + 1.0, 1.35, 4.4),
-			Vector3(-0.6, 1.2, 0), Vector3(last_hero + 1.4, 1.2, 0), 12.0)
+	_dolly(Vector3(-1.0, 1.5, 4.9), Vector3(last_hero + 1.0, 1.5, 4.9),
+			Vector3(-1.0, 1.45, 0), Vector3(last_hero + 1.0, 1.45, 0), 12.0)
 	_show_caption("CHACUN SON ULTI", "%d HÉROS" % Loadout.CHARACTERS.size(), 10.5)
 	await _until(104.0)
 
@@ -232,7 +232,7 @@ func _arena() -> Arena:
 	return null
 
 
-## A dark hall lit by two neon lines, for the line-ups.
+## A dark hall with two neon lines at the back, for the line-ups.
 func _build_showroom() -> void:
 	_clear()
 	var environment := Environment.new()
@@ -262,7 +262,7 @@ func _build_showroom() -> void:
 	ground.mesh = floor_mesh
 	_set.add_child(ground)
 
-	for line: Array in [[TEXT_COLOR, -2.2], [ACCENT, 1.4]]:
+	for line: Array in [[TEXT_COLOR, -2.2], [ACCENT, -4.5]]:
 		var color: Color = line[0]
 		var material := StandardMaterial3D.new()
 		material.albedo_color = color
@@ -379,8 +379,8 @@ func _line_up_guns() -> void:
 		_set.add_child(holder)
 		_floaters.append(holder)
 		var skin_color: Color = skin.shot
-		_label(str(item.name).to_upper(), Vector3(index * GUN_SPACING, 0.62, 0.3), Color.WHITE, 40)
-		_label(str(skin.name).to_upper(), Vector3(index * GUN_SPACING, 0.42, 0.3), skin_color, 30)
+		_label(str(item.name).to_upper(), Vector3(index * GUN_SPACING, 0.78, 0), Color.WHITE, 26)
+		_label(str(skin.name).to_upper(), Vector3(index * GUN_SPACING, 0.62, 0), skin_color, 22)
 
 
 ## Every hero side by side, gun in hand, with the name of their ultimate.
@@ -394,8 +394,8 @@ func _line_up_heroes() -> void:
 		var skin: Dictionary = Loadout.SKINS[(index + 1) % Loadout.SKINS.size()]
 		_hold(hero, Loadout.instantiate_weapon(gun, skin), false)
 		var ultimate: Dictionary = Ultimate.INFO[item.ulti]
-		_label(str(item.name).to_upper(), at + Vector3(0, 2.32, 0), Color.WHITE, 40)
-		_label(str(ultimate.name).to_upper(), at + Vector3(0, 2.1, 0), ACCENT, 30)
+		_label(str(item.name).to_upper(), at + Vector3(0, 2.85, 0), Color.WHITE, 40)
+		_label(str(ultimate.name).to_upper(), at + Vector3(0, 2.62, 0), ACCENT, 30)
 
 
 func _label(text: String, at: Vector3, color: Color, font_size: int) -> void:
