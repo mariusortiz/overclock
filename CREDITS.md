@@ -22,6 +22,7 @@ Tous les fichiers externes du jeu sont sous licence [CC0 1.0](https://creativeco
 | Musique de la ville | [City Loop](https://opengameart.org/content/city-loop-0) | wipics | `assets/audio/music/` |
 | Musique de boss | [Boss Battle (loop)](https://opengameart.org/content/boss-battle-loop) | Alex McCulloch | `assets/audio/music/` |
 | Musique de défaite | [Game Over Theme (No Hope)](https://opengameart.org/content/game-over-theme) | Cleyton Kauffman | `assets/audio/music/` |
+| Musique du trailer | [Cyber March](https://opengameart.org/content/cyber-march) | iamoneabe | `tools/trailer_music.mp3` |
 
 Le reste est produit par le projet : les textures de `assets/textures/` (dont les motifs des skins) et les sons `hit.wav`, `shot.wav` et `pickup.wav` sont générés par les scripts de `tools/`.
 

@@ -1,154 +1,190 @@
 extends Node
-## Directs the two-minute trailer. It runs the real game with a bot at the
-## controls, moves it from arena to arena on a fixed timeline, cuts to a free
-## camera for the wide shots and lays title cards on top.
+## Directs the two-minute trailer: a showcase, with no fighting. It visits the
+## arenas, parades their enemies and bosses, then scrolls past every weapon and
+## every hero, with title cards on top. Nothing of the game itself runs here:
+## the director only borrows its scenes and models.
 ##
 ## Rendered by .github/workflows/trailer.yml with Godot's movie mode:
 ##   godot --write-movie trailer.avi --fixed-fps 30 res://scenes/tools/trailer.tscn
-## This is a tool: it reaches into private members of the game on purpose.
+## The music is laid over the picture afterwards, by the same workflow.
 
-const MAIN_SCENE := "res://scenes/main.tscn"
 const URL := "mariusortiz.github.io/overclock-builds"
 const DURATION := 120.0
 const TEXT_COLOR := Color(0.16, 0.9, 1.0)
 const ACCENT := Color(1.0, 0.24, 0.95)
-## The bot shoots once its aim is this close to the target, in radians.
-const AIM_TOLERANCE := 0.05
-const AIM_SPEED := 9.0
-## A choice panel stays on screen this long before the bot answers it.
-const PANEL_TIME := 1.4
+const FONT := preload("res://assets/ui/fonts/kenney_mini_square_mono.ttf")
 const WORLD_LAYER := 1
-## Share of its health a boss keeps whatever the bot does to it.
-const BOSS_FLOOR := 0.3
-## The bot walks up to a target farther than this.
-const APPROACH_DISTANCE := 16.0
+## Share of the picture's height taken by each black bar.
+const BAR_HEIGHT := 0.085
+
+## The arenas in the order of the game, with the name of their enemies and the
+## boss met there.
+const ARENAS := [
+	{"scene": "station", "enemies": "GARDES", "boss": Boss.Kind.COLOSSUS},
+	{"scene": "desert", "enemies": "ASSASSINS DES SABLES", "boss": Boss.Kind.BRUTE},
+	{"scene": "jungle", "enemies": "GOBELINS", "boss": Boss.Kind.ARTILLERY},
+	{"scene": "volcano", "enemies": "ZOMBIES", "boss": Boss.Kind.SUMMONER},
+	{"scene": "city", "enemies": "HOMMES EN COSTUME", "boss": Boss.Kind.TITAN},
+]
+const CITY := 4
+## Bosses are shown twice the size of their model, as in the game.
+const BOSS_SCALE := 2.0
+## Where the parades take place: the clear ground around the player's spawn.
+const PARADE := Vector3(0, 0.1, 15)
+const BOSS_SPOT := Vector3(0, 0.1, 13)
+## Enemies of a parade, relative to its leader (they walk toward +Z).
+const FORMATION: Array[Vector3] = [
+	Vector3(0, 0, 0), Vector3(-1.7, 0, -1.3), Vector3(1.7, 0, -1.3), Vector3(-3.4, 0, -2.6), Vector3(3.4, 0, -2.6),
+]
+const WALK_SPEED := 1.0
+
+const GUN_SPACING := 1.9
+const GUN_LENGTH := 1.15
+const GUN_HEIGHT := 1.3
+const HERO_SPACING := 2.1
+## The gun each hero holds in the line-up, in the order of Loadout.CHARACTERS.
+const HERO_GUNS: Array[String] = [
+	"heavy", "revolver_3", "smg", "pistol_4", "shotgun_5", "rifle_6", "sniper_2",
+	"shotgun_2", "sniper_5", "revolver_1", "smg_3", "bullpup_1", "bazooka",
+]
+
+enum Shot { ORBIT, DOLLY }
 
 var _clock := 0.0
-var _main: Node
-var _player: Player
-var _hud: Hud
-var _waves: WaveManager
-var _bot := false
-var _paused_for := 0.0
-var _release_ultimate_at := -1.0
+## Everything on screen for the current chapter: freed when the next one starts.
+var _set := Node3D.new()
+var _camera := Camera3D.new()
+var _shot := Shot.ORBIT
+var _center := Vector3.ZERO
+var _radius := 10.0
+var _height := 4.0
+var _angle := 0.0
+var _speed := 0.0
+var _from := Vector3.ZERO
+var _to := Vector3.ZERO
+var _look_from := Vector3.ZERO
+var _look_to := Vector3.ZERO
+var _shot_start := 0.0
+var _shot_length := 1.0
+var _guarded := false
 
-var _cine := Camera3D.new()
-var _cine_on := false
-var _cine_target: Node3D
-var _cine_center := Vector3.ZERO
-var _cine_radius := 10.0
-var _cine_height := 4.0
-var _cine_speed := 0.3
-var _cine_angle := 0.0
+## [character, holder, along_arm]: items kept in a hand, frame after frame.
+var _held: Array[Array] = []
+## Models on stage (their pivots), those of them that walk, and the guns on show.
+var _actors: Array[Node3D] = []
+var _walkers: Array[Node3D] = []
+var _floaters: Array[Node3D] = []
+var _flock: Node3D
 
 var _shade := ColorRect.new()
 var _title := Label.new()
 var _subtitle := Label.new()
-var _card := Label.new()
-var _card_tween: Tween
+var _kicker := Label.new()
+var _caption := Label.new()
+var _caption_tween: Tween
 
 
 func _ready() -> void:
-	# Everything unlocked, and a loadout worth showing.
-	BattlePass.add_xp(1000000)
-	SaveData.save_progress(Loadout.CHAMPION_KEY, true)
-	Loadout.select(Loadout.CHARACTER_KEY, Loadout.find("ninja").item)
-	Loadout.select(Loadout.WEAPON_KEY, Loadout.find("heavy").item)
-	Loadout.select(Loadout.SKIN_KEY, Loadout.find("skin_neon").item)
+	Music.stop()
+	add_child(_set)
+	add_child(_camera)
+	_camera.fov = 60.0
+	_camera.far = 400.0
+	_camera.make_current()
 	_build_overlay()
-	_start.call_deferred()
-
-
-func _start() -> void:
-	_main = load(MAIN_SCENE).instantiate()
-	get_tree().root.add_child(_main)
-	get_tree().current_scene = _main
-	_player = _main.player
-	_hud = _main.hud
-	_waves = _main.waves
-	_player.invulnerable = true
-	_hud.get_node("FpsLabel").modulate.a = 0.0
-	_hud.get_node("DesktopHint").modulate.a = 0.0
-	_main.add_child(_cine)
-	_cine.fov = 60.0
-	_run()
+	_run.call_deferred()
 
 
 # --- Timeline ---------------------------------------------------------------
+# The music starts quiet and kicks in 16 s into the film: the opening and the
+# quick tour of the arenas fill the quiet part.
 
 func _run() -> void:
-	# Opening: the station from above, and the name of the game.
-	_hud.visible = false
-	_orbit(null, Vector3(0, 1, 0), 30.0, 11.0, 0.22)
+	_load_arena(0)
+	_orbit(Vector3(0, 1, 0), 34.0, 13.0, 0.6, 0.16)
 	_fade_shade(0.0, 1.5)
 	await _until(1.5)
-	_show_title("OVERCLOCK", "SHOOTER D'ARÈNE · 3D LOW-POLY", 4.5)
+	_show_title("OVERCLOCK", "SHOOTER D'ARÈNE · 3D LOW-POLY", 5.0)
 	await _until(7.0)
 
-	_stage(0, 3)
-	_play()
-	_show_card("DES VAGUES D'ENNEMIS, AU SOL ET DANS LES AIRS")
-	await _until(18.0)
+	# Five arenas at a glance.
+	for index in ARENAS.size():
+		_load_arena(index)
+		_orbit(Vector3(0, 1, 0), 30.0, 8.0 + index, 1.1 * index, 0.3)
+		_show_caption("ARÈNE %d / %d" % [index + 1, ARENAS.size()], _arena().display_name, 1.5)
+		await _until(7.0 + 1.8 * (index + 1))
 
-	_stage(1, 7)
-	_show_card("5 ARÈNES")
-	await _until(22.0)
-	_give("shotgun_1", "skin_lava")
-	_show_card("40 ARMES")
-	await _until(26.0)
-	_give("bazooka", "skin_gold")
-	await _until(30.0)
-	_give("sniper_3", "skin_ice")
-	await _until(34.0)
+	# Each arena again, slowly, with those who live there. The city keeps its
+	# boss for the end.
+	var start := 16.0
+	for index in ARENAS.size():
+		var info: Dictionary = ARENAS[index]
+		_load_arena(index)
+		_flash()
+		_orbit(Vector3(0, 1.5, 0), 36.0, 12.0, 2.2 + index, 0.14)
+		_show_caption("ARÈNE %d / %d" % [index + 1, ARENAS.size()], _arena().display_name, 3.0)
+		await _until(start + 3.5)
+		_parade(_arena())
+		_show_caption("ENNEMIS", info.enemies, 3.5)
+		await _until(start + 7.7)
+		if index == CITY:
+			start += 8.0
+			await _until(start)
+			break
+		_clear_actors()
+		var boss_kind: Boss.Kind = info.boss
+		_present_boss(boss_kind, 4.3)
+		_show_caption("BOSS", Boss.INFO[boss_kind].name, 3.6)
+		start += 12.0
+		await _until(start)
 
-	_stage(2, 9)
-	_give("smg", "skin_toxic")
-	_show_card("CHAQUE SKIN A SA FAÇON DE TUER")
-	await _until(42.0)
-	_show_card("13 HÉROS · 13 ULTIS")
-	_ultimate()
-	await _until(43.0)
-	_orbit(_player, Vector3.ZERO, 8.0, 3.0, 0.5)
-	await _until(48.0)
-	_play()
-	await _until(52.0)
-
-	_stage(3, 5)
-	_give("rifle_3", "skin_solar")
-	_show_card("DES BOSS")
-	await _until(57.0)
-	await _ensure_boss(3, 5)
-	_orbit(_boss(), Vector3.ZERO, 11.0, 3.5, 0.45)
-	await _until(63.0)
-	_play()
-	await _until(72.0)
-
-	_stage(4, 25)
-	_give("rifle_5", "skin_champion")
-	_show_card("ET AU BOUT DE LA VILLE…")
+	# 72 s: they fly, too.
+	_load_arena(1)
+	_flash()
+	_release_bats()
+	_dolly(Vector3(-5, 1.2, 15), Vector3(5, 2.2, 12), Vector3(0, 6, 0), Vector3(0, 6.5, 0), 5.0)
+	_show_caption("DANS LES AIRS AUSSI", "CHAUVES-SOURIS", 4.0)
 	await _until(77.0)
-	await _ensure_boss(4, 25)
-	_orbit(_boss(), Vector3.ZERO, 13.0, 2.5, 0.4)
-	_show_card("LE TITAN")
-	await _until(84.0)
-	_play()
-	await _until(90.0)
-	_ultimate()
-	await _until(96.0)
 
-	# The Titan falls: trophy, then the victory screen.
-	var boss := _boss()
-	if boss:
-		_orbit(null, boss.global_position + Vector3.UP, 9.0, 3.0, 0.5)
-		boss.take_damage(99999)
-	await _until(101.5)
-	_hud.visible = true
-	await _until(106.0)
+	# 77 s: the armory.
+	_build_showroom()
+	_flash()
+	_line_up_guns()
+	var last_gun := (Loadout.WEAPONS.size() - 1) * GUN_SPACING
+	_dolly(Vector3(-1.5, 1.35, 4.3), Vector3(last_gun + 1.5, 1.35, 4.3),
+			Vector3(-1.0, 1.05, 0), Vector3(last_gun + 2.0, 1.05, 0), 15.0)
+	_show_caption("ARSENAL", "%d ARMES · %d SKINS" % [Loadout.WEAPONS.size(), Loadout.SKINS.size()], 13.5)
+	await _until(92.0)
+
+	# 92 s: the heroes.
+	_build_showroom()
+	_flash()
+	_line_up_heroes()
+	var last_hero := (Loadout.CHARACTERS.size() - 1) * HERO_SPACING
+	_dolly(Vector3(-1.0, 1.35, 4.4), Vector3(last_hero + 1.0, 1.35, 4.4),
+			Vector3(-0.6, 1.2, 0), Vector3(last_hero + 1.4, 1.2, 0), 12.0)
+	_show_caption("CHACUN SON ULTI", "%d HÉROS" % Loadout.CHARACTERS.size(), 10.5)
+	await _until(104.0)
+
+	# 104 s: the last boss, and what beating it earns.
+	_load_arena(CITY)
+	_flash()
+	_present_boss(Boss.Kind.TITAN, 4.6)
+	_show_caption("AU BOUT DE LA VILLE", "LE TITAN", 3.8)
+	await _until(108.6)
+	_clear_actors()
+	var trophy := Trophy.new()
+	_set.add_child(trophy)
+	trophy.position = BOSS_SPOT
+	_orbit(BOSS_SPOT + Vector3.UP * 1.6, 7.0, 2.2, 1.2, 0.5)
+	_show_caption("BATS-LE", "GAGNE LE SKIN CHAMPION", 2.4)
+	await _until(111.0)
 
 	# End card.
 	_fade_shade(1.0, 1.0)
-	await _until(107.5)
-	_show_title("OVERCLOCK", "JOUEZ MAINTENANT\n" + URL, 10.5)
+	await _until(112.3)
+	_show_title("OVERCLOCK", "JOUEZ MAINTENANT\n%s\n\n5 ARÈNES · 5 BOSS · %d ARMES · %d HÉROS" % [
+			URL, Loadout.WEAPONS.size(), Loadout.CHARACTERS.size()], 7.2)
 	await _until(DURATION)
 	get_tree().quit()
 
@@ -158,182 +194,298 @@ func _until(time: float) -> void:
 		await get_tree().process_frame
 
 
-# --- Staging ----------------------------------------------------------------
+# --- Sets -------------------------------------------------------------------
 
-## Jumps to an arena and starts the given wave there.
-func _stage(arena_index: int, wave: int) -> void:
-	get_tree().paused = false
-	_hud._perk_choice.visible = false
-	_hud._exit_choice.visible = false
-	_hud.hide_boss()
-	for enemy in get_tree().get_nodes_in_group("targets"):
-		enemy.remove_from_group("targets")
-		enemy.queue_free()
-	_waves._spawn_timer.stop()
-	_waves._to_spawn = 0
-	_waves._alive = 0
-	_waves._boss_pending = false
-	_main._arena_change_pending = false
-	_main._load_arena(arena_index)
-	_hud.show_banner(_main._arena.display_name)
-	_waves.wave = wave - 1
-	_waves._start_next_wave(0.3)
+func _clear() -> void:
+	_clear_actors()
+	for child in _set.get_children():
+		child.queue_free()
 
 
-## A leftover timer of the previous wave can swallow a boss wave: start it again.
-func _ensure_boss(arena_index: int, wave: int) -> void:
-	if _boss() == null:
-		_stage(arena_index, wave)
-		await get_tree().create_timer(1.5).timeout
+## Frees the models on stage and keeps the set.
+func _clear_actors() -> void:
+	for node in _actors + _floaters:
+		if is_instance_valid(node):
+			node.queue_free()
+	_actors.clear()
+	_floaters.clear()
+	_walkers.clear()
+	_held.clear()
+	if is_instance_valid(_flock):
+		_flock.queue_free()
+	_flock = null
 
 
-## The boss in play, or null (the game keeps a dangling reference to a dead one).
-func _boss() -> Boss:
-	var boss: Variant = _main._boss
-	if is_instance_valid(boss) and not boss.is_queued_for_deletion():
-		return boss
+func _load_arena(index: int) -> void:
+	_clear()
+	var scene: PackedScene = load("res://scenes/arenas/%s.tscn" % ARENAS[index].scene)
+	var arena := scene.instantiate()
+	arena.name = "Arena"
+	_set.add_child(arena)
+
+
+## The arena on stage (the one just loaded: the previous one is on its way out).
+func _arena() -> Arena:
+	for child in _set.get_children():
+		if child is Arena and not child.is_queued_for_deletion():
+			return child as Arena
 	return null
 
 
-## Hands the player a gun with a skin, for as long as the scene lasts.
-func _give(weapon_id: String, skin_id: String) -> void:
-	Loadout.select(Loadout.SKIN_KEY, Loadout.find(skin_id).item)
-	_player.weapon.equip_temporary(Loadout.find(weapon_id).item)
-	_player.weapon._temporary_magazines = 99
+## A dark hall lit by two neon lines, for the line-ups.
+func _build_showroom() -> void:
+	_clear()
+	var environment := Environment.new()
+	environment.background_mode = Environment.BG_COLOR
+	environment.background_color = Color(0.02, 0.03, 0.09)
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_color = Color(0.6, 0.65, 0.85)
+	environment.ambient_light_energy = 0.9
+	environment.glow_enabled = true
+	var world := WorldEnvironment.new()
+	world.environment = environment
+	_set.add_child(world)
+
+	var sun := DirectionalLight3D.new()
+	sun.rotation_degrees = Vector3(-35, 20, 0)
+	sun.light_energy = 1.1
+	_set.add_child(sun)
+
+	var floor_material := StandardMaterial3D.new()
+	floor_material.albedo_color = Color(0.05, 0.06, 0.15)
+	floor_material.metallic = 0.5
+	floor_material.roughness = 0.35
+	var floor_mesh := PlaneMesh.new()
+	floor_mesh.size = Vector2(400, 40)
+	floor_mesh.material = floor_material
+	var ground := MeshInstance3D.new()
+	ground.mesh = floor_mesh
+	_set.add_child(ground)
+
+	for line: Array in [[TEXT_COLOR, -2.2], [ACCENT, 1.4]]:
+		var color: Color = line[0]
+		var material := StandardMaterial3D.new()
+		material.albedo_color = color
+		material.emission_enabled = true
+		material.emission = color
+		material.emission_energy_multiplier = 2.5
+		var mesh := BoxMesh.new()
+		mesh.size = Vector3(400, 0.04, 0.1)
+		mesh.material = material
+		var strip := MeshInstance3D.new()
+		strip.mesh = mesh
+		strip.position = Vector3(0, 0.02, line[1])
+		_set.add_child(strip)
 
 
-func _ultimate() -> void:
-	_player.ultimate.add_charge(1.0)
-	Input.action_press("ultimate")
-	_release_ultimate_at = _clock + 0.2
+# --- Actors -----------------------------------------------------------------
+
+## Puts an animated model on stage, feet at `at`, turned by `facing` (0 looks
+## toward -Z). Returns the model; its parent is the node to move around.
+func _actor(scene: PackedScene, height: float, hover: float, at: Vector3, facing: float,
+		action: StringName, parent: Node3D = null) -> CharacterModel:
+	var pivot := Node3D.new()
+	if parent == null:
+		parent = _set
+	parent.add_child(pivot)
+	_actors.append(pivot)
+	pivot.position = at
+	pivot.rotation.y = facing
+	var model: Node3D = scene.instantiate()
+	model.set_script(CharacterModel)
+	var character := model as CharacterModel
+	character.target_height = height
+	character.hover_height = hover
+	pivot.add_child(character)
+	character.play(action)
+	return character
 
 
-## Back to the game's own camera, with the bot fighting.
-func _play() -> void:
-	_cine_on = false
-	_bot = true
-	_hud.visible = true
-	(_player.get_node("CameraPivot/SpringArm3D/Camera3D") as Camera3D).make_current()
+## Gives `character` something to hold in its right hand.
+func _hold(character: CharacterModel, item: Node3D, along_arm: bool) -> void:
+	var holder := Node3D.new()
+	character.get_parent().add_child(holder)
+	holder.add_child(item)
+	_held.append([character, holder, along_arm])
 
 
-## Cuts to a camera circling `target` (or the fixed point `center`).
-func _orbit(target: Node3D, center: Vector3, radius: float, height: float, speed: float) -> void:
-	_cine_on = true
-	_bot = false
-	Input.action_release("fire")
-	if _hud:
-		_hud.visible = false
-	_cine_target = target
-	_cine_center = center
-	_cine_radius = radius
-	_cine_height = height
-	_cine_speed = speed
-	_cine.make_current()
+## The arena's enemies walk toward the camera, armed as in the game.
+func _parade(arena: Arena) -> void:
+	var found := Loadout.find(arena.enemy_weapon)
+	for offset in FORMATION:
+		var enemy := _actor(arena.enemy_model, 1.75, 0.0, PARADE + offset, PI, &"walk")
+		_walkers.append(enemy.get_parent() as Node3D)
+		if found.is_empty():
+			continue
+		var item: Dictionary = found.item
+		if found.kind == "Arme":
+			_hold(enemy, Loadout.instantiate_weapon(item, Loadout.SKINS[0]), false)
+		else:
+			_hold(enemy, Loadout.instantiate_melee(item), true)
+	var travel := Vector3(0, 0, WALK_SPEED * 4.2)
+	_dolly(PARADE + Vector3(-2.8, 1.5, 6.5), PARADE + Vector3(2.8, 1.25, 6.0) + travel,
+			PARADE + Vector3(0, 1.1, -0.6), PARADE + Vector3(0, 1.1, -0.6) + travel, 4.2, true)
+
+
+## A boss alone in front of the camera, seen from below; it strikes once.
+func _present_boss(kind: Boss.Kind, seconds: float) -> void:
+	var info: Dictionary = Boss.INFO[kind]
+	var scene: PackedScene = load(Boss.MODEL_DIR + str(info.model))
+	var height: float = float(info.height) * BOSS_SCALE
+	var hover: float = float(info.hover) * BOSS_SCALE
+	var boss := _actor(scene, height, hover, BOSS_SPOT, PI, &"idle")
+	if kind == Boss.Kind.TITAN:
+		var material := StandardMaterial3D.new()
+		material.albedo_texture = load(Boss.TITAN_TEXTURE)
+		for mesh: MeshInstance3D in boss.find_children("*", "MeshInstance3D", true, false):
+			mesh.material_override = material
+	var look := BOSS_SPOT + Vector3.UP * (hover + height * 0.55)
+	_dolly(BOSS_SPOT + Vector3(-height * 1.1, height * 0.25, height * 2.1),
+			BOSS_SPOT + Vector3(height * 1.0, height * 0.4, height * 1.7), look, look, seconds, true)
+	_strike_later(boss, seconds * 0.35)
+
+
+func _strike_later(boss: CharacterModel, delay: float) -> void:
+	await get_tree().create_timer(delay).timeout
+	if is_instance_valid(boss) and not boss.is_queued_for_deletion():
+		boss.play(&"shoot", true)
+
+
+## A ring of bats turning in the sky.
+func _release_bats() -> void:
+	_flock = Node3D.new()
+	_set.add_child(_flock)
+	for index in 12:
+		var angle := TAU * index / 12.0
+		var radius := 4.5 + 2.5 * (index % 3)
+		var at := Vector3(cos(angle) * radius, 5.0 + 1.2 * (index % 4), sin(angle) * radius)
+		# Turned along the circle they fly on.
+		_actor(WaveManager.FLYING_MODEL, 1.0, 0.0, at, -angle, &"idle", _flock)
+
+
+## Every gun of the game in a row, each with a finish, turning slowly.
+func _line_up_guns() -> void:
+	for index in Loadout.WEAPONS.size():
+		var item: Dictionary = Loadout.WEAPONS[index]
+		var skin: Dictionary = Loadout.SKINS[index % Loadout.SKINS.size()]
+		var gun := Loadout.instantiate_weapon(item, skin)
+		var length: float = item.length
+		gun.scale = Vector3.ONE * (GUN_LENGTH / length)
+		# The grip is at the gun's origin: slide it back to turn around its middle.
+		gun.position.z = GUN_LENGTH * 0.4
+		var holder := Node3D.new()
+		holder.position = Vector3(index * GUN_SPACING, GUN_HEIGHT, 0)
+		holder.add_child(gun)
+		_set.add_child(holder)
+		_floaters.append(holder)
+		var skin_color: Color = skin.shot
+		_label(str(item.name).to_upper(), Vector3(index * GUN_SPACING, 0.62, 0.3), Color.WHITE, 40)
+		_label(str(skin.name).to_upper(), Vector3(index * GUN_SPACING, 0.42, 0.3), skin_color, 30)
+
+
+## Every hero side by side, gun in hand, with the name of their ultimate.
+func _line_up_heroes() -> void:
+	for index in Loadout.CHARACTERS.size():
+		var item: Dictionary = Loadout.CHARACTERS[index]
+		var at := Vector3(index * HERO_SPACING, 0, 0)
+		var scene: PackedScene = load(Loadout.CHARACTER_DIR + str(item.model))
+		var hero := _actor(scene, 1.75, 0.0, at, PI, &"aim")
+		var gun: Dictionary = Loadout.find(HERO_GUNS[index % HERO_GUNS.size()]).item
+		var skin: Dictionary = Loadout.SKINS[(index + 1) % Loadout.SKINS.size()]
+		_hold(hero, Loadout.instantiate_weapon(gun, skin), false)
+		var ultimate: Dictionary = Ultimate.INFO[item.ulti]
+		_label(str(item.name).to_upper(), at + Vector3(0, 2.32, 0), Color.WHITE, 40)
+		_label(str(ultimate.name).to_upper(), at + Vector3(0, 2.1, 0), ACCENT, 30)
+
+
+func _label(text: String, at: Vector3, color: Color, font_size: int) -> void:
+	var label := Label3D.new()
+	label.text = text
+	label.font = FONT
+	label.font_size = font_size
+	label.pixel_size = 0.005
+	label.outline_size = 10
+	label.modulate = color
+	label.position = at
+	_set.add_child(label)
+
+
+# --- Camera -----------------------------------------------------------------
+
+## Circles `center`, starting at `angle` (radians).
+func _orbit(center: Vector3, radius: float, height: float, angle: float, speed: float) -> void:
+	_shot = Shot.ORBIT
+	_center = center
+	_radius = radius
+	_height = height
+	_angle = angle
+	_speed = speed
+	_guarded = false
+	_place_camera()
+
+
+## Travels in a straight line while its aim moves from `look_from` to `look_to`.
+## `guarded`: steps in front of any wall that would hide the subject.
+func _dolly(from: Vector3, to: Vector3, look_from: Vector3, look_to: Vector3, seconds: float,
+		guarded := false) -> void:
+	_shot = Shot.DOLLY
+	_from = from
+	_to = to
+	_look_from = look_from
+	_look_to = look_to
+	_shot_start = _clock
+	_shot_length = seconds
+	_guarded = guarded
+	_place_camera()
+
+
+func _place_camera() -> void:
+	var at := Vector3.ZERO
+	var look := _center
+	if _shot == Shot.ORBIT:
+		at = _center + Vector3(cos(_angle), 0, sin(_angle)) * _radius + Vector3.UP * _height
+	else:
+		var progress := clampf((_clock - _shot_start) / _shot_length, 0.0, 1.0)
+		at = _from.lerp(_to, progress)
+		look = _look_from.lerp(_look_to, progress)
+		if _guarded:
+			at = look + _clear_of_walls(look, at - look)
+	_camera.look_at_from_position(at, look)
+
+
+## Shortens the camera's offset so that no wall stands between it and its subject.
+func _clear_of_walls(subject: Vector3, offset: Vector3) -> Vector3:
+	var query := PhysicsRayQueryParameters3D.create(subject, subject + offset, WORLD_LAYER)
+	var hit := _camera.get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return offset
+	var hit_position: Vector3 = hit.position
+	var free := maxf(subject.distance_to(hit_position) - 0.6, 2.0)
+	return offset.normalized() * free
 
 
 # --- Every frame ------------------------------------------------------------
 
 func _process(delta: float) -> void:
 	_clock += delta
-	if _release_ultimate_at >= 0.0 and _clock >= _release_ultimate_at:
-		_release_ultimate_at = -1.0
-		Input.action_release("ultimate")
-	if _main == null:
-		return
-	_answer_panels(delta)
-	# A boss falls when the timeline says so, not before.
-	var boss := _boss()
-	if boss:
-		boss._health = maxi(boss._health, roundi(boss.max_health * BOSS_FLOOR))
-	if _cine_on:
-		if is_instance_valid(_cine_target):
-			_cine_center = _cine_target.global_position + Vector3.UP * 1.2
-		_cine_angle += _cine_speed * delta
-		var offset := Vector3(cos(_cine_angle), 0, sin(_cine_angle)) * _cine_radius + Vector3.UP * _cine_height
-		_cine.look_at_from_position(_cine_center + _clear_of_walls(offset), _cine_center)
-
-
-## Shortens the camera's offset so that no wall stands between it and its subject.
-func _clear_of_walls(offset: Vector3) -> Vector3:
-	var query := PhysicsRayQueryParameters3D.create(_cine_center, _cine_center + offset, WORLD_LAYER)
-	var hit := _cine.get_world_3d().direct_space_state.intersect_ray(query)
-	if hit.is_empty():
-		return offset
-	var free := maxf(_cine_center.distance_to(hit.position) - 0.6, 2.0)
-	return offset.normalized() * free
-
-
-## The game pauses on its choice panels: leave them up a moment, then answer.
-func _answer_panels(delta: float) -> void:
-	if not get_tree().paused:
-		_paused_for = 0.0
-		return
-	_paused_for += delta
-	if _paused_for < PANEL_TIME:
-		return
-	_paused_for = 0.0
-	if _hud._exit_choice.visible:
-		# Stay in this arena: the timeline decides when to travel.
-		_hud._exit_choice.visible = false
-		_main._arena_change_pending = false
-		_main._resume()
-	elif _hud._perk_choice.visible:
-		_hud._on_perk_button_pressed(0)
-	else:
-		get_tree().paused = false
-
-
-func _physics_process(delta: float) -> void:
-	if _main == null or get_tree().paused:
-		return
-	# Keep moving in every shot: strafe, back off when crowded, hop now and then.
-	var left := int(_clock / 2.5) % 2 == 0
-	_set_action("move_left", left)
-	_set_action("move_right", not left)
-	_set_action("jump", fmod(_clock, 4.0) < 0.1)
-	var target := _nearest_enemy()
-	var distance := INF if target == null else target.global_position.distance_to(_player.global_position)
-	_set_action("move_back", distance < 6.0)
-	_set_action("move_forward", _bot and target != null and distance > APPROACH_DISTANCE)
-	if not _bot or target == null:
-		Input.action_release("fire")
-		return
-
-	# Turn the view until the crosshair is on the target, then shoot.
-	var camera := get_viewport().get_camera_3d()
-	var wanted := camera.global_position.direction_to(target.get_aim_position())
-	var forward := -camera.global_basis.z
-	var yaw_error := wrapf(atan2(-wanted.x, -wanted.z) - atan2(-forward.x, -forward.z), -PI, PI)
-	var pitch_error := asin(wanted.y) - asin(forward.y)
-	var step := minf(AIM_SPEED * delta, 1.0)
-	_player.rotate_y(yaw_error * step)
-	var arm: SpringArm3D = _player._spring_arm
-	arm.rotation.x = clampf(arm.rotation.x + pitch_error * step,
-			deg_to_rad(_player.min_pitch_deg), deg_to_rad(_player.max_pitch_deg))
-	_player.weapon.rotation.x = arm.rotation.x
-	_set_action("fire", absf(yaw_error) < AIM_TOLERANCE and absf(pitch_error) < AIM_TOLERANCE)
-
-
-func _set_action(action: StringName, pressed: bool) -> void:
-	if pressed:
-		Input.action_press(action)
-	else:
-		Input.action_release(action)
-
-
-## The boss when there is one (it is the subject of the shot), else the nearest enemy.
-func _nearest_enemy() -> Node3D:
-	var boss := _boss()
-	if boss:
-		return boss
-	var nearest: Node3D = null
-	var best := 80.0
-	for enemy: Node3D in get_tree().get_nodes_in_group("targets"):
-		var distance := _player.global_position.distance_to(enemy.global_position)
-		if distance < best:
-			best = distance
-			nearest = enemy
-	return nearest
+	for pivot in _walkers:
+		if is_instance_valid(pivot):
+			pivot.position.z += WALK_SPEED * delta
+	for index in _floaters.size():
+		var floater := _floaters[index]
+		if is_instance_valid(floater):
+			# Guns: side-on to the camera, swaying, bobbing.
+			floater.rotation.y = PI / 2.0 + sin(_clock * 1.3 + index * 0.8) * 0.6
+			floater.position.y = GUN_HEIGHT + sin(_clock * 1.7 + index) * 0.05
+	if is_instance_valid(_flock):
+		_flock.rotation.y += 0.45 * delta
+	for entry: Array in _held:
+		var character := entry[0] as CharacterModel
+		if is_instance_valid(character):
+			character.place_in_hand(entry[1] as Node3D, "R", entry[2] as bool)
+	if _shot == Shot.ORBIT:
+		_angle += _speed * delta
+	_place_camera()
 
 
 # --- Titles -----------------------------------------------------------------
@@ -342,22 +494,34 @@ func _build_overlay() -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 100
 	add_child(layer)
+	# Cinema bars.
+	for top: bool in [true, false]:
+		var bar := ColorRect.new()
+		bar.color = Color.BLACK
+		bar.anchor_right = 1.0
+		bar.anchor_top = 0.0 if top else 1.0 - BAR_HEIGHT
+		bar.anchor_bottom = BAR_HEIGHT if top else 1.0
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		layer.add_child(bar)
+	_setup_label(layer, _kicker, 24, ACCENT, 0.745, HORIZONTAL_ALIGNMENT_LEFT)
+	_setup_label(layer, _caption, 54, Color.WHITE, 0.815, HORIZONTAL_ALIGNMENT_LEFT)
 	_shade.color = Color.BLACK
 	_shade.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(_shade)
-	_setup_label(layer, _title, 150, TEXT_COLOR, 0.30)
-	_setup_label(layer, _subtitle, 40, Color.WHITE, 0.56)
-	_setup_label(layer, _card, 46, Color.WHITE, 0.80)
+	_setup_label(layer, _title, 150, TEXT_COLOR, 0.32, HORIZONTAL_ALIGNMENT_CENTER)
+	_setup_label(layer, _subtitle, 34, Color.WHITE, 0.64, HORIZONTAL_ALIGNMENT_CENTER)
 
 
-func _setup_label(layer: CanvasLayer, label: Label, font_size: int, color: Color, anchor_y: float) -> void:
-	label.anchor_left = 0.0
+func _setup_label(layer: CanvasLayer, label: Label, font_size: int, color: Color, anchor_y: float,
+		alignment: HorizontalAlignment) -> void:
+	label.anchor_left = 0.055 if alignment == HORIZONTAL_ALIGNMENT_LEFT else 0.0
 	label.anchor_right = 1.0
 	label.anchor_top = anchor_y
 	label.anchor_bottom = anchor_y
 	label.grow_vertical = Control.GROW_DIRECTION_BOTH
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.horizontal_alignment = alignment
+	label.add_theme_font_override("font", FONT)
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
@@ -370,11 +534,16 @@ func _fade_shade(alpha: float, seconds: float) -> void:
 	create_tween().tween_property(_shade, "color:a", alpha, seconds)
 
 
-## Big title with a line under it, shown for `seconds`.
+## A short dip to black that opens a chapter.
+func _flash() -> void:
+	_shade.color.a = 1.0
+	_fade_shade(0.0, 0.4)
+
+
+## Big title with lines under it, shown for `seconds`.
 func _show_title(title: String, subtitle: String, seconds: float) -> void:
 	_title.text = title
 	_subtitle.text = subtitle
-	_subtitle.add_theme_color_override("font_color", ACCENT if subtitle.contains(URL) else Color.WHITE)
 	var tween := create_tween()
 	tween.tween_property(_title, "modulate:a", 1.0, 0.6)
 	tween.parallel().tween_property(_subtitle, "modulate:a", 1.0, 0.6).set_delay(0.5)
@@ -383,13 +552,17 @@ func _show_title(title: String, subtitle: String, seconds: float) -> void:
 	tween.parallel().tween_property(_subtitle, "modulate:a", 0.0, 0.6)
 
 
-## One line near the bottom of the picture, for a few seconds.
-func _show_card(text: String) -> void:
-	if _card_tween:
-		_card_tween.kill()
-	_card.text = text
-	_card.modulate.a = 0.0
-	_card_tween = create_tween()
-	_card_tween.tween_property(_card, "modulate:a", 1.0, 0.4)
-	_card_tween.tween_interval(2.8)
-	_card_tween.tween_property(_card, "modulate:a", 0.0, 0.5)
+## Two lines at the bottom left: a small one over a large one.
+func _show_caption(kicker: String, text: String, seconds: float) -> void:
+	if _caption_tween:
+		_caption_tween.kill()
+	_kicker.text = kicker
+	_caption.text = text
+	_kicker.modulate.a = 0.0
+	_caption.modulate.a = 0.0
+	_caption_tween = create_tween()
+	_caption_tween.tween_property(_kicker, "modulate:a", 1.0, 0.25)
+	_caption_tween.parallel().tween_property(_caption, "modulate:a", 1.0, 0.25)
+	_caption_tween.tween_interval(maxf(seconds - 0.6, 0.1))
+	_caption_tween.tween_property(_kicker, "modulate:a", 0.0, 0.35)
+	_caption_tween.parallel().tween_property(_caption, "modulate:a", 0.0, 0.35)

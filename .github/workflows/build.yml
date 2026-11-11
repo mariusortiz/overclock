@@ -54,6 +54,8 @@ jobs:
           for wave in 5 10 15 20 25; do
             godot --headless --fixed-fps 60 --quit-after 1200 res://scenes/main.tscn -- --start-wave=$wave 2>&1 | tee -a run.log
           done
+          # The trailer's whole timeline, without drawing it.
+          godot --headless --fixed-fps 30 --quit-after 3700 res://scenes/tools/trailer.tscn 2>&1 | tee -a run.log
           # "still in use at exit" only reports the music playing when --quit-after stops the game.
           # Enemies must be able to walk up to every deck.
           godot --headless --fixed-fps 60 res://scenes/tools/nav_check.tscn 2>&1 | tee -a run.log
@@ -95,6 +97,7 @@ jobs:
           url="https://x-access-token:${GH_TOKEN}@github.com/${BUILDS_REPO}.git"
           if git fetch -q --depth 1 "$url" gh-pages; then
             git checkout -q FETCH_HEAD -- trailer.mp4 trailer.html 2>/dev/null || true
+            git checkout -q FETCH_HEAD -- trailer.jpg 2>/dev/null || true
           fi
           git add -A
           git -c user.name="github-actions" -c user.email="github-actions@users.noreply.github.com" \
