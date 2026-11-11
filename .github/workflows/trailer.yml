@@ -32,8 +32,15 @@ jobs:
           unzip -q godot.zip
           sudo mv "Godot_v${tag}_linux.x86_64" /usr/local/bin/godot
           rm godot.zip
-          sudo apt-get update -q
-          sudo apt-get install -y -q xvfb libgl1-mesa-dri ffmpeg
+          # The package mirror sometimes fails to answer: give up fast and try again.
+          for attempt in 1 2 3; do
+            if sudo timeout 300 apt-get update -q && sudo timeout 600 apt-get install -y -q \
+              --no-install-recommends -o Acquire::Retries=3 xvfb libgl1-mesa-dri ffmpeg; then
+              break
+            fi
+            if [ "$attempt" = 3 ]; then exit 1; fi
+            sleep 30
+          done
 
       - name: Import assets
         run: godot --headless --import
