@@ -6,6 +6,9 @@ class_name BattlePass
 const XP_PER_SCORE_POINT := 0.1
 const FIRST_TIER_COST := 260
 const COST_INCREASE := 60
+## Tiers up to this one cost more and more; later ones cost LATE_TIER_COST.
+const RISING_TIERS := 30
+const LATE_TIER_COST := 1000
 const XP_KEY := "xp"
 
 ## Loadout item ids, in tier order: REWARDS[0] is the reward of tier 1.
@@ -16,6 +19,14 @@ const REWARDS: Array[String] = [
 	"smg", "skin_royal", "kimono", "skin_carbon", "viking",
 	"skin_sakura", "elf", "bazooka", "skin_ocean", "cowgirl",
 	"skin_solar", "witch", "wizard", "skin_gold", "golden_knight",
+	# Tiers 31 and up: the rest of the gun pack.
+	"pistol_2", "shotgun_1", "rifle_2", "revolver_1", "smg_2",
+	"sniper_2", "bullpup_1", "pistol_3", "shotgun_2", "rifle_3",
+	"revolver_2", "smg_3", "sniper_3", "bullpup_2", "pistol_4",
+	"shotgun_3", "rifle_4", "revolver_3", "smg_4", "sniper_4",
+	"pistol_5", "shotgun_4", "rifle_5", "revolver_4", "smg_5",
+	"sniper_5", "pistol_6", "shotgun_5", "rifle_6", "revolver_5",
+	"sniper_6", "shotgun_6", "rifle_7", "rifle_8", "rifle_9",
 ]
 
 
@@ -25,6 +36,8 @@ static func xp_for_score(score: int) -> int:
 
 ## XP needed to go from tier - 1 to `tier` (1-based).
 static func tier_cost(tier: int) -> int:
+	if tier > RISING_TIERS:
+		return LATE_TIER_COST
 	return FIRST_TIER_COST + COST_INCREASE * (tier - 1)
 
 

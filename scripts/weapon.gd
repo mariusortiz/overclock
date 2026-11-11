@@ -38,6 +38,9 @@ var perks := {}
 var current_data := {}
 ## Ultimate: fires twice as fast without using ammo.
 var overdrive := false
+## Shots per trigger pull and their scatter in degrees (shotguns).
+var pellets := 1
+var spread := 0.0
 ## When set, the gun is held in this character's right hand.
 var holder: CharacterModel
 
@@ -95,6 +98,8 @@ func _equip(data: Dictionary) -> void:
 	reload_time = data.reload_time
 	zoom_fov = data.zoom_fov
 	blast_radius = data.get("blast_radius", 0.0)
+	pellets = data.get("pellets", 1)
+	spread = data.get("spread", 0.0)
 
 	for old in _model_pivot.get_children():
 		_model_pivot.remove_child(old)
@@ -156,8 +161,30 @@ func _fire() -> void:
 	var origin := camera.global_position
 	var direction := -camera.global_basis.z
 
+	# A shotgun fires several pellets at once, scattered in a cone.
+	for pellet in pellets:
+		var scattered := direction
+		if spread > 0.0:
+			var side := camera.global_basis.x.rotated(direction, randf() * TAU)
+			scattered = direction.rotated(side, deg_to_rad(spread) * sqrt(randf()))
+		_fire_ray(origin, scattered)
+
+	_show_flash()
+	_shot_sound.pitch_scale = randf_range(0.94, 1.06)
+	_shot_sound.play()
+
+	if overdrive:
+		return
+	ammo -= 1
+	ammo_changed.emit(ammo, get_magazine_size(), false)
+	if ammo == 0:
+		_reload()
+
+
+## One shot from the camera along `direction`: hit, damage and effects.
+func _fire_ray(origin: Vector3, direction: Vector3) -> void:
 	var hit := _cast(origin, origin + direction * max_range)
-	if _use_aim_assist and not _is_damageable(hit):
+	if _use_aim_assist and spread == 0.0 and not _is_damageable(hit):
 		var assisted := _find_assist_hit(origin, direction)
 		if not assisted.is_empty():
 			hit = assisted
@@ -179,17 +206,6 @@ func _fire() -> void:
 			elif _level(Perk.Type.EXPLOSIVE) > 0:
 				_explode(end, null)
 		_spawn_tracer(_tracer_mesh, _muzzle.global_position, end)
-
-	_show_flash()
-	_shot_sound.pitch_scale = randf_range(0.94, 1.06)
-	_shot_sound.play()
-
-	if overdrive:
-		return
-	ammo -= 1
-	ammo_changed.emit(ammo, get_magazine_size(), false)
-	if ammo == 0:
-		_reload()
 
 
 func _launch_rocket(toward: Vector3) -> void:

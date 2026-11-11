@@ -15,6 +15,11 @@ const DEATH_ANIMATION_TIME := 1.0
 const HEAD_START := 0.68
 ## Beyond this height difference the player is on another floor.
 const LEVEL_HEIGHT := 1.5
+const MELEE_RANGE := 2.2
+const MELEE_INTERVAL := 1.0
+const MELEE_SPEED_BONUS := 1.35
+const FLY_HEIGHT := 4.5
+const FLY_DISTANCE := 9.0
 const BURN_DURATION := 3.0
 const BURN_TICK := 0.5
 const CHILL_DURATION := 2.5
@@ -37,6 +42,13 @@ var model_height := 1.75
 var model_hover := 0.0
 ## Bosses always die their own way.
 var kill_effects_enabled := true
+## What it fights with: the id of a Loadout gun or melee weapon, or "" for
+## bare hands. Anything but a gun makes it charge and strike at close range.
+var weapon_id := "blaster"
+## Damage of a close-range strike (enemies without a gun).
+var melee_damage := 0
+## A flying enemy hovers around the player instead of walking.
+var flying := false
 @export var power_up_scene: PackedScene
 @export var drop_chance := 0.25
 
@@ -83,7 +95,7 @@ func _ready() -> void:
 	_model.target_height = model_height
 	_model.hover_height = model_hover
 	_model_pivot.add_child(_model)
-	_gun.add_child(Loadout.instantiate_weapon(Loadout.WEAPONS[0], Loadout.SKINS[0]))
+	_equip()
 	_fire_cooldown = fire_interval
 	_status_material.emission_enabled = true
 	_status_material.emission_energy_multiplier = 2.0
@@ -166,6 +178,9 @@ func _physics_process(delta: float) -> void:
 	_update_statuses(delta)
 	var slow := _chill_factor if _chill_left > 0.0 else 1.0
 
+	if flying and not _dead:
+		_fly(delta, slow)
+		return
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 
@@ -201,9 +216,57 @@ func _physics_process(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, target_velocity.z, acceleration * delta)
 	move_and_slide()
 
-	# The gun sits in the hand but keeps pointing forward.
-	if _model.place_in_hand(_gun, "R", false):
+	# The gun sits in the hand but keeps pointing forward; a blade follows the arm.
+	if _model.place_in_hand(_gun, "R", melee_damage > 0, true):
 		_muzzle.global_position = _gun.global_position - global_basis.z * 0.5 + Vector3.UP * 0.2
+
+
+## Puts the weapon in hand and, without a gun, switches to close combat.
+func _equip() -> void:
+	if flying:
+		_gun.visible = false
+		return
+	var found := Loadout.find(weapon_id)
+	if not found.is_empty() and found.kind == "Arme":
+		_gun.add_child(Loadout.instantiate_weapon(found.item, Loadout.SKINS[0]))
+		return
+	if not found.is_empty():
+		_gun.add_child(Loadout.instantiate_melee(found.item))
+	if melee_damage == 0:
+		melee_damage = 8
+	attack_range = MELEE_RANGE
+	fire_interval = MELEE_INTERVAL
+	move_speed *= MELEE_SPEED_BONUS
+	_attack_animation = &"melee"
+	_aim_animation = &"idle"
+
+
+## Flying: circles the player at a distance, above the ground, and shoots.
+func _fly(delta: float, slow: float) -> void:
+	var wanted := Vector3.ZERO
+	_freeze_left -= delta
+	if _freeze_left <= 0.0 and _player and _player.health > 0:
+		var to_player := _player.global_position - global_position
+		_face(to_player, delta)
+		var flat := Vector3(to_player.x, 0, to_player.z)
+		var distance := flat.length()
+		var toward := flat / maxf(distance, 0.01)
+		# Close in or back off to the orbit distance, while drifting sideways.
+		wanted = toward * clampf(distance - FLY_DISTANCE, -1.0, 1.0) + toward.cross(Vector3.UP) * 0.6
+		wanted.y = clampf(_player.global_position.y + FLY_HEIGHT - global_position.y, -1.0, 1.0)
+		wanted *= move_speed * slow
+		if distance <= attack_range and _has_line_of_sight():
+			_fire_cooldown -= delta * slow
+			if _fire_cooldown <= 0.0:
+				_shoot()
+	_shoot_animation_left -= delta
+	if _shoot_animation_left <= 0.0:
+		_model.play(&"walk")
+	_stun_left -= delta
+	if _stun_left <= 0.0:
+		velocity = velocity.move_toward(wanted, acceleration * delta)
+	move_and_slide()
+	_muzzle.global_position = global_position + Vector3.UP * aim_height - global_basis.z * 0.6
 
 
 func _face(to_player: Vector3, delta: float) -> void:
@@ -242,6 +305,10 @@ func _shoot() -> void:
 
 ## What a shot does. Bosses override this.
 func _attack() -> void:
+	if melee_damage > 0:
+		if global_position.distance_to(_player.global_position) <= attack_range + 0.5:
+			_player.take_damage(melee_damage)
+		return
 	_spawn_projectile(_muzzle.global_position.direction_to(_player.get_aim_position()))
 
 

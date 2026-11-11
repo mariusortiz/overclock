@@ -225,6 +225,7 @@ navigation_mesh = SubResource("navigation_mesh")
 script = ExtResource("ext_1")
 display_name = "VOLCAN"
 enemy_model = ExtResource("ext_4")
+enemy_weapon = ""
 music_track = 5
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]

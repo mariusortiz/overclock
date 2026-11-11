@@ -47,7 +47,7 @@ def rot_x(deg):
 
 ARENAS = {
     "station": {
-        "name": "STATION", "music": 0, "enemy": "BlueSoldier_Male.fbx",
+        "name": "STATION", "music": 0, "enemy": "BlueSoldier_Male.fbx", "enemy_weapon": "blaster",
         "sky_top": (0.03, 0.02, 0.12), "sky_horizon": (0.35, 0.08, 0.45),
         "ambient": (0.45, 0.42, 0.6), "ambient_energy": 0.5,
         "sun": (1, 1, 1), "sun_energy": 1.2,
@@ -71,7 +71,7 @@ ARENAS = {
         ],
     },
     "desert": {
-        "name": "DÉSERT", "music": 3, "enemy": "Ninja_Sand.fbx",
+        "name": "DÉSERT", "music": 3, "enemy": "Ninja_Sand.fbx", "enemy_weapon": "smg",
         "sky_top": (0.25, 0.5, 0.85), "sky_horizon": (0.95, 0.8, 0.6),
         "ambient": (0.9, 0.8, 0.65), "ambient_energy": 0.4,
         "sun": (1, 0.93, 0.8), "sun_energy": 0.9,
@@ -89,7 +89,7 @@ ARENAS = {
         ],
     },
     "jungle": {
-        "name": "JUNGLE", "music": 4, "enemy": "Goblin_Male.fbx",
+        "name": "JUNGLE", "music": 4, "enemy": "Goblin_Male.fbx", "enemy_weapon": "knife",
         "sky_top": (0.2, 0.45, 0.5), "sky_horizon": (0.6, 0.8, 0.6),
         "ambient": (0.5, 0.7, 0.5), "ambient_energy": 0.45,
         "sun": (0.95, 1, 0.85), "sun_energy": 1.1,
@@ -112,7 +112,7 @@ ARENAS = {
         ],
     },
     "volcano": {
-        "name": "VOLCAN", "music": 5, "enemy": "Zombie_Male.fbx",
+        "name": "VOLCAN", "music": 5, "enemy": "Zombie_Male.fbx", "enemy_weapon": "",
         "sky_top": (0.08, 0.02, 0.02), "sky_horizon": (0.7, 0.2, 0.05),
         "ambient": (0.7, 0.35, 0.25), "ambient_energy": 0.6,
         "sun": (1, 0.6, 0.4), "sun_energy": 1.0,
@@ -129,7 +129,7 @@ ARENAS = {
         "lava": [(-2, 6, 2.2), (9, -8, 2.5), (-9, 0, 2.2), (3, -14, 2.0), (-13, -12, 2.0), (13, 2, 2.0)],
     },
     "city": {
-        "name": "VILLE", "music": 6, "enemy": "Suit_Male.fbx",
+        "name": "VILLE", "music": 6, "enemy": "Suit_Male.fbx", "enemy_weapon": "revolver_1",
         "sky_top": (0.05, 0.07, 0.2), "sky_horizon": (0.9, 0.45, 0.35),
         "ambient": (0.5, 0.5, 0.7), "ambient_energy": 0.6,
         "sun": (1, 0.75, 0.6), "sun_energy": 1.1,
@@ -271,6 +271,7 @@ def build(arena_id, arena):
     nodes += ['[node name="Arena" type="NavigationRegion3D"]', 'navigation_mesh = SubResource("navigation_mesh")',
               f"script = {script}", f'display_name = "{arena["name"]}"',
               f'enemy_model = {ext_resource("PackedScene", CHARACTERS + arena["enemy"])}',
+              f'enemy_weapon = "{arena["enemy_weapon"]}"',
               f'music_track = {arena["music"]}', "",
               '[node name="WorldEnvironment" type="WorldEnvironment" parent="."]', 'environment = SubResource("environment")', "",
               '[node name="Sun" type="DirectionalLight3D" parent="."]', f"transform = {transform((0, 10, 0), sun_basis())}",

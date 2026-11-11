@@ -6,6 +6,11 @@ extends CanvasLayer
 signal replay_pressed
 signal menu_pressed
 signal perk_chosen(type: Perk.Type)
+## Answer to the choice offered after a boss: go on, or go home with the XP.
+signal exit_chosen(leave: bool)
+
+## How a game ended.
+enum Result { DEATH, VICTORY, LEFT }
 
 const BANNER_TIME := 2.5
 const FADE_TIME := 0.4
@@ -43,6 +48,9 @@ var _perk_options: Array = []
 @onready var _boss_bar: ProgressBar = $BossBar
 @onready var _effects_label: RichTextLabel = $Effects
 @onready var _perk_choice: Control = $PerkChoice
+@onready var _exit_choice: Control = $ExitChoice
+@onready var _continue_button: Button = $ExitChoice/Center/Box/Options/Continue
+@onready var _leave_button: Button = $ExitChoice/Center/Box/Options/Leave
 @onready var _perk_title: Label = $PerkChoice/Center/Box/Title
 @onready var _perk_buttons: Array[Node] = $PerkChoice/Center/Box/Options.get_children()
 
@@ -56,6 +64,8 @@ func _ready() -> void:
 	pause_menu.menu_pressed.connect(menu_pressed.emit)
 	for i in _perk_buttons.size():
 		_perk_buttons[i].pressed.connect(_on_perk_button_pressed.bind(i))
+	_continue_button.pressed.connect(_on_exit_button_pressed.bind(false))
+	_leave_button.pressed.connect(_on_exit_button_pressed.bind(true))
 
 
 func _process(_delta: float) -> void:
@@ -151,6 +161,19 @@ func _on_perk_button_pressed(index: int) -> void:
 	perk_chosen.emit(_perk_options[index])
 
 
+## After a boss: go on to `next_arena`, or go back to the menu with `xp`.
+func show_exit_choice(next_arena: String, xp: int) -> void:
+	_continue_button.text = "CONTINUER\n\nDirection : %s\n\nMourir plus loin ne rapporte que la moitié de l'XP" % next_arena
+	_leave_button.text = "RENTRER AU MENU\n\nEncaisser toute l'XP\n\n+%d XP" % xp
+	_leave_button.add_theme_color_override("font_color", ULTIMATE_READY_COLOR)
+	_exit_choice.visible = true
+
+
+func _on_exit_button_pressed(leave: bool) -> void:
+	_exit_choice.visible = false
+	exit_chosen.emit(leave)
+
+
 func flash_damage() -> void:
 	if _flash_tween:
 		_flash_tween.kill()
@@ -181,9 +204,9 @@ func show_death_title() -> void:
 	_death_title.visible = true
 
 
-## `unlocked` lists the names of the rewards just earned. With `victory`, the
-## screen celebrates and only offers to go back to the menu.
-func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: Array, victory := false) -> void:
+## `unlocked` lists the names of the rewards just earned. A victory
+## celebrates and only offers to go back to the menu; a death halves the XP.
+func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: Array, result := Result.DEATH) -> void:
 	_death_title.visible = false
 	_game_over = true
 	pause_menu.enabled = false
@@ -194,10 +217,12 @@ func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: A
 	_final_score.text = "Score : %d" % score
 	_best_score.text = "Nouveau record !" if is_record else "Record : %d" % best
 	_xp_label.text = "+%d XP" % xp
+	if result == Result.DEATH:
+		_xp_label.text += "  (moitié : tu es mort)"
 	if not unlocked.is_empty():
 		_xp_label.text += "\nDébloqué : " + ", ".join(unlocked)
-	if victory:
-		_end_title.text = "VICTOIRE"
+	if result != Result.DEATH:
+		_end_title.text = "VICTOIRE" if result == Result.VICTORY else "XP ENCAISSÉE"
 		_end_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
-		_replay_button.visible = false
+		_replay_button.visible = result == Result.LEFT
 	_game_over_screen.visible = true

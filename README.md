@@ -68,13 +68,17 @@ Battre le Titan termine la partie : un trophée apparaît, tu gagnes le skin Cha
 
 Les arènes font 60 m de côté. La partie commence dans la station, et chaque boss battu t'emmène dans la suivante. Chacune a ses ennemis :
 
-| Arène | Ennemis |
-|---|---|
-| Station | Gardes |
-| Désert | Assassins des sables |
-| Jungle | Gobelins |
-| Volcan | Zombies (et des flaques de lave qui blessent) |
-| Ville | Hommes en costume |
+| Arène | Ennemis | Arme |
+|---|---|---|
+| Station | Gardes | Pistolet |
+| Désert | Assassins des sables | Pistolet-mitrailleur |
+| Jungle | Gobelins | Couteau : ils foncent et frappent au contact |
+| Volcan | Zombies (et des flaques de lave qui blessent) | Mains nues, au contact |
+| Ville | Hommes en costume | Revolver |
+
+À partir de la vague 3, environ un ennemi sur quatre est une chauve-souris : elle vole à 4 ou 5 m, tourne autour de toi et crache des projectiles. Elle est plus fragile que les autres.
+
+Après chaque boss, avant de partir vers l'arène suivante, le jeu propose de rentrer au menu. Rentrer encaisse toute l'XP de la partie ; mourir plus loin n'en rapporte que la moitié.
 
 Une mini-carte en haut à gauche montre les ennemis en rouge (les boss en plus gros) et les power-ups dans leur couleur.
 
@@ -100,7 +104,7 @@ Chaque personnage a une capacité ultime. Sa jauge, affichée au-dessus des muni
 
 ## Passe de combat
 
-Chaque partie rapporte de l'XP (un dixième du score). Le passe compte 30 paliers, permanents et gratuits. Chaque palier débloque un personnage, une arme, une arme de corps à corps ou un skin d'arme. Le Soldat, le Blaster, le Couteau et le skin Standard sont disponibles dès le départ. L'ordre des récompenses est dans `scripts/battle_pass.gd`.
+Chaque partie rapporte de l'XP (un dixième du score, divisé par deux si tu meurs). Le passe compte 65 paliers, permanents et gratuits : les 30 premiers coûtent de plus en plus cher, les 35 suivants (le reste des armes) 1000 XP chacun. Chaque palier débloque un personnage, une arme, une arme de corps à corps ou un skin d'arme. Le Soldat, le Blaster, le Couteau et le skin Standard sont disponibles dès le départ. L'ordre des récompenses est dans `scripts/battle_pass.gd`.
 
 ## Arsenal
 
@@ -113,6 +117,8 @@ L'arsenal, accessible depuis l'accueil, a quatre onglets : personnage, arme, cor
 | Fusil de précision (zoom plus fort) | 1/s | 8 | 5 |
 | Pistolet-mitrailleur | 14/s | 1 | 40 |
 | Lance-roquettes (explosion de 4 m) | 0,8/s | 10 | 1 |
+
+Le pack d'armes complet est disponible : 40 armes en comptant ces cinq-là (pistolets, revolvers, fusils d'assaut, bullpups, fusils à pompe, pistolets-mitrailleurs, fusils de précision). Les revolvers tirent lentement mais fort, avec 6 coups. Les fusils à pompe tirent plusieurs plombs à la fois, en cône : redoutables de près, faibles de loin. Les statistiques de chaque arme sont dans l'arsenal et dans `scripts/loadout.gd`.
 
 Un tir dans la tête fait le double de dégâts : le marqueur de touche devient jaune.
 

@@ -389,6 +389,56 @@ custom_minimum_size = Vector2(340, 250)
 theme_override_font_sizes/font_size = 26
 autowrap_mode = 3
 
+[node name="ExitChoice" type="Control" parent="."]
+process_mode = 3
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="ExitChoice"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="Center" type="CenterContainer" parent="ExitChoice"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Box" type="VBoxContainer" parent="ExitChoice/Center"]
+theme_override_constants/separation = 28
+
+[node name="Title" type="Label" parent="ExitChoice/Center/Box"]
+theme_override_colors/font_color = Color(0, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 44
+text = "BOSS VAINCU"
+horizontal_alignment = 1
+
+[node name="Options" type="HBoxContainer" parent="ExitChoice/Center/Box"]
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="Continue" type="Button" parent="ExitChoice/Center/Box/Options"]
+custom_minimum_size = Vector2(440, 250)
+theme_override_font_sizes/font_size = 26
+autowrap_mode = 3
+
+[node name="Leave" type="Button" parent="ExitChoice/Center/Box/Options"]
+custom_minimum_size = Vector2(440, 250)
+theme_override_font_sizes/font_size = 26
+autowrap_mode = 3
+
 [node name="GameOver" type="Control" parent="."]
 visible = false
 layout_mode = 3

@@ -53,6 +53,7 @@ func _ready() -> void:
 	hud.replay_pressed.connect(get_tree().reload_current_scene, CONNECT_DEFERRED)
 	hud.menu_pressed.connect(get_tree().change_scene_to_file.bind(MENU_SCENE), CONNECT_DEFERRED)
 	hud.perk_chosen.connect(_on_perk_chosen)
+	hud.exit_chosen.connect(_on_exit_chosen)
 
 	player.weapon.hit_confirmed.connect(hud.reticle.show_hit)
 	player.melee.hit_confirmed.connect(hud.reticle.show_hit)
@@ -232,7 +233,7 @@ func _win() -> void:
 	Input.action_release("fire")
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	SaveData.save_progress(Loadout.CHAMPION_KEY, true)
-	_show_results(true)
+	_show_results(Hud.Result.VICTORY)
 
 
 func _on_wave_cleared(number: int) -> void:
@@ -259,17 +260,39 @@ func _on_wave_cleared(number: int) -> void:
 
 func _on_perk_chosen(type: Perk.Type) -> void:
 	player.add_perk(type)
+	# A boss was just beaten: go on to the next arena, or go home with the XP.
+	if _arena_change_pending:
+		var next: Arena = ARENAS[(_arena_index + 1) % ARENAS.size()].instantiate()
+		hud.show_exit_choice(next.display_name, _earned_xp())
+		next.free()
+		return
+	_resume()
+
+
+func _resume() -> void:
 	get_tree().paused = false
 	if _mouse_was_captured:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
-	# A boss was just beaten: travel to the next arena.
-	if _arena_change_pending:
-		_arena_change_pending = false
-		await hud.fade_to_black()
-		_load_arena(_arena_index + 1)
-		hud.show_banner(_arena.display_name)
-		hud.fade_from_black()
+
+func _on_exit_chosen(leave: bool) -> void:
+	_arena_change_pending = false
+	if leave:
+		waves.stop()
+		get_tree().paused = false
+		player.process_mode = Node.PROCESS_MODE_DISABLED
+		_show_results(Hud.Result.LEFT)
+		return
+	_resume()
+	await hud.fade_to_black()
+	_load_arena(_arena_index + 1)
+	hud.show_banner(_arena.display_name)
+	hud.fade_from_black()
+
+
+## XP this game is worth so far, if it ends without dying.
+func _earned_xp() -> int:
+	return BattlePass.xp_for_score(score) + _bonus_xp
 
 
 func _on_enemies_left_changed(count: int) -> void:
@@ -293,22 +316,26 @@ func _on_player_died() -> void:
 	hud.show_death_title()
 	await get_tree().create_timer(DEATH_TITLE_TIME, true, false, true).timeout
 	Engine.time_scale = 1.0
-	_show_results(false)
+	_show_results(Hud.Result.DEATH)
 
 
 ## Saves the record, feeds the battle pass and shows the end screen.
-func _show_results(victory: bool) -> void:
+## Dying only pays half the XP: going home after a boss is the safe way.
+func _show_results(result: Hud.Result) -> void:
 	var best := SaveData.load_high_score()
 	var is_record := score > best
 	if is_record:
 		SaveData.save_high_score(score)
-	var xp := BattlePass.xp_for_score(score) + _bonus_xp
+	var xp := _earned_xp()
+	if result == Hud.Result.DEATH:
+		@warning_ignore("integer_division")
+		xp /= 2
 	var unlocked := []
 	for id in BattlePass.add_xp(xp):
 		unlocked.append(Loadout.find(id).item.name)
-	if victory:
+	if result == Hud.Result.VICTORY:
 		unlocked.append("skin Champion")
-	hud.show_game_over(score, maxi(score, best), is_record, xp, unlocked, victory)
+	hud.show_game_over(score, maxi(score, best), is_record, xp, unlocked, result)
 
 
 func _on_touch_look(relative: Vector2) -> void:

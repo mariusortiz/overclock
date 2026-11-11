@@ -53,6 +53,9 @@ func configure(boss_kind: Kind, health_scale: float) -> void:
 	model_height = info.height
 	model_hover = info.hover
 	drop_chance = 1.0
+	weapon_id = "blaster"  # hidden: monsters fight bare-handed
+	if kind == Kind.BRUTE:
+		melee_damage = BRUTE_DAMAGE
 	kill_effects_enabled = false
 
 
@@ -113,8 +116,7 @@ func _attack() -> void:
 		Kind.COLOSSUS:
 			_shoot_fan()
 		Kind.BRUTE:
-			if global_position.distance_to(_player.global_position) <= attack_range + 0.5:
-				_player.take_damage(BRUTE_DAMAGE)
+			super()
 		Kind.ARTILLERY:
 			_call_mortar(_player.global_position)
 		Kind.SUMMONER:

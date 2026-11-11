@@ -12,6 +12,11 @@ signal boss_killed(kind: Boss.Kind)
 
 const BOSS_EVERY := 5
 const BOSS_ESCORT := 3
+## Flying enemies join from this wave on, as this share of the spawns.
+const FLYING_FROM_WAVE := 3
+const FLYING_CHANCE := 0.25
+const FLYING_SPAWN_HEIGHT := 6.0
+const FLYING_MODEL := preload("res://assets/models/quaternius/monsters/Bat.fbx")
 
 @export var enemy_scene: PackedScene
 @export var boss_scene: PackedScene
@@ -74,10 +79,24 @@ func _configure(enemy: Enemy) -> void:
 	var arena := get_tree().get_first_node_in_group("arena") as Arena
 	if arena and arena.enemy_model:
 		enemy.model_scene = arena.enemy_model
+		enemy.weapon_id = arena.enemy_weapon
+	if wave >= FLYING_FROM_WAVE and not is_boss_wave() and randf() < FLYING_CHANCE:
+		_make_flying(enemy)
 	@warning_ignore("integer_division")
 	enemy.max_health += (wave - 1) / 2
 	enemy.move_speed *= minf(1.0 + 0.06 * (wave - 1), 1.5)
 	enemy.fire_interval = maxf(enemy.fire_interval - 0.08 * (wave - 1), 0.9)
+
+
+## Turns a regular enemy into a small bat that hovers and spits.
+func _make_flying(enemy: Enemy) -> void:
+	enemy.flying = true
+	enemy.model_scene = FLYING_MODEL
+	enemy.model_height = 1.0
+	enemy.model_hover = 0.4
+	enemy.weapon_id = "blaster"
+	enemy.max_health = maxi(enemy.max_health - 2, 2)
+	enemy.move_speed *= 1.3
 
 
 # --- Wave flow --------------------------------------------------------------
@@ -114,6 +133,8 @@ func _spawn() -> void:
 		enemy = enemy_scene.instantiate()
 		_configure(enemy)
 	enemy.position = point.global_position
+	if enemy.flying:
+		enemy.position.y += FLYING_SPAWN_HEIGHT
 	enemy.died.connect(_on_enemy_died)
 	get_parent().add_child(enemy)
 	_to_spawn -= 1

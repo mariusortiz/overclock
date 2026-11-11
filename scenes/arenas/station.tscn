@@ -178,6 +178,7 @@ navigation_mesh = SubResource("navigation_mesh")
 script = ExtResource("ext_1")
 display_name = "STATION"
 enemy_model = ExtResource("ext_7")
+enemy_weapon = "blaster"
 music_track = 0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
