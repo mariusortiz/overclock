@@ -442,7 +442,7 @@ func _show_results(result: Hud.Result) -> void:
 	if result == Hud.Result.VICTORY or _endless:
 		unlocked.append("skin Champion")
 	var rank := Leaderboard.add(score, waves.wave, Loadout.selected_character().name, _endless)
-	hud.show_game_over(score, maxi(score, best), is_record, xp, unlocked, result, completed, rank)
+	hud.show_game_over(score, maxi(score, best), is_record, xp, unlocked, result, completed, rank, _stats.counts)
 
 
 func _on_touch_look(relative: Vector2) -> void:

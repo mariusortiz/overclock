@@ -114,6 +114,8 @@ func _refresh() -> void:
 		_detail_status.text = Loadout.unlock_text(_viewed)
 	else:
 		_detail_status.text = "Équipé"
+	if _viewed.has("kill") and Loadout.KILL_NAMES.has(_viewed.kill) and _tabs[_tab_index].key == Loadout.SKIN_KEY:
+		_detail_status.text += "\nÉlimination : %s" % Loadout.KILL_NAMES[_viewed.kill]
 	if _viewed.has("pellets"):
 		_detail_status.text += "\n%d plombs par tir" % _viewed.pellets
 	if _viewed.has("ulti"):

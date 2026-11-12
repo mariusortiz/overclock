@@ -43,6 +43,13 @@ const SKINS := [
 	# Not in the battle pass: earned by beating the final boss.
 	{"id": "skin_champion", "kill": &"confetti", "name": "Champion", "pattern": true, "glow": 0.6, "scope": true, "silencer": true, "shot": Color(1.0, 0.3, 0.9)},
 ]
+## How each skin's elimination looks, for the armory.
+const KILL_NAMES := {
+	&"knockback": "projeté dans un nuage de fumée", &"vanish": "rayon de lumière", &"shatter": "gel puis éclats",
+	&"burn": "braises", &"leaves": "feuilles", &"melt": "flaque toxique", &"ascend": "envol royal",
+	&"pixelate": "pixels noirs", &"petals": "pétales", &"splash": "gerbe d'eau", &"flare": "flash solaire",
+	&"statue": "statue d'or", &"confetti": "confettis",
+}
 const CHAMPION_SKIN_ID := "skin_champion"
 const CHAMPION_KEY := "champion"
 

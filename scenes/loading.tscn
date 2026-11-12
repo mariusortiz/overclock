@@ -52,16 +52,17 @@ anchor_right = 0.5
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-offset_left = -260.0
-offset_top = -96.0
-offset_right = 260.0
+offset_left = -560.0
+offset_top = -110.0
+offset_right = 560.0
 offset_bottom = -36.0
 theme_override_constants/separation = 8
 
 [node name="Label" type="Label" parent="Bottom"]
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 22
 text = "CHARGEMENT…"
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="Bar" type="ProgressBar" parent="Bottom"]
 custom_minimum_size = Vector2(0, 16)
