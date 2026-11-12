@@ -21,6 +21,10 @@ const MODEL_DIR := "res://assets/models/ships/"
 var color := Color.WHITE
 var display_name := ""
 var is_player := false
+## Network play: the peer that flies this ship (0 for a computer pilot, flown
+## by the host). A ship flown elsewhere is only placed (see follow_state).
+var peer_id := 0
+var remote := false
 var distance := 0.0
 var offset := Vector2.ZERO
 var speed := 0.0
@@ -105,6 +109,39 @@ func fly(delta: float, steer: Vector2, track: RaceTrack) -> void:
 	transform = frame
 	for flame in _flames:
 		flame.scale = Vector3.ONE * (1.6 if boost_left > 0.0 else 1.0) * randf_range(0.85, 1.15)
+
+
+## A ship flown on another device: it carries on at its last known speed,
+## pulled toward the last position received.
+func follow_state(delta: float, track: RaceTrack) -> void:
+	boost_left = maxf(boost_left - delta, 0.0)
+	if respawn_left > 0.0:
+		respawn_left -= delta
+		_body.visible = int(respawn_left * 10.0) % 2 == 0
+	else:
+		_body.visible = true
+	distance += speed * delta
+	transform = track.frame_at(distance, offset)
+	for flame in _flames:
+		flame.scale = Vector3.ONE * (1.6 if boost_left > 0.0 else 1.0) * randf_range(0.85, 1.15)
+
+
+## Applies a state received from the device that flies this ship.
+func apply_state(state: Array) -> void:
+	var received: float = state[0]
+	# Small gaps are closed smoothly, big ones (a respawn) at once.
+	distance = received if absf(received - distance) > 15.0 else lerpf(distance, received, 0.3)
+	offset = state[1]
+	speed = state[2]
+	shield = state[3]
+	boost_left = state[4]
+	respawn_left = state[5]
+	finished = state[6]
+	finish_time = state[7]
+
+
+func get_state() -> Array:
+	return [distance, offset, speed, shield, boost_left, respawn_left, finished, finish_time]
 
 
 func boost(seconds := BOOST_TIME) -> void:

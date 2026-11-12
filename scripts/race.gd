@@ -27,6 +27,10 @@ const SHIP_RADIUS := 1.6
 const PLACE_SCORES := [3000, 2200, 1600, 1200, 900, 600]
 const CAMERA_BACK := 9.0
 const CAMERA_UP := 3.0
+## Network play: states sent per second, and how long the host waits for
+## every device to be ready before starting anyway.
+const SEND_RATE := 15.0
+const READY_TIMEOUT := 8.0
 
 var _track := RaceTrack.new()
 var _ships: Array[RaceShip] = []
@@ -40,6 +44,9 @@ var _laser_left := 0.0
 var _ai_fire_left := {}
 ## Per ship, the last gate and pad it went through (indices), to count each once.
 var _passed := {}
+var _online := false
+var _send_left := 0.0
+var _ready_peers := {}
 
 var _layer := CanvasLayer.new()
 var _touch := TouchControls.new()
@@ -58,7 +65,8 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Music.play_track(Music.Track.RACE)
 	_build_world()
-	var seed_value := randi()
+	_online = Net.is_online()
+	var seed_value := Net.seed_value if _online else randi()
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--track="):
 			seed_value = argument.get_slice("=", 1).to_int()
@@ -70,6 +78,18 @@ func _ready() -> void:
 		ship.color = PILOTS[i][1]
 		ship.skill = PILOTS[i][2]
 		ship.is_player = i == 0
+		if _online:
+			# The players first (in the same order everywhere), then computers.
+			var ids := Net.ids()
+			ship.is_player = false
+			if i < ids.size():
+				var info: Dictionary = Net.players[ids[i]]
+				ship.peer_id = ids[i]
+				ship.display_name = info.name
+				ship.color = Color.html(info.color)
+				ship.skill = 1.0
+				ship.is_player = ids[i] == Net.my_id()
+			ship.remote = not ship.is_player and not (ship.peer_id == 0 and Net.is_host())
 		# Grid: two columns, the player last.
 		var row := PILOTS.size() - 1 - i
 		ship.distance = -6.0 - row * 7.0
@@ -80,13 +100,27 @@ func _ready() -> void:
 		_passed[ship] = {"gate": 0, "pad": -1}
 		ship.fly(0.0, Vector2.ZERO, _track)
 	_player = _ships[0]
+	for ship in _ships:
+		if ship.is_player:
+			_player = ship
 	add_child(_camera)
 	_camera.make_current()
 	_camera.far = 2500.0
 	_build_ui()
 	_place_camera(0.0)
 	_refresh_ui()
-	_countdown()
+	if _online:
+		Net.left.connect(func(reason: String) -> void:
+			_show_center(reason, 3.0)
+			get_tree().create_timer(2.5).timeout.connect(_quit))
+		if Net.is_host():
+			_ready_peers[1] = true
+			get_tree().create_timer(READY_TIMEOUT).timeout.connect(_begin_if_waiting)
+		else:
+			_ready_to_race.rpc_id(1)
+		_show_center("EN ATTENTE…")
+	else:
+		_countdown()
 
 
 func _build_world() -> void:
@@ -117,16 +151,22 @@ func _countdown() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if not _started or _paused:
+	if not _started or (_paused and not _online):
 		_place_camera(delta)
 		return
 	if not _over:
 		_clock += delta
 	_steer_player(delta)
 	_steer_computers(delta)
+	for ship in _ships:
+		if ship.remote:
+			ship.follow_state(delta, _track)
 	_bump_ships()
 	for ship in _ships:
-		_check_track(ship)
+		if not ship.remote:
+			_check_track(ship)
+	if _online:
+		_send_states(delta)
 	_check_finish()
 	_place_camera(delta)
 	_refresh_ui()
@@ -154,7 +194,7 @@ func _steer_player(delta: float) -> void:
 ## right in front of them.
 func _steer_computers(delta: float) -> void:
 	for ship in _ships:
-		if ship == _player:
+		if ship == _player or ship.remote or ship.peer_id != 0:
 			continue
 		var goal := Vector2(sin(_clock * 0.7 + ship.skill * 9.0) * RaceTrack.HALF_WIDTH * 0.5, 0)
 		for pad: Array in _track.pads:
@@ -194,7 +234,10 @@ func _fire(shooter: RaceShip, accuracy: float) -> void:
 	var to := from - shooter.global_basis.z * LASER_RANGE
 	if target and randf() < accuracy:
 		to = target.global_position
-		target.hit()
+		if _online:
+			_hit.rpc(_ships.find(target))
+		else:
+			target.hit()
 		if shooter == _player:
 			_show_center("TOUCHÉ" if target.is_flying() else "DÉTRUIT !", 0.5)
 	Effects.tracer(self, from, to, shooter.color.lerp(Color.WHITE, 0.3))
@@ -206,7 +249,7 @@ func _bump_ships() -> void:
 		for j in range(i + 1, _ships.size()):
 			var a := _ships[i]
 			var b := _ships[j]
-			if not a.is_flying() or not b.is_flying():
+			if not a.is_flying() or not b.is_flying() or (a.remote and b.remote):
 				continue
 			if absf(a.distance - b.distance) < RaceShip.LENGTH and a.offset.distance_to(b.offset) < SHIP_RADIUS * 2.0:
 				var push := (a.offset - b.offset).normalized()
@@ -237,7 +280,7 @@ func _check_track(ship: RaceShip) -> void:
 
 func _check_finish() -> void:
 	for ship in _ships:
-		if not ship.finished and ship.distance >= _track.length * LAPS:
+		if not ship.remote and not ship.finished and ship.distance >= _track.length * LAPS:
 			ship.finished = true
 			ship.finish_time = _clock
 	if _player.finished and not _over:
@@ -388,7 +431,54 @@ func _toggle_pause() -> void:
 
 
 func _quit() -> void:
+	if _online:
+		Net.leave()
 	get_tree().change_scene_to_file.call_deferred(MENU_SCENE)
+
+
+# --- Network ------------------------------------------------------------------
+
+## This device's ships (its player, and the computers on the host), a few
+## times a second, to everyone.
+func _send_states(delta: float) -> void:
+	_send_left -= delta
+	if _send_left > 0.0:
+		return
+	_send_left = 1.0 / SEND_RATE
+	for index in _ships.size():
+		if not _ships[index].remote:
+			_state.rpc(index, _ships[index].get_state())
+
+
+@rpc("any_peer", "unreliable_ordered")
+func _state(index: int, state: Array) -> void:
+	if index >= 0 and index < _ships.size() and _ships[index].remote:
+		_ships[index].apply_state(state)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _hit(index: int) -> void:
+	if index >= 0 and index < _ships.size():
+		_ships[index].hit()
+
+
+@rpc("any_peer", "reliable")
+func _ready_to_race() -> void:
+	_ready_peers[multiplayer.get_remote_sender_id()] = true
+	if _ready_peers.size() >= Net.players.size():
+		_begin_if_waiting()
+
+
+func _begin_if_waiting() -> void:
+	if Net.is_host() and not _started and _center_label.text == "EN ATTENTE…":
+		_center_label.text = ""
+		_begin.rpc()
+
+
+@rpc("authority", "call_local", "reliable")
+func _begin() -> void:
+	_center_label.text = ""
+	_countdown()
 
 
 func _build_end_panel() -> void:
@@ -406,7 +496,15 @@ func _build_end_panel() -> void:
 	_end_text.add_theme_font_size_override("font_size", 26)
 	_end_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_end_text)
-	for entry: Array in [["REJOUER", func() -> void: get_tree().reload_current_scene.call_deferred()], ["MENU", _quit]]:
+	var replay := func() -> void:
+		if _online:
+			Net.start_game("race")
+		else:
+			get_tree().reload_current_scene.call_deferred()
+	for entry: Array in [["REJOUER", replay], ["MENU", _quit]]:
+		# Online, only the host starts the next race.
+		if entry[0] == "REJOUER" and _online and not Net.is_host():
+			continue
 		var button := Button.new()
 		button.text = entry[0]
 		button.custom_minimum_size = Vector2(420, 80)

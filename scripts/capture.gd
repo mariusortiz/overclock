@@ -28,6 +28,8 @@ var _bases := {&"ally": Vector3.ZERO, &"enemy": Vector3.ZERO}
 var _over := false
 var _kills := 0
 var _zone_text := RichTextLabel.new()
+## Network play (see CaptureNet), or null.
+var _net: CaptureNet
 
 @onready var player: Player = $Player
 @onready var hud: Hud = $HUD
@@ -35,6 +37,9 @@ var _zone_text := RichTextLabel.new()
 
 func _ready() -> void:
 	var index := randi() % ARENAS.size()
+	if Net.is_online():
+		# The same arena everywhere.
+		index = Net.seed_value % ARENAS.size()
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--arena="):
 			index = argument.get_slice("=", 1).to_int() % ARENAS.size()
@@ -45,11 +50,24 @@ func _ready() -> void:
 	_arena.apply_quality(Settings.high_quality)
 
 	_place_bases_and_zones()
+	if Net.is_online():
+		_net = CaptureNet.new()
+		_net.name = "CaptureNet"
+		add_child(_net)
+		_net.setup(self)
+		if _net.my_team == 1:
+			# Team 1 starts at the other base.
+			var home: Vector3 = _bases[&"ally"]
+			_bases[&"ally"] = _bases[&"enemy"]
+			_bases[&"enemy"] = home
+		Net.left.connect(func(reason: String) -> void:
+			hud.show_banner(reason)
+			get_tree().create_timer(2.5).timeout.connect(get_tree().change_scene_to_file.bind(MENU_SCENE)))
 	player.global_position = _bases[&"ally"]
 
 	hud.touch_controls.look.connect(_on_touch_look)
-	hud.replay_pressed.connect(get_tree().reload_current_scene, CONNECT_DEFERRED)
-	hud.menu_pressed.connect(get_tree().change_scene_to_file.bind(MENU_SCENE), CONNECT_DEFERRED)
+	hud.replay_pressed.connect(_replay, CONNECT_DEFERRED)
+	hud.menu_pressed.connect(_to_menu, CONNECT_DEFERRED)
 	hud.quit_pressed.connect(_finish.bind(Hud.Result.QUIT))
 	hud.dance_chosen.connect(player.dance)
 	player.weapon.hit_confirmed.connect(hud.reticle.show_hit)
@@ -70,9 +88,18 @@ func _ready() -> void:
 	# The arena bakes its navigation over the first frames: then the bots come.
 	if not _arena.is_navigation_ready:
 		await _arena.navigation_ready
-	for i in TEAM_SIZE - 1:
+	if _net and not Net.is_host():
+		# Guests: the host runs the bots, the zones and the score.
+		hud.show_banner("CAPTURE DE ZONE · ÉQUIPE %s" % ("BLEUE" if _net.my_team == 0 else "ROUGE"))
+		return
+	if _net:
+		await _net.wait_for_guests(8.0)
+	# Bots fill each team up to TEAM_SIZE (the host's team is "ally").
+	var allies := TEAM_SIZE - (CaptureNet.humans_in(0) if _net else 1)
+	var foes := TEAM_SIZE - (CaptureNet.humans_in(1) if _net else 0)
+	for i in allies:
 		_spawn_bot(&"ally")
-	for i in TEAM_SIZE:
+	for i in foes:
 		_spawn_bot(&"enemy")
 	hud.show_banner("CAPTURE DE ZONE · %d POINTS POUR GAGNER" % WIN_SCORE)
 	var timer := Timer.new()
@@ -84,6 +111,9 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if _over:
+		return
+	if _net and not Net.is_host():
+		_refresh_zone_text()
 		return
 	for zone in _zones:
 		var allies := 0
@@ -115,9 +145,15 @@ func _on_second() -> void:
 			_points[zone.holder] += 1
 	_refresh_top()
 	if _points[&"ally"] >= WIN_SCORE:
-		_finish(Hud.Result.TEAM_WIN)
+		if _net:
+			_net.announce_winner(0)
+		else:
+			_finish(Hud.Result.TEAM_WIN)
 	elif _points[&"enemy"] >= WIN_SCORE:
-		_finish(Hud.Result.DEFEAT)
+		if _net:
+			_net.announce_winner(1)
+		else:
+			_finish(Hud.Result.DEFEAT)
 
 
 # --- Map ----------------------------------------------------------------------
@@ -187,17 +223,44 @@ func _spawn_bot(team: StringName) -> void:
 	capture_bot.position = _bases[team] + Vector3(spread.x, 0.2, spread.y)
 	add_child(capture_bot)
 	capture_bot.died.connect(_on_bot_died.bind(capture_bot, team))
+	if _net:
+		_net.register_bot(capture_bot)
 
 
 func _on_bot_died(bot: CaptureBot, team: StringName) -> void:
 	if team == &"enemy" and bot._kill_style != &"":
 		# Its last hit came from the player.
-		_kills += 1
-		score += KILL_SCORE
-		hud.set_score(score)
-		player.on_enemy_killed()
-		hud.reticle.show_kill()
+		count_kill()
 	get_tree().create_timer(RESPAWN_TIME, false).timeout.connect(_spawn_bot.bind(team))
+
+
+func count_kill() -> void:
+	_kills += 1
+	score += KILL_SCORE
+	hud.set_score(score)
+	player.on_enemy_killed()
+	hud.reticle.show_kill()
+
+
+## Network play: the host announced the end.
+func finish_online(won: bool) -> void:
+	_finish(Hud.Result.TEAM_WIN if won else Hud.Result.DEFEAT)
+
+
+## Online, only the host starts the next match, for everyone.
+func _replay() -> void:
+	if not Net.is_online():
+		get_tree().reload_current_scene()
+	elif Net.is_host():
+		Net.start_game("capture")
+	else:
+		hud.show_banner("L'HÔTE RELANCE LA PARTIE")
+
+
+func _to_menu() -> void:
+	if Net.is_online():
+		Net.leave()
+	get_tree().change_scene_to_file(MENU_SCENE)
 
 
 func _on_player_died() -> void:

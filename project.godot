@@ -16,6 +16,7 @@ config/quit_on_go_back=false
 
 Music="*res://scenes/music.tscn"
 Settings="*res://scripts/settings.gd"
+Net="*res://scripts/net.gd"
 
 [display]
 

@@ -154,12 +154,12 @@ func _story() -> void:
 	await _until(55.6)
 
 	# 55.6 s: Soldier and Vipère in the middle of B.
-	soldier.get_parent().position = STAGE + Vector3(-1.2, 0, -9)
-	vipere.get_parent().position = STAGE + Vector3(1.2, 0, -11)
+	soldier.get_parent().position = STAGE + Vector3(-1.2, 0, -2)
+	vipere.get_parent().position = STAGE + Vector3(1.2, 0, -4)
 	_face(soldier, vipere)
 	_face(vipere, soldier)
-	_dolly(STAGE + Vector3(-3.0, 1.5, -6.5), STAGE + Vector3(-2.8, 1.5, -7.0), STAGE + Vector3(0, 1.4, -10),
-			STAGE + Vector3(0, 1.4, -10), 5.0, true)
+	_dolly(STAGE + Vector3(-3.5, 1.5, 1.5), STAGE + Vector3(-3.2, 1.5, 1.0), STAGE + Vector3(0, 1.4, -3),
+			STAGE + Vector3(0, 1.4, -3), 5.0, true)
 	await _until(56.6)
 	_say(vipere, "Tu ne lâches jamais, hein ?", 2.4, 1.0)
 	await _until(59.4)

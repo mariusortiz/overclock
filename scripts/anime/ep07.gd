@@ -103,7 +103,7 @@ func _story() -> void:
 		var holder := Node3D.new()
 		holder.position = Vector3(index * 2.4, 1.3, 0)
 		holder.add_child(gun)
-		gun.scale = Vector3.ONE * (1.0 / float(exotic[index].length))
+		gun.scale = Vector3.ONE * (1.7 / float(exotic[index].length))
 		gun.position.z = 0.4
 		_set.add_child(holder)
 		create_tween().set_loops(4).tween_property(holder, "rotation:y", TAU, 4.0).from(0.0)
@@ -116,8 +116,8 @@ func _story() -> void:
 		label.outline_size = 10
 		label.position = Vector3(index * 2.4, 0.55, 0)
 		_set.add_child(label)
-	_dolly(Vector3(-1.5, 1.5, 3.5), Vector3((exotic.size() - 1) * 2.4 + 1.5, 1.5, 3.5), Vector3(-1.5, 1.2, 0),
-			Vector3((exotic.size() - 1) * 2.4 + 1.5, 1.2, 0), 9.0)
+	_dolly(Vector3(-0.5, 1.5, 2.8), Vector3((exotic.size() - 1) * 2.4 + 0.5, 1.5, 2.8), Vector3(-0.5, 1.2, 0),
+			Vector3((exotic.size() - 1) * 2.4 + 0.5, 1.2, 0), 9.0)
 	_narrate("L'arsenal du Parrain.", 3.0)
 	await _until(45.0)
 	var host := _hero("godfather", Vector3(-1.2, 0, 1.6), PI * 0.8)

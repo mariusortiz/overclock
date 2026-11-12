@@ -4,6 +4,9 @@ extends Enemy
 ## the closest foe it can see; with nobody around, it heads for a zone its
 ## team does not hold yet, or guards one.
 
+## A bolt left its gun (network play shows it on the guests' screens).
+signal shot(from: Vector3, direction: Vector3)
+
 const ENGAGE_RANGE := 20.0
 const REPLAN_TIME := 3.0
 const MARKER_HEIGHT := 2.35
@@ -82,3 +85,8 @@ func _can_see(foe: Node3D) -> bool:
 	var from := global_position + Vector3.UP * EYE_HEIGHT
 	var query := PhysicsRayQueryParameters3D.create(from, foe.get_aim_position(), WORLD_MASK)
 	return get_world_3d().direct_space_state.intersect_ray(query).is_empty()
+
+
+func _spawn_projectile(direction: Vector3) -> void:
+	super(direction)
+	shot.emit(_muzzle.global_position, direction)

@@ -83,6 +83,14 @@ jobs:
           done
           # The ship race: a whole race (3 laps, about 95 s), the player idle.
           godot --headless --fixed-fps 60 --quit-after 6600 res://scenes/race.tscn 2>&1 | tee -a run.log
+          # Local network: a host and a guest on this machine, a race then a capture.
+          for mode in race capture; do
+            timeout 60 godot --headless --fixed-fps 60 res://scenes/lobby.tscn -- --host=$mode > host.log 2>&1 &
+            sleep 3
+            timeout 55 godot --headless --fixed-fps 60 res://scenes/lobby.tscn -- --join=127.0.0.1 > guest.log 2>&1 || true
+            wait
+            cat host.log guest.log | tee -a run.log > /dev/null
+          done
           # Shop content: each exotic gun, animated skin and boosted ultimate,
           # trigger held down, ultimate fired after 5 s.
           save_dir="$HOME/.local/share/godot/app_userdata/Overclock"

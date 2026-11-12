@@ -33,8 +33,8 @@ func _story() -> void:
 
 	# 13.4 s: a red ship cuts through the sky and lands.
 	var red := _parked_ship(RED, STAGE + Vector3(-40, 25, -30), 0.0)
-	red.scale = Vector3.ONE * 1.6
-	_fly_to(red, STAGE + Vector3(-40, 25, -30), STAGE + Vector3(0, 6, -4), 3.0)
+	red.scale = Vector3.ONE * 1.3
+	_fly_to(red, STAGE + Vector3(-40, 25, -30), STAGE + Vector3(-5, 6, -7), 3.0)
 	_dolly(STAGE + Vector3(2.5, 0.8, 6), STAGE + Vector3(2, 0.9, 5), STAGE + Vector3(-6, 10, -10),
 			STAGE + Vector3(0, 4, -4), 3.2, true)
 	_speed(2.0)
@@ -42,10 +42,10 @@ func _story() -> void:
 		hero.play(&"aim")
 		hero.get_parent().rotation.y = 0.0
 	await _until(16.6)
-	create_tween().tween_property(red, "global_position", STAGE + Vector3(0, 0.6, -4), 1.0) \
+	create_tween().tween_property(red, "global_position", STAGE + Vector3(-5, 0.6, -7), 1.0) \
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	await _until(17.6)
-	_stomp(STAGE + Vector3(0, 0, -4), 0.6)
+	_stomp(STAGE + Vector3(-5, 0, -7), 0.6)
 	_impact_frame()
 	await _until(18.4)
 	# Vipère steps out.
