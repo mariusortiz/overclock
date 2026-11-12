@@ -203,7 +203,7 @@ func _spawn() -> void:
 ## The middle of the arena, or the nearest walkable point to it when some
 ## scenery stands there.
 func _arena_center() -> Vector3:
-	var map := get_parent().get_world_3d().navigation_map
+	var map: RID = (get_parent() as Node3D).get_world_3d().navigation_map
 	var center := NavigationServer3D.map_get_closest_point(map, Vector3.ZERO)
 	return center if center != Vector3.ZERO else Vector3(0, 0.1, 0)
 
