@@ -20,6 +20,8 @@ func _physics_process(delta: float) -> void:
 
 
 func _on_body_entered(body: Node3D) -> void:
-	if body.has_method("take_damage"):
+	if body is Player:
+		body.take_damage(damage, global_position - direction * 4.0)
+	elif body.has_method("take_damage"):
 		body.take_damage(damage)
 	queue_free()

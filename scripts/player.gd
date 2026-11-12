@@ -5,6 +5,8 @@ extends CharacterBody3D
 
 signal health_changed(current: int, maximum: int)
 signal damaged
+## A hit came from `from` (world position), for the HUD's direction marker.
+signal hurt_from(from: Vector3)
 signal died
 signal perks_changed
 
@@ -19,6 +21,10 @@ const POSE_BLEND_SPEED := 10.0
 const DANCE_CAMERA_SPEED := 4.0
 ## Any of these, or moving, or being hit, stops a dance.
 const DANCE_BREAKERS: Array[StringName] = [&"fire", &"aim", &"melee", &"jump", &"reload", &"ultimate", &"inspect"]
+
+## The crosshair turns red over an enemy within this range (world and enemy layers).
+const AIM_CHECK_RANGE := 80.0
+const AIM_CHECK_MASK := 1 | 4
 
 ## Camera shake: how hard a hit shakes the view, and how fast it settles.
 const HIT_SHAKE := 0.12
@@ -93,6 +99,10 @@ func _ready() -> void:
 	weapon.rotation.x = _spring_arm.rotation.x
 
 
+## True when the crosshair is on an enemy (updated every physics frame).
+var aiming_at_enemy := false
+
+
 ## Point enemies aim at.
 func get_aim_position() -> Vector3:
 	return global_position + Vector3.UP * 1.0
@@ -127,9 +137,12 @@ func on_enemy_killed() -> void:
 	ultimate.add_charge(Ultimate.KILL_CHARGE)
 
 
-func take_damage(amount: int) -> void:
+## `from`: where the hit came from, when known.
+func take_damage(amount: int, from := Vector3.INF) -> void:
 	if health <= 0 or invulnerable or ultimate.shielded:
 		return
+	if from != Vector3.INF:
+		hurt_from.emit(from)
 	if has_effect(PowerUp.Type.SHIELD):
 		amount = ceili(amount / 2.0)
 	health = maxi(health - amount, 0)
@@ -289,6 +302,16 @@ func _physics_process(delta: float) -> void:
 			shake(0.06)
 	_was_on_floor = is_on_floor()
 	_update_animation()
+	_update_aim_target()
+
+
+## Whether the crosshair is on an enemy, for its color.
+func _update_aim_target() -> void:
+	var from := _camera.global_position
+	var to := from - _camera.global_basis.z * AIM_CHECK_RANGE
+	var query := PhysicsRayQueryParameters3D.create(from, to, AIM_CHECK_MASK, [get_rid()])
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	aiming_at_enemy = not hit.is_empty() and (hit.collider as Node).is_in_group("targets")
 
 
 func _update_animation() -> void:

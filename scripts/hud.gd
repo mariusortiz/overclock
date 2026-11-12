@@ -19,6 +19,8 @@ enum Result { DEATH, VICTORY, LEFT, QUIT }
 const BANNER_TIME := 2.5
 const FADE_TIME := 0.4
 const ULTIMATE_READY_COLOR := Color(1.0, 0.85, 0.2)
+## Below this share of health, the edges of the screen beat red.
+const LOW_HEALTH := 0.3
 
 var _is_touch := DisplayServer.is_touchscreen_available()
 var _game_over := false
@@ -28,6 +30,13 @@ var _perk_options: Array = []
 var _hint := Label.new()
 var _health_number := Label.new()
 var _dance_wheel := Control.new()
+var _low_health := TextureRect.new()
+var _health_ratio := 1.0
+var _hurt_marks := DamageMarks.new()
+var _streak := Label.new()
+var _streak_tween: Tween
+var _countdown := Label.new()
+var _ultimate_was_ready := false
 var _wheel_mouse_was_captured := false
 var _hint_tween: Tween
 
@@ -80,11 +89,21 @@ func _ready() -> void:
 	_continue_button.pressed.connect(_on_exit_button_pressed.bind(false))
 	_build_hint()
 	_build_dance_wheel()
+	_build_low_health()
+	_hurt_marks.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_hurt_marks.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_hurt_marks)
+	move_child(_hurt_marks, reticle.get_index())
+	_setup_center_label(_streak, 34, Color(1.0, 0.24, 0.95), 0.62)
+	_setup_center_label(_countdown, 110, Color(0.16, 0.83, 1.0), 0.4)
 	_leave_button.pressed.connect(_on_exit_button_pressed.bind(true))
 
 
 func _process(_delta: float) -> void:
 	_fps_label.visible = Settings.show_fps
+	# Low health: the edges of the screen beat red.
+	var danger := clampf((LOW_HEALTH - _health_ratio) / LOW_HEALTH, 0.0, 1.0)
+	_low_health.modulate.a = danger * (0.55 + 0.35 * sin(Time.get_ticks_msec() / 1000.0 * (4.0 + danger * 4.0)))
 	_fps_label.text = "%d FPS" % Engine.get_frames_per_second()
 	_desktop_hint.visible = not _is_touch and not _game_over \
 			and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED
@@ -94,6 +113,7 @@ func set_health(current: int, maximum: int) -> void:
 	_health_bar.max_value = maximum
 	_health_bar.value = current
 	_health_number.text = str(current)
+	_health_ratio = float(current) / maxi(maximum, 1)
 
 
 ## Health in figures, on the bar.
@@ -137,12 +157,20 @@ func hide_boss() -> void:
 
 func set_ammo(current: int, magazine: int, reloading: bool) -> void:
 	_ammo_label.text = "RECHARGE…" if reloading else "%d / %d" % [current, magazine]
+	# Red when the magazine is nearly empty.
+	var low := not reloading and current <= ceili(magazine * 0.25)
+	_ammo_label.modulate = Color(1.0, 0.35, 0.3) if low else Color.WHITE
 
 
 ## `ratio`: charge of the ultimate, from 0 to 1.
 func set_ultimate(ratio: float) -> void:
 	touch_controls.set_ultimate(ratio)
 	var is_ready := ratio >= 1.0
+	if is_ready and not _ultimate_was_ready:
+		show_banner("ULTI PRÊTE")
+		if Settings.vibration_enabled:
+			Input.vibrate_handheld(60)
+	_ultimate_was_ready = is_ready
 	var text := "ULTI PRÊTE" if is_ready else "ULTI  %d %%" % floori(ratio * 100.0)
 	if is_ready and not _is_touch:
 		text += "  [E]"
@@ -224,6 +252,73 @@ func show_banner(text: String) -> void:
 	_banner_tween = create_tween()
 	_banner_tween.tween_interval(BANNER_TIME)
 	_banner_tween.tween_property(_banner, "modulate:a", 0.0, 0.5)
+
+
+## A red mark on the edge of the screen, toward where a hit came from.
+func show_hurt_from(from: Vector3) -> void:
+	_hurt_marks.add(from)
+
+
+## "DOUBLÉ", "TRIPLÉ"…: several kills in a row.
+func show_streak(text: String) -> void:
+	_streak.text = text
+	_streak.scale = Vector2.ONE * 1.4
+	_streak.pivot_offset = _streak.size / 2.0
+	if _streak_tween:
+		_streak_tween.kill()
+	_streak_tween = create_tween()
+	_streak_tween.tween_property(_streak, "modulate:a", 1.0, 0.08)
+	_streak_tween.parallel().tween_property(_streak, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_BACK)
+	_streak_tween.tween_interval(1.0)
+	_streak_tween.tween_property(_streak, "modulate:a", 0.0, 0.4)
+
+
+## The big 3, 2, 1 before a wave.
+func show_countdown(seconds: int) -> void:
+	_countdown.text = str(seconds)
+	_countdown.pivot_offset = _countdown.size / 2.0
+	_countdown.modulate.a = 1.0
+	var tween := create_tween()
+	tween.tween_property(_countdown, "scale", Vector2.ONE, 0.25).from(Vector2.ONE * 1.6).set_trans(Tween.TRANS_BACK)
+	tween.tween_interval(0.35)
+	tween.tween_property(_countdown, "modulate:a", 0.0, 0.3)
+
+
+func _setup_center_label(label: Label, font_size: int, color: Color, anchor_y: float) -> void:
+	label.anchor_left = 0.0
+	label.anchor_right = 1.0
+	label.anchor_top = anchor_y
+	label.anchor_bottom = anchor_y
+	label.grow_vertical = Control.GROW_DIRECTION_BOTH
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", color)
+	label.add_theme_color_override("font_outline_color", Color.BLACK)
+	label.add_theme_constant_override("outline_size", 10)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.modulate.a = 0.0
+	add_child(label)
+	move_child(label, pause_menu.get_index())
+
+
+## Red edges, shown when health is low.
+func _build_low_health() -> void:
+	var falloff := Gradient.new()
+	falloff.set_color(0, Color(0.8, 0, 0, 0))
+	falloff.set_color(1, Color(0.8, 0, 0, 0.75))
+	falloff.set_offset(0, 0.6)
+	var texture := GradientTexture2D.new()
+	texture.gradient = falloff
+	texture.fill = GradientTexture2D.FILL_RADIAL
+	texture.fill_from = Vector2(0.5, 0.5)
+	texture.fill_to = Vector2(1.0, 1.0)
+	_low_health.texture = texture
+	_low_health.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_low_health.stretch_mode = TextureRect.STRETCH_SCALE
+	_low_health.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_low_health.modulate.a = 0.0
+	add_child(_low_health)
+	move_child(_low_health, 0)
 
 
 ## Opens or closes the dance wheel; the game goes on meanwhile.

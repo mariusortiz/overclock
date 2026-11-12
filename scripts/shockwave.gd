@@ -50,4 +50,4 @@ func _physics_process(delta: float) -> void:
 	var on_ring := absf(Vector2(offset.x, offset.z).length() - _radius) <= THICKNESS
 	if on_ring and offset.y < SAFE_HEIGHT:
 		_has_hit = true
-		player.take_damage(damage)
+		player.take_damage(damage, global_position)

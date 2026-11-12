@@ -38,6 +38,8 @@ const LASER_COLOR := Color(1.0, 0.1, 0.15)
 const KAMIKAZE_RADIUS := 3.5
 const KAMIKAZE_DAMAGE := 25
 const KAMIKAZE_COLOR := Color(1.0, 0.25, 0.1)
+const HIT_FLASH_TIME := 0.07
+static var HIT_FLASH := _make_hit_flash()
 
 @export var max_health := 5
 @export var move_speed := 3.5
@@ -92,6 +94,8 @@ var _kill_color := Color.WHITE
 var _headshot_pending := false
 ## Sniper: seconds of aiming left (laser shown), and the laser itself.
 var _aim_left := 0.0
+## The glow drawn over the model (elite, kamikaze), restored after a hit flash.
+var _overlay: Material
 var _laser: MeshInstance3D
 var _tween: Tween
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -144,6 +148,15 @@ func set_kill_effect(style: StringName, color: Color) -> void:
 	_kill_color = color
 
 
+static func _make_hit_flash() -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(1, 1, 1, 0.65)
+	return material
+
+
 ## The next damage comes from a headshot (it is shown in another color).
 func mark_headshot() -> void:
 	_headshot_pending = true
@@ -170,6 +183,7 @@ func take_damage(amount: int) -> void:
 	else:
 		_visual.scale = _base_scale * 1.2
 		_scale_visual_to(_base_scale, 0.12)
+		_flash_white()
 
 
 ## Mace: thrown back, and unable to act for a moment.
@@ -364,7 +378,7 @@ func _attack() -> void:
 		return
 	if melee_damage > 0:
 		if global_position.distance_to(_player.global_position) <= attack_range + 0.5:
-			_player.take_damage(melee_damage)
+			_player.take_damage(melee_damage, global_position)
 		return
 	_spawn_projectile(_muzzle.global_position.direction_to(_player.get_aim_position()))
 
@@ -379,7 +393,7 @@ func _snipe() -> void:
 	var query := PhysicsRayQueryParameters3D.create(_muzzle.global_position, target, WORLD_MASK)
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	if hit.is_empty():
-		_player.take_damage(SNIPER_DAMAGE)
+		_player.take_damage(SNIPER_DAMAGE, global_position)
 	else:
 		target = hit.position
 	Effects.tracer(get_tree().current_scene, _muzzle.global_position, target, LASER_COLOR)
@@ -412,6 +426,16 @@ func _update_laser() -> void:
 	_laser.scale = Vector3(1, 1, from.distance_to(to))
 
 
+## A white flash over the model, for a hit that does not kill.
+func _flash_white() -> void:
+	for mesh: MeshInstance3D in _model.find_children("*", "MeshInstance3D", true, false):
+		mesh.material_overlay = HIT_FLASH
+	await get_tree().create_timer(HIT_FLASH_TIME, false).timeout
+	if is_instance_valid(_model):
+		for mesh: MeshInstance3D in _model.find_children("*", "MeshInstance3D", true, false):
+			mesh.material_overlay = _overlay
+
+
 ## Wraps the model in a colored glow; `pulse` makes it throb.
 func _glow(color: Color, strength: float, pulse := false) -> void:
 	var material := StandardMaterial3D.new()
@@ -419,6 +443,7 @@ func _glow(color: Color, strength: float, pulse := false) -> void:
 	material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	material.albedo_color = Color(color, strength)
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_overlay = material
 	for mesh: MeshInstance3D in _model.find_children("*", "MeshInstance3D", true, false):
 		mesh.material_overlay = material
 	if pulse:
@@ -435,7 +460,7 @@ func _blow_up() -> void:
 	Effects.burst(get_tree().current_scene, at, KAMIKAZE_COLOR, 44)
 	Effects.burst(get_tree().current_scene, at, Color(1.0, 0.85, 0.3), 20)
 	if _player and _player.global_position.distance_to(global_position) <= KAMIKAZE_RADIUS:
-		_player.take_damage(KAMIKAZE_DAMAGE)
+		_player.take_damage(KAMIKAZE_DAMAGE, global_position)
 		_player.shake(0.25)
 
 

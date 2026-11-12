@@ -10,6 +10,8 @@ signal enemies_left_changed(count: int)
 signal boss_spawned(boss: Boss)
 signal boss_killed(kind: Boss.Kind)
 signal elite_spawned
+## The last seconds before a wave: 3, 2, 1.
+signal countdown(seconds: int)
 signal elite_killed
 
 const BOSS_EVERY := 5
@@ -152,7 +154,13 @@ func _make_flying(enemy: Enemy) -> void:
 # --- Wave flow --------------------------------------------------------------
 
 func _start_next_wave(delay: float) -> void:
-	await get_tree().create_timer(delay, false).timeout
+	var counted := 3 if delay >= 3.5 else 0
+	await get_tree().create_timer(delay - counted, false).timeout
+	for seconds in range(counted, 0, -1):
+		if _stopped:
+			return
+		countdown.emit(seconds)
+		await get_tree().create_timer(1.0, false).timeout
 	if _stopped:
 		return
 	wave += 1
@@ -192,6 +200,11 @@ func _spawn() -> void:
 	if enemy.elite:
 		enemy.died.connect(elite_killed.emit)
 	get_parent().add_child(enemy)
+	# A flash where it appears.
+	var flash_color := Color(1.0, 0.5, 0.15) if enemy is Boss else Color(0.16, 0.9, 1.0)
+	Effects.spray(get_parent(), enemy.position + Vector3.UP * 0.6, [flash_color, Color.WHITE], 22,
+			Vector3.ONE * 0.1, Vector2(1.0, 3.0), Vector3(0, 2.0, 0), 35.0, 0.8, true)
+	Effects.flash(get_parent(), enemy.position + Vector3.UP, flash_color, 3.0, 0.35)
 	if enemy.elite:
 		elite_spawned.emit()
 	_to_spawn -= 1

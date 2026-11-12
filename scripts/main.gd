@@ -6,6 +6,13 @@ const WAVE_BONUS := 250  # multiplied by the wave number
 const WAVE_HEAL := 25
 const BOSS_SCORE := 1000
 const ELITE_SCORE := 400
+## Kills less than this many seconds apart make a streak.
+const STREAK_WINDOW := 1.6
+const STREAK_BONUS := 50  # per kill after the first
+const STREAK_NAMES := {2: "DOUBLÉ", 3: "TRIPLÉ", 4: "QUADRUPLÉ"}
+const KILL_VIBRATION_MS := 15
+## The boss's arrival: slow motion for this long (real time).
+const BOSS_ENTRANCE_TIME := 0.8
 const MENU_SCENE := "res://scenes/menu.tscn"
 const DAMAGE_VIBRATION_MS := 40
 const PERK_CHOICE_DELAY := 2.0
@@ -42,6 +49,8 @@ var _won := false
 var _endless := false
 var _boss: Boss
 var _stats := GameStats.new()
+var _streak := 0
+var _last_kill_time := -100.0
 
 @onready var player: Player = $Player
 @onready var hud: Hud = $HUD
@@ -81,6 +90,9 @@ func _ready() -> void:
 	waves.wave_cleared.connect(_on_wave_cleared)
 	waves.enemy_killed.connect(_add_score.bind(KILL_SCORE))
 	waves.enemy_killed.connect(player.on_enemy_killed)
+	waves.enemy_killed.connect(_on_enemy_killed)
+	waves.countdown.connect(hud.show_countdown)
+	player.hurt_from.connect(hud.show_hurt_from)
 	waves.enemies_left_changed.connect(_on_enemies_left_changed)
 	waves.boss_spawned.connect(_on_boss_spawned)
 	waves.boss_killed.connect(_on_boss_killed)
@@ -104,6 +116,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	hud.set_status(player.get_effects(), player.perks)
+	hud.reticle.on_target = player.aiming_at_enemy
 	if Input.is_action_just_pressed("emote") and player.health > 0:
 		hud.toggle_dance_wheel()
 
@@ -223,6 +236,20 @@ func _on_weapon_equipped(title: String) -> void:
 	hud.show_banner(title.to_upper())
 
 
+## Kill marker, a short buzz, and the streak count.
+func _on_enemy_killed() -> void:
+	hud.reticle.show_kill()
+	if Settings.vibration_enabled:
+		Input.vibrate_handheld(KILL_VIBRATION_MS)
+	var now := Time.get_ticks_msec() / 1000.0
+	_streak = _streak + 1 if now - _last_kill_time <= STREAK_WINDOW else 1
+	_last_kill_time = now
+	if _streak >= 2:
+		var bonus := STREAK_BONUS * (_streak - 1)
+		_add_score(bonus)
+		hud.show_streak("%s   +%d" % [STREAK_NAMES.get(_streak, "SÉRIE ×%d" % _streak), bonus])
+
+
 func _on_elite_killed() -> void:
 	_add_score(ELITE_SCORE)
 	hud.show_banner("ÉLITE ABATTUE   +%d" % ELITE_SCORE)
@@ -234,6 +261,12 @@ func _on_boss_spawned(boss: Boss) -> void:
 	hud.show_boss(Boss.INFO[boss.kind].name)
 	hud.set_boss_health(boss.max_health, boss.max_health)
 	boss.health_changed.connect(hud.set_boss_health)
+	# Its arrival: a moment of slow motion and a jolt.
+	player.shake(0.2)
+	Engine.time_scale = 0.4
+	await get_tree().create_timer(BOSS_ENTRANCE_TIME, true, false, true).timeout
+	if player.health > 0:
+		Engine.time_scale = 1.0
 
 
 func _on_boss_killed(kind: Boss.Kind) -> void:

@@ -30,7 +30,7 @@ func _explode(marker: MeshInstance3D) -> void:
 	marker.queue_free()
 	var player: Player = get_tree().get_first_node_in_group("player")
 	if player and global_position.distance_to(player.global_position) <= RADIUS:
-		player.take_damage(damage)
+		player.take_damage(damage, global_position)
 
 	var sphere := SphereMesh.new()
 	sphere.radius = RADIUS
