@@ -6,10 +6,10 @@ config_version=5
 [application]
 
 config/name="Overclock"
-config/version="0.22.0"
+config/version="0.23.0"
 run/main_scene="res://scenes/loading.tscn"
 config/features=PackedStringArray("4.5", "Mobile")
-config/icon="res://icon.svg"
+config/icon="res://assets/ui/icon.png"
 config/quit_on_go_back=false
 
 [autoload]

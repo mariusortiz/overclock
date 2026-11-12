@@ -8,6 +8,8 @@ https://mariusortiz.github.io/overclock-builds/
 
 Cette version web est mise à jour à chaque push sur `main`. Elle s'ouvre aussi dans le navigateur d'un téléphone.
 
+Sur téléphone, elle s'installe comme une application : menu du navigateur, « Ajouter à l'écran d'accueil » (Chrome sur Android) ou Partager puis « Sur l'écran d'accueil » (Safari sur iPhone). Elle s'ouvre alors en plein écran, à l'horizontale, avec l'icône du jeu. Après une mise à jour, la nouvelle version peut demander d'ouvrir le jeu deux fois : la première ouverture la télécharge, la seconde l'affiche.
+
 La compilation de l'APK Android est désactivée pour l'instant. Le preset d'export Android (`export_presets.cfg`) et la clé de debug (`ci/debug.keystore`) restent en place pour la réactiver plus tard.
 
 ## Contrôles
