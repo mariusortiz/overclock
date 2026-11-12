@@ -5,12 +5,16 @@ extends SkeletonModifier3D
 ## come with no such animations.
 ##
 ## `targets` maps a bone name to a rotation in degrees (x, y, z) expressed in
-## the skeleton's own space, not in the bone's: x bends forward or back, z
-## raises sideways, y twists. The same numbers therefore mean the same move on
-## every bone. `weight` (0 to 1) fades the whole pose in and out.
+## the model's space (`space`), not in the bone's: -x swings a limb forward,
+## +z raises a left limb sideways (-z a right one), y twists. The same numbers
+## therefore mean the same move on every bone. `weight` (0 to 1) fades the
+## whole pose in and out.
 
 var targets := {}
 var weight := 0.0
+## The model's root node: its axes are those of `targets` (+X its left side,
+## +Y up, +Z its front). The imported skeleton is often turned relative to it.
+var space: Node3D
 
 ## Bone name -> index, or -1 when the model has no such bone.
 var _indices := {}
@@ -31,9 +35,14 @@ func _process_modification_with_delta(_delta: float) -> void:
 			bones.append(index)
 			angles[index] = targets[bone_name]
 	bones.sort()
+	# Model space -> skeleton space.
+	var to_skeleton := Basis()
+	if space:
+		to_skeleton = (space.global_basis.inverse() * skeleton.global_basis).orthonormalized()
 	for index in bones:
 		var degrees: Vector3 = angles[index] * weight
 		var turn := Basis.from_euler(Vector3(deg_to_rad(degrees.x), deg_to_rad(degrees.y), deg_to_rad(degrees.z)))
+		turn = to_skeleton.inverse() * turn * to_skeleton
 		var current := skeleton.get_bone_global_pose(index).basis.orthonormalized()
 		var parent := skeleton.get_bone_parent(index)
 		var parent_basis := Basis()

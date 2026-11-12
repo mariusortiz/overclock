@@ -46,6 +46,7 @@ func _ready() -> void:
 		if _animations.has(action):
 			_animation_player.get_animation(_animations[action]).loop_mode = Animation.LOOP_LINEAR
 	if _skeleton:
+		pose.space = self
 		_skeleton.add_child(pose)
 	_fit()
 

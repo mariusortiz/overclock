@@ -11,9 +11,9 @@ const JUMP := {
 	"LowerArm.L": Vector3(-30, 0, 0), "LowerArm.R": Vector3(-30, 0, 0),
 	"UpperLeg.L": Vector3(-45, 0, 0), "UpperLeg.R": Vector3(-20, 0, 0),
 	"LowerLeg.L": Vector3(70, 0, 0), "LowerLeg.R": Vector3(50, 0, 0),
-	"Torso": Vector3(-10, 0, 0),
+	"Torso": Vector3(10, 0, 0),
 }
-const RUN := {"Torso": Vector3(-10, 0, 0), "Head": Vector3(6, 0, 0)}
+const RUN := {"Torso": Vector3(10, 0, 0), "Head": Vector3(-6, 0, 0)}
 
 static var LIST: Array[Dictionary] = [
 	{
