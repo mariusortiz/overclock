@@ -53,6 +53,8 @@ var _dance := -1
 var _dance_time := 0.0
 var _was_on_floor := true
 var _pivot_tween: Tween
+## Lights the hero's front during a dance: the sun is usually behind the camera's back.
+var _dance_light := OmniLight3D.new()
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var weapon: Weapon = $Weapon
@@ -82,6 +84,10 @@ func _ready() -> void:
 	melee.gun_visual = weapon.get_node("ModelPivot")
 	melee.swung.connect(_on_melee_swung)
 	_camera.add_child(inspection)
+	_dance_light.light_energy = 1.6
+	_dance_light.omni_range = 6.0
+	_dance_light.visible = false
+	_camera.add_child(_dance_light)
 	_spring_arm.add_excluded_object(get_rid())
 	_spring_arm.rotation.x = deg_to_rad(-15.0)
 	weapon.rotation.x = _spring_arm.rotation.x
@@ -156,6 +162,7 @@ func dance(index: int) -> void:
 		_model.play(&"idle")
 	weapon.visible = false
 	melee.visible = false
+	_dance_light.visible = true
 	inspection.cancel()
 
 
@@ -165,6 +172,7 @@ func stop_dance() -> void:
 	_dance = -1
 	weapon.visible = true
 	melee.visible = true
+	_dance_light.visible = false
 	_model_pivot.position = Vector3.ZERO
 	_model_pivot.rotation.y = 0.0
 
