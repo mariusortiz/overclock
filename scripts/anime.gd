@@ -307,9 +307,11 @@ func _run() -> void:
 	soldier = _hero("soldier", STAGE + Vector3(-1.0, 0, 2), 0.0)
 	kunoichi = _hero("kunoichi", STAGE + Vector3(1.0, 0, 2), 0.0)
 	soldier.play(&"aim")
-	var brute := _spawn_boss(Boss.Kind.BRUTE, STAGE + Vector3(0, 0, -5), 4.2)
-	_dolly(STAGE + Vector3(-2.5, 0.4, 5), STAGE + Vector3(-1.5, 0.5, 4), STAGE + Vector3(0, 3.0, -5),
-			STAGE + Vector3(0, 3.6, -5), 3.0, true)
+	var brute := _spawn_boss(Boss.Kind.BRUTE, STAGE + Vector3(0, 0, -5), 3.6)
+	# Twice the size it has in the game: the heroes look up at it.
+	(brute.get_parent() as Node3D).scale = Vector3.ONE * 2.2
+	_dolly(STAGE + Vector3(-4.5, 0.5, 6), STAGE + Vector3(-3.5, 0.6, 5), STAGE + Vector3(0, 3.5, -5),
+			STAGE + Vector3(0, 4.5, -5), 3.0, true)
 	_stomp(STAGE + Vector3(0, 0, -5), 0.7)
 	_impact_frame()
 	await _until(35.4)
@@ -428,6 +430,10 @@ func _run() -> void:
 		hero.play(&"die", true)
 	_dolly(STAGE + Vector3(4, 2.5, 8), STAGE + Vector3(3, 2.0, 7), STAGE + Vector3(0, 0.5, 3),
 			STAGE + Vector3(0, 0.6, 3), 3.0, true)
+	await _until(78.8)
+	# Knocked down: they stay on their knees until they get up again.
+	for hero: CharacterModel in [soldier, kunoichi, captain, ronin]:
+		hero.freeze(&"die", 1.0)
 	await _until(79.6)
 	_dolly(STAGE + Vector3(-2.2, 0.6, 4.2), STAGE + Vector3(-2.0, 0.7, 3.9), STAGE + Vector3(-1.5, 0.5, 3),
 			STAGE + Vector3(-1.5, 0.5, 3), 4.0, true)
