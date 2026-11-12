@@ -65,6 +65,16 @@
   .video h3 { margin: 0 0 4px; font-size: 1.2rem; }
   .video p { margin: 0; color: var(--muted); font-size: 0.95rem; }
 
+  /* Episodes */
+  .episodes { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .episode { display: block; background: var(--panel); border: 1px solid var(--line); color: var(--text); text-decoration: none; transition: transform 0.15s, border-color 0.15s; }
+  .episode:hover, .episode:focus-visible { transform: translateY(-3px); border-color: var(--cyan); }
+  .episode img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #000; }
+  .episode div { padding: 10px 14px 14px; }
+  .episode span { font-family: var(--title); font-size: 0.75rem; color: var(--magenta); letter-spacing: 0.06em; }
+  .episode h3 { margin: 2px 0 4px; font-size: 1rem; }
+  .episode p { margin: 0; color: var(--muted); font-size: 0.88rem; }
+
   /* Features */
   .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
   .feature { background: var(--panel); border: 1px solid var(--line); }
@@ -133,11 +143,60 @@
         <article class="video">
           <video src="../anime.mp4" poster="../anime.jpg" controls playsinline preload="none"></video>
           <div>
-            <span class="tag">Nouveau</span>
+            <span class="tag">Anime</span>
             <h3>Épisode 1 : L'escouade</h3>
-            <p>Le Soldat, la Kunoichi, la Capitaine et le Ronin contre le Titan, façon anime. 2 min.</p>
+            <p>Le Soldat, la Kunoichi, la Capitaine et le Ronin contre le Titan, façon anime. La suite : <a href="#anime">9 autres épisodes</a>.</p>
           </div>
         </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="anime">
+    <div class="wrap">
+      <h2>L'anime · saison 1</h2>
+      <p class="lead">Dix épisodes de 2 minutes : l'escouade, le Titan, puis Vipère et son Escouade Écarlate, jusqu'au Titan Mk II.</p>
+      <div class="episodes">
+        <a class="episode" href="../anime.html">
+          <img src="../anime.jpg" alt="Épisode 1" loading="lazy">
+          <div><span>ÉPISODE 1</span><h3>L'escouade</h3><p>Quatre héros contre le Titan.</p></div>
+        </a>
+        <a class="episode" href="../anime02.html">
+          <img src="../anime02.jpg" alt="Épisode 2" loading="lazy">
+          <div><span>ÉPISODE 2</span><h3>Le défi</h3><p>Vipère débarque et lance un défi.</p></div>
+        </a>
+        <a class="episode" href="../anime03.html">
+          <img src="../anime03.jpg" alt="Épisode 3" loading="lazy">
+          <div><span>ÉPISODE 3</span><h3>La course</h3><p>Course de vaisseaux contre l'Écarlate.</p></div>
+        </a>
+        <a class="episode" href="../anime04.html">
+          <img src="../anime04.jpg" alt="Épisode 4" loading="lazy">
+          <div><span>ÉPISODE 4</span><h3>L'escouade écarlate</h3><p>Squad contre squad pour la station.</p></div>
+        </a>
+        <a class="episode" href="../anime05.html">
+          <img src="../anime05.jpg" alt="Épisode 5" loading="lazy">
+          <div><span>ÉPISODE 5</span><h3>Le désert des secrets</h3><p>Calamity, un gardien, des secrets.</p></div>
+        </a>
+        <a class="episode" href="../anime06.html">
+          <img src="../anime06.jpg" alt="Épisode 6" loading="lazy">
+          <div><span>ÉPISODE 6</span><h3>Duel dans la jungle</h3><p>Le Ronin face à Vipère.</p></div>
+        </a>
+        <a class="episode" href="../anime07.html">
+          <img src="../anime07.jpg" alt="Épisode 7" loading="lazy">
+          <div><span>ÉPISODE 7</span><h3>Alliance</h3><p>Deux escouades, une trêve.</p></div>
+        </a>
+        <a class="episode" href="../anime08.html">
+          <img src="../anime08.jpg" alt="Épisode 8" loading="lazy">
+          <div><span>ÉPISODE 8</span><h3>Le volcan</h3><p>Infiltration chez le Directeur.</p></div>
+        </a>
+        <a class="episode" href="../anime09.html">
+          <img src="../anime09.jpg" alt="Épisode 9" loading="lazy">
+          <div><span>ÉPISODE 9</span><h3>Titan Mk II</h3><p>Le Titan rouge marche sur la ville.</p></div>
+        </a>
+        <a class="episode" href="../anime10.html">
+          <img src="../anime10.jpg" alt="Épisode 10" loading="lazy">
+          <div><span>ÉPISODE 10</span><h3>Overclock</h3><p>Le final de la saison 1.</p></div>
+        </a>
       </div>
     </div>
   </section>

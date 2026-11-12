@@ -1,2 +1,11 @@
 # episode	title	music	start (s)
 1	L'ESCOUADE	tools/anime_music.mp3	0
+2	LE DÉFI	assets/audio/music/city_loop.mp3	0
+3	LA COURSE	assets/audio/music/virtual_rush.ogg	0
+4	L'ESCOUADE ÉCARLATE	assets/audio/music/boss_battle_loop.mp3	0
+5	LE DÉSERT DES SECRETS	assets/audio/music/desert_travel.ogg	0
+6	DUEL DANS LA JUNGLE	assets/audio/music/jungle_battle.ogg	0
+7	ALLIANCE	assets/audio/music/synthwave_house_loop.ogg	0
+8	LE VOLCAN	assets/audio/music/fire_level.mp3	0
+9	TITAN MK II	assets/audio/music/omega_droid.ogg	0
+10	OVERCLOCK	tools/trailer_music.mp3	12

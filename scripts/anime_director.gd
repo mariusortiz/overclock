@@ -792,14 +792,20 @@ func _process(delta: float) -> void:
 	_clock += delta
 	_shake = move_toward(_shake, 0.0, (_shake * 3.0 + 0.05) * delta)
 	for entry: Array in _movers:
+		if not is_instance_valid(entry[0]):
+			continue
 		var pivot := entry[0] as Node3D
 		if is_instance_valid(pivot):
 			pivot.position += (entry[1] as Vector3) * delta
 	for entry: Array in _flyers:
+		if not is_instance_valid(entry[0]):
+			continue
 		var ship := entry[0] as RaceShip
 		if is_instance_valid(ship) and _track:
 			ship.fly(delta, ((entry[1] as Vector2) - ship.offset).limit_length(1.0), _track)
 	for entry: Array in _held:
+		if not is_instance_valid(entry[0]):
+			continue
 		var character := entry[0] as CharacterModel
 		if is_instance_valid(character):
 			character.place_in_hand(entry[1] as Node3D, "R", false)
