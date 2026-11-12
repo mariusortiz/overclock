@@ -111,7 +111,8 @@ func _story() -> void:
 
 	# 42.6 s: the others land beside him.
 	for index in range(1, 4):
-		_fly_to(ships[index], ships[index].global_position, STAGE + Vector3(-5.0 + 2.6 * index, 0.8, 1.0), 2.0)
+		create_tween().tween_property(ships[index], "scale", Vector3.ONE, 2.0)
+		_fly_to(ships[index], ships[index].global_position, STAGE + Vector3(-6.0 + 3.0 * index, 0.8, -3.5), 2.0)
 	_dolly(STAGE + Vector3(0, 2, 10), STAGE + Vector3(0, 1.8, 9), STAGE + Vector3(-1, 3, 2),
 			STAGE + Vector3(-1, 1, 2), 3.0, true)
 	await _until(45.6)
