@@ -136,6 +136,9 @@ def circle(center, radius, steps, start=0.0):
              center[1] + radius * math.sin(start + math.tau * i / steps)) for i in range(steps)]
 
 
+BUTTERFLY_SCALE = 1.85
+
+
 # --- Weapons ------------------------------------------------------------------
 
 def knife():
@@ -157,17 +160,34 @@ def kunai():
 
 
 def butterfly():
-    m = Model()
-    # Opened: the two handles side by side in the hand, the blade above.
-    for side in (-1, 1):
-        m.tube("Guard", [(side * 0.009, 0.07), (side * 0.012, -0.075)], 0.0075, 0.009, 6)
+    # Opened: the two handles side by side in the hand, the blade above. The
+    # handles turn around the pivot at the foot of the blade; the game's
+    # inspection animates them, so each part is also saved alone, with the
+    # pivot at its origin.
+    pivot = 0.07
+
+    def handle(side, base):
+        m = Model()
+        m.tube("Guard", [(side * 0.009, 0.07 - base), (side * 0.012, -0.075 - base)], 0.0075, 0.009, 6)
         for y in (0.04, 0.0, -0.04):
-            m.box("Accent", (side * 0.0105, y, 0), (0.007, 0.016, 0.021))
-    m.box("Brass", (0, 0.07, 0), (0.034, 0.012, 0.022))
-    m.box("Brass", (0, -0.078, 0), (0.03, 0.007, 0.012))
-    m.blade([((-0.012, 0.076), (0.013, 0.076)), ((-0.012, 0.16), (0.014, 0.17)), ((-0.006, 0.2), (0.008, 0.205)),
-             ((0.002, 0.222), (0.002, 0.222))], 0.007)
-    m.save("butterfly", 1.85)
+            m.box("Accent", (side * 0.0105, y - base, 0), (0.007, 0.016, 0.021))
+        return m
+
+    def blade(base):
+        m = Model()
+        m.box("Brass", (0, 0.07 - base, 0), (0.034, 0.012, 0.022))
+        m.blade([((-0.012, 0.076 - base), (0.013, 0.076 - base)), ((-0.012, 0.16 - base), (0.014, 0.17 - base)),
+                 ((-0.006, 0.2 - base), (0.008, 0.205 - base)), ((0.002, 0.222 - base), (0.002, 0.222 - base))], 0.007)
+        return m
+
+    whole = Model()
+    for part in (handle(-1, 0), handle(1, 0), blade(0)):
+        whole.faces += part.faces
+    whole.box("Brass", (0, -0.078, 0), (0.03, 0.007, 0.012))
+    whole.save("butterfly", BUTTERFLY_SCALE)
+    handle(-1, pivot).save("butterfly_handle_a", BUTTERFLY_SCALE)
+    handle(1, pivot).save("butterfly_handle_b", BUTTERFLY_SCALE)
+    blade(pivot).save("butterfly_blade", BUTTERFLY_SCALE)
 
 
 def karambit():

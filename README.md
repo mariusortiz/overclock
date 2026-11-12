@@ -20,6 +20,7 @@ La compilation de l'APK Android est désactivée pour l'instant. Le preset d'exp
 | Viser (zoom) | Bouton VISER : un appui l'active, un autre le désactive | Maintenir le clic droit |
 | Corps à corps | Bouton COUP | F |
 | Ulti | Bouton ULTI, quand la jauge est pleine | E |
+| Inspecter son arme | Bouton INSP. (un 2e appui pendant l'inspection montre l'arme de mêlée) | Y |
 | Recharger | Bouton RECH. à gauche du bouton TIR (automatique quand le chargeur est vide) | R |
 | Pause et réglages | Bouton II en haut à droite, ou bouton retour d'Android | Échap |
 | Sauter | Bouton SAUT au-dessus du bouton TIR | Espace |
@@ -133,6 +134,8 @@ Un tir dans la tête fait le double de dégâts : le marqueur de touche devient 
 | Machette (une cible) | 0,9 s | 9 | 2,6 m |
 | Masse (repousse l'ennemi) | 1 s | 8 | 2,4 m |
 | Hache (tous les ennemis devant soi) | 1,1 s | 10 | 2,6 m |
+
+L'inspection montre l'arme en gros plan devant la caméra, le temps de la regarder : une arme à feu se retourne et son chargeur sort, tourne puis se réenclenche (les revolvers, fusils à pompe et le lance-roquettes font un tonneau) ; le couteau papillon s'ouvre, tournoie et se referme ; les autres armes de mêlée tournent sur elles-mêmes. Tirer, viser, frapper, recharger ou lancer l'ulti l'interrompt.
 
 Les modèles des armes de corps à corps sont dessinés par code (`tools/make_melee_models.py`) : lame en acier brossé, manche en bois, en caoutchouc ou tressé. Les 13 skins servent aussi à ces armes, avec un choix séparé de celui de l'arme à feu : la finition repeint la lame et garde le manche. Elle ne change que l'apparence.
 

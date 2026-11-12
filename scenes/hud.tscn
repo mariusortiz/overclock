@@ -120,7 +120,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 26
 text = "Clique pour jouer
-ZQSD : bouger · Clic : tirer · Clic droit : viser · F : corps à corps · E : ulti · R : recharger · Espace : sauter · Échap : pause"
+ZQSD : bouger · Clic : tirer · Clic droit : viser · F : corps à corps · Y : inspecter · E : ulti · R : recharger · Espace : sauter · Échap : pause"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3

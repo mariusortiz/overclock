@@ -1,0 +1,6 @@
+newmtl Guard
+Kd 0.200 0.200 0.230
+
+newmtl Accent
+Kd 0.750 0.120 0.120
+

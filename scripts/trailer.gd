@@ -9,7 +9,7 @@ extends Node
 ## The music is laid over the picture afterwards, by the same workflow.
 
 const URL := "mariusortiz.github.io/overclock-builds"
-const DURATION := 120.0
+const DURATION := 130.0
 const TEXT_COLOR := Color(0.16, 0.9, 1.0)
 const ACCENT := Color(1.0, 0.24, 0.95)
 const FONT := preload("res://assets/ui/fonts/kenney_mini_square_mono.ttf")
@@ -42,6 +42,10 @@ const GUN_SPACING := 2.3
 const GUN_LENGTH := 1.3
 const GUN_HEIGHT := 1.3
 const HERO_SPACING := 2.1
+const BLADE_SPACING := 2.3
+const BLADE_HEIGHT := 1.35
+## Size of the logo on the title cards, in the units of the 1280 x 720 screen.
+const LOGO_SIZE := Vector2(760, 190)
 ## The gun each hero holds in the line-up, in the order of Loadout.CHARACTERS.
 const HERO_GUNS: Array[String] = [
 	"heavy", "revolver_3", "smg", "pistol_4", "shotgun_5", "rifle_6", "sniper_2",
@@ -74,10 +78,15 @@ var _held: Array[Array] = []
 var _actors: Array[Node3D] = []
 var _walkers: Array[Node3D] = []
 var _floaters: Array[Node3D] = []
+## Blades on show: they turn on themselves.
+var _spinners: Array[Node3D] = []
+var _inspection := Inspection.new()
+var _fov_tween: Tween
 var _flock: Node3D
 
 var _shade := ColorRect.new()
-var _title := Label.new()
+var _logo := Logo.new()
+var _blink_rect := ColorRect.new()
 var _subtitle := Label.new()
 var _kicker := Label.new()
 var _caption := Label.new()
@@ -91,6 +100,7 @@ func _ready() -> void:
 	_camera.fov = 60.0
 	_camera.far = 400.0
 	_camera.make_current()
+	_camera.add_child(_inspection)
 	_build_overlay()
 	_run.call_deferred()
 
@@ -104,13 +114,14 @@ func _run() -> void:
 	_orbit(Vector3(0, 1, 0), 34.0, 13.0, 0.6, 0.16)
 	_fade_shade(0.0, 1.5)
 	await _until(1.5)
-	_show_title("OVERCLOCK", "SHOOTER D'ARÈNE · 3D LOW-POLY", 5.0)
+	_show_title("SHOOTER D'ARÈNE · 3D LOW-POLY", 5.0)
 	await _until(7.0)
 
 	# Five arenas at a glance.
 	for index in ARENAS.size():
 		_load_arena(index)
 		_orbit(Vector3(0, 1, 0), 30.0, 8.0 + index, 1.1 * index, 0.3)
+		_blink()
 		_show_caption("ARÈNE %d / %d" % [index + 1, ARENAS.size()], _arena().display_name, 1.5)
 		await _until(7.0 + 1.8 * (index + 1))
 
@@ -125,6 +136,7 @@ func _run() -> void:
 		_show_caption("ARÈNE %d / %d" % [index + 1, ARENAS.size()], _arena().display_name, 3.0)
 		await _until(start + 3.5)
 		_parade(_arena())
+		_blink()
 		_show_caption("ENNEMIS", info.enemies, 3.5)
 		await _until(start + 7.7)
 		if index == CITY:
@@ -134,6 +146,7 @@ func _run() -> void:
 		_clear_actors()
 		var boss_kind: Boss.Kind = info.boss
 		_present_boss(boss_kind, 4.3)
+		_blink()
 		_show_caption("BOSS", Boss.INFO[boss_kind].name, 3.6)
 		start += 12.0
 		await _until(start)
@@ -156,7 +169,24 @@ func _run() -> void:
 	_show_caption("ARSENAL", "%d ARMES · %d SKINS" % [Loadout.WEAPONS.size(), Loadout.SKINS.size()], 13.5)
 	await _until(92.0)
 
-	# 92 s: the heroes.
+	# 92 s: the blades, then the butterfly knife flipping in the hand.
+	_build_showroom()
+	_flash()
+	_line_up_blades()
+	var last_blade := (Loadout.MELEE.size() - 1) * BLADE_SPACING
+	_dolly(Vector3(-1.2, 1.25, 3.4), Vector3(last_blade + 1.2, 1.25, 3.4),
+			Vector3(-1.2, 1.15, 0), Vector3(last_blade + 1.2, 1.15, 0), 7.0)
+	_show_caption("CORPS À CORPS", "%d LAMES · LES MÊMES SKINS" % Loadout.MELEE.size(), 6.0)
+	await _until(99.0)
+	_clear_actors()
+	_blink()
+	_dolly(Vector3(0, 1.3, 3.0), Vector3(0, 1.3, 2.6), Vector3(0, 1.3, 0), Vector3(0, 1.3, 0), 3.6)
+	_inspection.start_melee(Loadout.find("butterfly").item, Loadout.find("skin_neon").item)
+	_show_caption("NOUVEAU", "INSPECTE TES ARMES", 3.0)
+	await _until(102.6)
+	_inspection.cancel()
+
+	# 102.6 s: the heroes.
 	_build_showroom()
 	_flash()
 	_line_up_heroes()
@@ -164,27 +194,28 @@ func _run() -> void:
 	_dolly(Vector3(-1.0, 1.5, 4.9), Vector3(last_hero + 1.0, 1.5, 4.9),
 			Vector3(-1.0, 1.45, 0), Vector3(last_hero + 1.0, 1.45, 0), 12.0)
 	_show_caption("CHACUN SON ULTI", "%d HÉROS" % Loadout.CHARACTERS.size(), 10.5)
-	await _until(104.0)
+	await _until(114.6)
 
-	# 104 s: the last boss, and what beating it earns.
+	# 114.6 s: the last boss, and what beating it earns.
 	_load_arena(CITY)
 	_flash()
 	_present_boss(Boss.Kind.TITAN, 4.6)
 	_show_caption("AU BOUT DE LA VILLE", "LE TITAN", 3.8)
-	await _until(108.6)
+	await _until(119.2)
 	_clear_actors()
+	_blink()
 	var trophy := Trophy.new()
 	_set.add_child(trophy)
 	trophy.position = BOSS_SPOT
 	_orbit(BOSS_SPOT + Vector3.UP * 1.6, 7.0, 2.2, 1.2, 0.5)
 	_show_caption("BATS-LE", "GAGNE LE SKIN CHAMPION", 2.4)
-	await _until(111.0)
+	await _until(121.6)
 
 	# End card.
 	_fade_shade(1.0, 1.0)
-	await _until(112.3)
-	_show_title("OVERCLOCK", "JOUEZ MAINTENANT\n%s\n\n5 ARÈNES · 5 BOSS · %d ARMES · %d HÉROS" % [
-			URL, Loadout.WEAPONS.size(), Loadout.CHARACTERS.size()], 7.2)
+	await _until(122.9)
+	_show_title("JOUEZ MAINTENANT\n%s\n\n5 ARÈNES · 5 BOSS · %d ARMES · %d LAMES · %d HÉROS" % [
+			URL, Loadout.WEAPONS.size(), Loadout.MELEE.size(), Loadout.CHARACTERS.size()], 6.6)
 	await _until(DURATION)
 	get_tree().quit()
 
@@ -206,11 +237,12 @@ func _clear() -> void:
 
 ## Frees the models on stage and keeps the set.
 func _clear_actors() -> void:
-	for node in _actors + _floaters:
+	for node in _actors + _floaters + _spinners:
 		if is_instance_valid(node):
 			node.queue_free()
 	_actors.clear()
 	_floaters.clear()
+	_spinners.clear()
 	_walkers.clear()
 	_held.clear()
 	if is_instance_valid(_flock):
@@ -278,6 +310,34 @@ func _build_showroom() -> void:
 		strip.mesh = mesh
 		strip.position = Vector3(0, 0.02, line[1])
 		_set.add_child(strip)
+	_add_sparks()
+
+
+## Small lights rising through the hall.
+func _add_sparks() -> void:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = TEXT_COLOR
+	material.emission_enabled = true
+	material.emission = TEXT_COLOR
+	material.emission_energy_multiplier = 3.0
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3.ONE * 0.035
+	mesh.material = material
+	var sparks := CPUParticles3D.new()
+	sparks.mesh = mesh
+	sparks.amount = 500
+	sparks.lifetime = 5.0
+	sparks.preprocess = 5.0
+	sparks.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	sparks.emission_box_extents = Vector3(60, 0.1, 3.5)
+	sparks.position = Vector3(45, 0, -1.5)
+	sparks.direction = Vector3.UP
+	sparks.spread = 12.0
+	sparks.gravity = Vector3.ZERO
+	sparks.initial_velocity_min = 0.3
+	sparks.initial_velocity_max = 0.9
+	sparks.scale_amount_min = 0.4
+	_set.add_child(sparks)
 
 
 # --- Actors -----------------------------------------------------------------
@@ -344,6 +404,9 @@ func _present_boss(kind: Boss.Kind, seconds: float) -> void:
 	var look := BOSS_SPOT + Vector3.UP * (hover + height * 0.55)
 	_dolly(BOSS_SPOT + Vector3(-height * 1.1, height * 0.25, height * 2.1),
 			BOSS_SPOT + Vector3(height * 1.0, height * 0.4, height * 1.7), look, look, seconds, true)
+	# The lens closes in on the boss while it is on screen.
+	_fov_tween = create_tween()
+	_fov_tween.tween_property(_camera, "fov", 44.0, seconds).from(64.0)
 	_strike_later(boss, seconds * 0.35)
 
 
@@ -385,6 +448,27 @@ func _line_up_guns() -> void:
 		_label(str(skin.name).to_upper(), Vector3(index * GUN_SPACING, 0.62, 0), skin_color, 22)
 
 
+## Every melee weapon in a row, each with a finish, turning on itself.
+func _line_up_blades() -> void:
+	for index in Loadout.MELEE.size():
+		var item: Dictionary = Loadout.MELEE[index]
+		var skin: Dictionary = Loadout.SKINS[(index * 3 + 1) % Loadout.SKINS.size()]
+		var bounds := Loadout.melee_bounds(item)
+		var size := minf(BLADE_HEIGHT / bounds.size.y, 2.6)
+		var blade := Loadout.instantiate_melee(item, skin)
+		blade.scale = Vector3.ONE * size
+		# Held by the handle: lower it so that it turns around its middle.
+		blade.position.y = -bounds.get_center().y * size
+		var holder := Node3D.new()
+		holder.position = Vector3(index * BLADE_SPACING, 1.3, 0)
+		holder.add_child(blade)
+		_set.add_child(holder)
+		_spinners.append(holder)
+		var skin_color: Color = skin.shot
+		_label(str(item.name).to_upper(), Vector3(index * BLADE_SPACING, 0.42, 0), Color.WHITE, 26)
+		_label(str(skin.name).to_upper(), Vector3(index * BLADE_SPACING, 0.26, 0), skin_color, 22)
+
+
 ## Every hero side by side, gun in hand, with the name of their ultimate.
 func _line_up_heroes() -> void:
 	for index in Loadout.CHARACTERS.size():
@@ -423,6 +507,7 @@ func _orbit(center: Vector3, radius: float, height: float, angle: float, speed: 
 	_angle = angle
 	_speed = speed
 	_guarded = false
+	_reset_lens()
 	_place_camera()
 
 
@@ -438,7 +523,14 @@ func _dolly(from: Vector3, to: Vector3, look_from: Vector3, look_to: Vector3, se
 	_shot_start = _clock
 	_shot_length = seconds
 	_guarded = guarded
+	_reset_lens()
 	_place_camera()
+
+
+func _reset_lens() -> void:
+	if _fov_tween:
+		_fov_tween.kill()
+	_camera.fov = 60.0
 
 
 func _place_camera() -> void:
@@ -479,6 +571,10 @@ func _process(delta: float) -> void:
 			# Guns: side-on to the camera, swaying, bobbing.
 			floater.rotation.y = PI / 2.0 + sin(_clock * 1.3 + index * 0.8) * 0.6
 			floater.position.y = GUN_HEIGHT + sin(_clock * 1.7 + index) * 0.05
+	for index in _spinners.size():
+		var spinner := _spinners[index]
+		if is_instance_valid(spinner):
+			spinner.rotation = Vector3(0.25, _clock * 1.5 + index * 0.9, 0)
 	if is_instance_valid(_flock):
 		_flock.rotation.y += 0.45 * delta
 	for entry: Array in _held:
@@ -505,14 +601,45 @@ func _build_overlay() -> void:
 		bar.anchor_bottom = BAR_HEIGHT if top else 1.0
 		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		layer.add_child(bar)
+	# Darker corners, to pull the eye to the middle of the picture.
+	var falloff := Gradient.new()
+	falloff.set_color(0, Color(0, 0, 0, 0))
+	falloff.set_color(1, Color(0, 0, 0, 0.6))
+	falloff.set_offset(0, 0.55)
+	var vignette_texture := GradientTexture2D.new()
+	vignette_texture.gradient = falloff
+	vignette_texture.fill = GradientTexture2D.FILL_RADIAL
+	vignette_texture.fill_from = Vector2(0.5, 0.5)
+	vignette_texture.fill_to = Vector2(1.0, 1.0)
+	var vignette := TextureRect.new()
+	vignette.texture = vignette_texture
+	vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vignette.stretch_mode = TextureRect.STRETCH_SCALE
+	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(vignette)
+	layer.move_child(vignette, 0)
+	_blink_rect.color = Color(1, 1, 1, 0)
+	_blink_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_blink_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(_blink_rect)
 	_setup_label(layer, _kicker, 24, ACCENT, 0.745, HORIZONTAL_ALIGNMENT_LEFT)
 	_setup_label(layer, _caption, 54, Color.WHITE, 0.815, HORIZONTAL_ALIGNMENT_LEFT)
 	_shade.color = Color.BLACK
 	_shade.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(_shade)
-	_setup_label(layer, _title, 150, TEXT_COLOR, 0.32, HORIZONTAL_ALIGNMENT_CENTER)
-	_setup_label(layer, _subtitle, 34, Color.WHITE, 0.64, HORIZONTAL_ALIGNMENT_CENTER)
+	_logo.anchor_left = 0.5
+	_logo.anchor_right = 0.5
+	_logo.anchor_top = 0.34
+	_logo.anchor_bottom = 0.34
+	_logo.offset_left = -LOGO_SIZE.x / 2.0
+	_logo.offset_right = LOGO_SIZE.x / 2.0
+	_logo.offset_top = -LOGO_SIZE.y / 2.0
+	_logo.offset_bottom = LOGO_SIZE.y / 2.0
+	_logo.pivot_offset = LOGO_SIZE / 2.0
+	_logo.modulate.a = 0.0
+	layer.add_child(_logo)
+	_setup_label(layer, _subtitle, 30, Color.WHITE, 0.66, HORIZONTAL_ALIGNMENT_CENTER)
 
 
 func _setup_label(layer: CanvasLayer, label: Label, font_size: int, color: Color, anchor_y: float,
@@ -542,15 +669,23 @@ func _flash() -> void:
 	_fade_shade(0.0, 0.4)
 
 
-## Big title with lines under it, shown for `seconds`.
-func _show_title(title: String, subtitle: String, seconds: float) -> void:
-	_title.text = title
+## A white flash on a cut, in time with the music.
+func _blink() -> void:
+	_blink_rect.color.a = 0.55
+	create_tween().tween_property(_blink_rect, "color:a", 0.0, 0.3)
+
+
+## The logo lands on the screen with lines under it, for `seconds`.
+func _show_title(subtitle: String, seconds: float) -> void:
 	_subtitle.text = subtitle
+	_logo.scale = Vector2.ONE * 1.5
 	var tween := create_tween()
-	tween.tween_property(_title, "modulate:a", 1.0, 0.6)
+	tween.tween_property(_logo, "modulate:a", 1.0, 0.35)
+	tween.parallel().tween_property(_logo, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.parallel().tween_property(_subtitle, "modulate:a", 1.0, 0.6).set_delay(0.5)
-	tween.tween_interval(seconds - 1.8)
-	tween.tween_property(_title, "modulate:a", 0.0, 0.6)
+	# It keeps growing a little while it stays.
+	tween.tween_property(_logo, "scale", Vector2.ONE * 1.06, seconds - 1.7)
+	tween.tween_property(_logo, "modulate:a", 0.0, 0.6)
 	tween.parallel().tween_property(_subtitle, "modulate:a", 0.0, 0.6)
 
 
@@ -565,6 +700,10 @@ func _show_caption(kicker: String, text: String, seconds: float) -> void:
 	_caption_tween = create_tween()
 	_caption_tween.tween_property(_kicker, "modulate:a", 1.0, 0.25)
 	_caption_tween.parallel().tween_property(_caption, "modulate:a", 1.0, 0.25)
+	# They slide in from the left.
+	for label: Label in [_kicker, _caption]:
+		_caption_tween.parallel().tween_property(label, "offset_left", 0.0, 0.35).from(-70.0) \
+				.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_caption_tween.tween_interval(maxf(seconds - 0.6, 0.1))
 	_caption_tween.tween_property(_kicker, "modulate:a", 0.0, 0.35)
 	_caption_tween.parallel().tween_property(_caption, "modulate:a", 0.0, 0.35)

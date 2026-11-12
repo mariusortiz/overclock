@@ -18,6 +18,7 @@ const BUTTONS := [
 	{"action": "reload", "label": "RECH.", "radius": 52.0, "font_size": 20, "offset": Vector2(-153, 30), "toggle": false},
 	{"action": "melee", "label": "COUP", "radius": 52.0, "font_size": 20, "offset": Vector2(-140, -95), "toggle": false},
 	{"action": "ultimate", "label": "ULTI", "radius": 52.0, "font_size": 20, "offset": Vector2(-275, 75), "toggle": false},
+	{"action": "inspect", "label": "INSP.", "radius": 42.0, "font_size": 17, "offset": Vector2(-385, -40), "toggle": false},
 	{"action": "aim", "label": "VISER", "radius": 52.0, "font_size": 20, "offset": Vector2(-265, -40), "toggle": true},
 ]
 

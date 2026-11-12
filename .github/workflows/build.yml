@@ -55,7 +55,7 @@ jobs:
             godot --headless --fixed-fps 60 --quit-after 1200 res://scenes/main.tscn -- --start-wave=$wave 2>&1 | tee -a run.log
           done
           # The trailer's whole timeline, without drawing it.
-          godot --headless --fixed-fps 30 --quit-after 3700 res://scenes/tools/trailer.tscn 2>&1 | tee -a run.log
+          godot --headless --fixed-fps 30 --quit-after 4000 res://scenes/tools/trailer.tscn 2>&1 | tee -a run.log
           # "still in use at exit" only reports the music playing when --quit-after stops the game.
           # Enemies must be able to walk up to every deck.
           godot --headless --fixed-fps 60 res://scenes/tools/nav_check.tscn 2>&1 | tee -a run.log

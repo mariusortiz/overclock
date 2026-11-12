@@ -261,8 +261,17 @@ static func _add_part(gun: Node3D, model: String, basis: Basis, at: Vector3) -> 
 ## Creates a melee weapon as held in the hand: its handle along +Y, the hand
 ## at the origin. `skin` (an entry of SKINS) repaints its blade; none by default.
 static func instantiate_melee(item: Dictionary, skin := {}) -> Node3D:
+	var held := Node3D.new()
+	held.add_child(melee_part(item.model, skin))
+	return held
+
+
+## One model of assets/models/melee with its materials and, on its blade, the
+## skin's finish. A weapon is one model; the butterfly knife also exists in
+## separate parts (see Inspection).
+static func melee_part(model: String, skin := {}) -> MeshInstance3D:
 	var part := MeshInstance3D.new()
-	part.mesh = load(MELEE_DIR + item.model + ".obj")
+	part.mesh = load(MELEE_DIR + model + ".obj")
 	var finish: StandardMaterial3D = null
 	if not skin.is_empty() and skin.pattern:
 		finish = _finish(skin, MELEE_PATTERN_SCALE)
@@ -272,9 +281,7 @@ static func instantiate_melee(item: Dictionary, skin := {}) -> Node3D:
 			part.set_surface_override_material(surface, finish)
 		else:
 			part.set_surface_override_material(surface, _melee_material(part_name))
-	var held := Node3D.new()
-	held.add_child(part)
-	return held
+	return part
 
 
 ## How a melee weapon is carried at rest. A long one is held tip up, along
@@ -282,6 +289,13 @@ static func instantiate_melee(item: Dictionary, skin := {}) -> Node3D:
 ## disappear behind the arm, so it points forward, out of the fist.
 static func is_carried_tip_up(item: Dictionary) -> bool:
 	return melee_bounds(item).end.y > MELEE_LONG
+
+
+## What a gun's magazine is made of: the skin's finish, or dark metal.
+static func magazine_material(skin: Dictionary) -> StandardMaterial3D:
+	if skin.pattern:
+		return _finish(skin, PATTERN_SCALE)
+	return _melee_material("Guard")
 
 
 ## Box around a melee weapon's model, to frame it when it is shown alone.

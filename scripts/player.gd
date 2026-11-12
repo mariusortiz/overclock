@@ -38,6 +38,7 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var weapon: Weapon = $Weapon
 @onready var melee: Melee = $Melee
 var ultimate := Ultimate.new()
+var inspection := Inspection.new()
 var _model: CharacterModel
 
 @onready var _model_pivot: Node3D = $ModelPivot
@@ -60,6 +61,7 @@ func _ready() -> void:
 	melee.holder = _model
 	melee.gun_visual = weapon.get_node("ModelPivot")
 	melee.swung.connect(_on_melee_swung)
+	_camera.add_child(inspection)
 	_spring_arm.add_excluded_object(get_rid())
 	_spring_arm.rotation.x = deg_to_rad(-15.0)
 	weapon.rotation.x = _spring_arm.rotation.x
@@ -146,6 +148,7 @@ func _on_melee_swung() -> void:
 func _physics_process(delta: float) -> void:
 	_update_effects(delta)
 	_action_animation_left -= delta
+	_update_inspection()
 
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
@@ -174,7 +177,19 @@ func _update_animation() -> void:
 		_model.play(&"aim")
 
 
+## Looking at one's weapon is for quiet moments: any fighting action ends it.
+func _update_inspection() -> void:
+	if Input.is_action_just_pressed("inspect"):
+		inspection.start(weapon.current_data, Loadout.selected_skin(), Loadout.selected_melee(), Loadout.selected_melee_skin())
+	elif inspection.is_playing():
+		for action: StringName in [&"fire", &"aim", &"melee", &"reload", &"ultimate"]:
+			if Input.is_action_pressed(action):
+				inspection.cancel()
+				break
+
+
 func _die() -> void:
+	inspection.cancel()
 	set_physics_process(false)
 	set_process_unhandled_input(false)
 	weapon.set_physics_process(false)
