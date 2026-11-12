@@ -45,7 +45,7 @@ const HERO_SPACING := 2.1
 const BLADE_SPACING := 2.3
 const BLADE_HEIGHT := 1.35
 ## Size of the logo on the title cards, in the units of the 1280 x 720 screen.
-const LOGO_SIZE := Vector2(760, 190)
+const LOGO_SIZE := Vector2(860, 180)
 ## The gun each hero holds in the line-up, in the order of Loadout.CHARACTERS.
 const HERO_GUNS: Array[String] = [
 	"heavy", "revolver_3", "smg", "pistol_4", "shotgun_5", "rifle_6", "sniper_2",
@@ -178,7 +178,7 @@ func _run() -> void:
 			Vector3(-1.2, 1.15, 0), Vector3(last_blade + 1.2, 1.15, 0), 7.0)
 	_show_caption("CORPS À CORPS", "%d LAMES · LES MÊMES SKINS" % Loadout.MELEE.size(), 6.0)
 	await _until(99.0)
-	_clear_actors()
+	_build_showroom()
 	_blink()
 	_dolly(Vector3(0, 1.3, 3.0), Vector3(0, 1.3, 2.6), Vector3(0, 1.3, 0), Vector3(0, 1.3, 0), 3.6)
 	_inspection.start_melee(Loadout.find("butterfly").item, Loadout.find("skin_neon").item)
