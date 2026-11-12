@@ -111,6 +111,9 @@ func place_in_hand(item: Node3D, side: String, along_arm: bool, reversed := fals
 	var elbow := _bone_position("LowerArm." + side)
 	if fist == Vector3.INF or elbow == Vector3.INF:
 		return false
+	# A model shrunk to nothing (end of a death) has no hand to hold anything.
+	if is_zero_approx(global_basis.determinant()) or is_zero_approx(item.global_basis.determinant()):
+		return false
 	item.global_position = fist
 	if along_arm:
 		var along := fist.direction_to(elbow) if reversed else elbow.direction_to(fist)
