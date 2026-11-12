@@ -192,6 +192,8 @@ func _run() -> void:
 func _until(time: float) -> void:
 	while _clock < time:
 		await get_tree().process_frame
+	# Marks the log, so that an error can be placed on the timeline.
+	print("TRAILER %.1f s" % time)
 
 
 # --- Sets -------------------------------------------------------------------
