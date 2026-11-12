@@ -73,7 +73,7 @@ Huit vaisseaux pour la course, choisis dans l'onglet VAISSEAU de l'arsenal. Le D
 
 ## Cartes à collectionner
 
-78 cartes, une par héros, ennemi, boss, vaisseau, arme, arme de mêlée, arène et épisode de l'anime, plus cinq mythiques. Elles ont cinq raretés, chacune avec sa couleur de cadre : commune (60 % des tirages), rare (25 %), épique (10 %), légendaire (4 %, cadre qui scintille) et mythique (1 %, cadre arc-en-ciel).
+78 cartes, une par héros, ennemi, boss, vaisseau, arme, arme de mêlée, arène et épisode de l'anime, plus cinq mythiques. Chaque carte a son nom, sa puissance, son illustration, un encadré de capacité (l'ulti du héros, la capacité du vaisseau, les stats de l'arme…), son numéro (012/078) et son symbole de rareté. Cinq raretés : commune (60 % des tirages), rare (25 %, illustration holographique), épique (10 %, holographique pailletée, cadre or), légendaire (4 %, cadre or qui scintille) et mythique (1 %, pleine illustration holographique, cadre arc-en-ciel). Le reflet holographique bouge quand on incline le téléphone, ou sous la souris.
 
 Les cartes arrivent en boosters de 3, à ouvrir dans CARTES (accueil) en touchant chaque carte pour la retourner :
 - un booster à chaque fin de partie (tous les modes), un deuxième au-delà de 8000 points ;

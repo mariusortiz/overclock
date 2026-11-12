@@ -63,7 +63,7 @@ func _render(card: Dictionary) -> void:
 		child.queue_free()
 	await get_tree().process_frame
 	var color: Color = Cards.RARITY[card.rarity].color
-	_environment.background_color = color.darkened(0.55)
+	_environment.background_color = color.lerp(Color.WHITE, 0.25)
 	var subject := _subject(card.art[0], card.art[1])
 	if subject == null:
 		push_warning("No art for %s" % card.id)
@@ -157,7 +157,9 @@ func _frame(subject: Node3D, kind: String) -> void:
 	var radius := bounds.size.length() * 0.5
 	# Characters: a little above the middle, so the face is in the picture.
 	if kind in ["hero", "enemy", "elite", "boss", "titan"]:
-		center.y += bounds.size.y * 0.08
-		radius *= 0.85
+		center.y += bounds.size.y * 0.02
+		radius *= 0.7
+	else:
+		radius *= 0.72
 	var distance := radius / tan(deg_to_rad(_camera.fov * 0.5)) * 1.05
 	_camera.look_at_from_position(center + Vector3(0.0, radius * 0.25, distance), center)

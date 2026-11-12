@@ -149,6 +149,74 @@ static func reward_game(score: int, tier_before: int) -> int:
 	return given
 
 
+## What the card's ability box says: [title, text].
+static func ability(card: Dictionary) -> Array:
+	var kind: String = card.art[0]
+	var reference: String = card.art[1]
+	match kind:
+		"hero":
+			var hero: Dictionary = Loadout.find(reference).item
+			var ulti: Dictionary = Ultimate.INFO[hero.ulti]
+			var text: String = ulti.text
+			if hero.has("boost"):
+				text += " (" + Ultimate.boost_text(hero.boost).to_lower() + ")"
+			return ["ULTI · " + str(ulti.name).to_upper(), text]
+		"ship":
+			var ship: Dictionary = Loadout.find(reference).item
+			var special: Array = Loadout.SHIP_SPECIALS[ship.special]
+			return [special[0], "%s. Bouclier %d, vitesse %d %%." % [special[1], ship.shield, roundi(ship.velocity * 100)]]
+		"gun", "gun_skin":
+			var gun: Dictionary = Loadout.find(reference.split(":")[0]).item
+			return ["TIR", "Cadence %s/s · dégâts %d · chargeur %d." % [str(gun.fire_rate).trim_suffix(".0"), gun.damage, gun.magazine]]
+		"melee":
+			var blade: Dictionary = Loadout.find(reference).item
+			return ["FRAPPE", "Dégâts %d · portée %s m." % [blade.damage, str(blade.range).trim_suffix(".0")]]
+		"boss", "titan":
+			return ["BOSS", FLAVOR.get(card.id, "Garde la fin d'une arène.")]
+	if str(card.id).begins_with("card_ep"):
+		return ["ÉPISODE %d" % str(card.id).trim_prefix("card_ep").to_int(), "L'anime Overclock, saison 1."]
+	return ["", FLAVOR.get(card.id, "")]
+
+
+## A short line for the cards whose subject has no stats.
+const FLAVOR := {
+	"card_guard": "Garde la station, en rangs serrés.",
+	"card_sand": "Surgit des dunes, pistolet-mitrailleur au poing.",
+	"card_goblin": "Couteau entre les dents, toujours en bande.",
+	"card_zombie": "Lent, mais il ne lâche jamais.",
+	"card_suit": "Travaille pour le Directeur. Ne pose pas de questions.",
+	"card_bat": "Plonge du ciel à partir de la vague 3.",
+	"card_elite": "Trois fois plus solide. Laisse toujours un bonus.",
+	"card_dragon": "Crache le feu sur toute la station.",
+	"card_skeleton": "Charge sans prévenir. Frappe fort.",
+	"card_giant_bat": "Bombarde la jungle depuis les airs.",
+	"card_slime": "Se divise en petits monstres.",
+	"card_titan": "Le géant de la ville. Trois phases, une onde de choc.",
+	"card_titan_mk2": "Deux fois plus grand. Un bouclier que rien ne perce seul.",
+	"card_station": "Hangar spatial, tour de contrôle et passerelles.",
+	"card_desert": "Temple à gradins, oasis et pont de pierre.",
+	"card_jungle": "Cabanes dans les arbres et ponts de cordes.",
+	"card_volcano": "Rivière de lave et plateaux de basalte.",
+	"card_city": "Rues, pont routier et toits accessibles.",
+	"card_squad": "Soldat, Kunoichi, Capitaine, Ronin. Prochaine vague ?",
+	"card_rivals": "« Alors, cette revanche ? » « Quand tu veux. »",
+	"card_directeur": "A construit les Titans. Doit de l'argent au Parrain.",
+	"card_trophy": "Pour qui bat le Titan.",
+	"card_champion": "Le skin de la victoire, or et magenta.",
+}
+
+
+## The number in the corner, as in a numbered set: 12 -> "012/078".
+static func number(card: Dictionary) -> String:
+	return "%03d/%03d" % [CATALOG.find(card) + 1, CATALOG.size()]
+
+
+## The big number at the top: higher for rarer cards, a little different for each.
+static func power(card: Dictionary) -> int:
+	var base := [60, 90, 120, 160, 220][card.rarity] as int
+	return base + absi(hash(card.id)) % 4 * 10
+
+
 static func find(id: String) -> Dictionary:
 	for card: Dictionary in CATALOG:
 		if card.id == id:
