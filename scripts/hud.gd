@@ -468,3 +468,11 @@ func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: A
 		_end_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 		_replay_button.visible = result == Result.LEFT
 	_game_over_screen.visible = true
+
+
+## Shop money earned by the game, under the XP.
+func show_rewards(credits: int, gems: int) -> void:
+	var text := "+%d crédits" % credits
+	if gems > 0:
+		text += "  ·  +%d gemmes" % gems
+	_xp_label.text = text + "\n" + _xp_label.text

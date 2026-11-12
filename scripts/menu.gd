@@ -1,9 +1,10 @@
 extends Control
-## Home screen: play, armory, battle pass, daily challenges and stats, settings.
+## Home screen: play, armory, shop, battle pass, daily challenges and stats, settings.
 
 const GAME_SCENE := "res://scenes/main.tscn"
 const ARMORY_SCENE := "res://scenes/armory.tscn"
 const PASS_SCENE := "res://scenes/battle_pass.tscn"
+const SHOP_SCENE := "res://scenes/shop.tscn"
 const POSTER_SCENE := "res://scenes/tools/poster.tscn"
 
 @onready var _stage: CharacterStage = $Stage
@@ -16,8 +17,9 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Music.play_track(Music.Track.MAIN)
 	_stage.show_loadout()
-	_best_label.text = "Record : %d  ·  Palier %d\nDéfis du jour : %d / %d" % [
-			SaveData.load_high_score(), BattlePass.progress().tier, Challenges.done_count(), Challenges.PER_DAY]
+	_best_label.text = "Record : %d  ·  Palier %d\nDéfis du jour : %d / %d  ·  %d crédits  ·  %d gemmes" % [
+			SaveData.load_high_score(), BattlePass.progress().tier, Challenges.done_count(), Challenges.PER_DAY,
+			Wallet.credits(), Wallet.gems()]
 	_settings_panel.visible = false
 	add_child(_profile_panel)
 	_profile_panel.visible = false
@@ -31,7 +33,8 @@ func _ready() -> void:
 
 	# Deferred: a scene must not be removed while its button handles the click.
 	$Right/Box/Play.pressed.connect(get_tree().change_scene_to_file.bind(GAME_SCENE), CONNECT_DEFERRED)
-	$Right/Box/Armory.pressed.connect(get_tree().change_scene_to_file.bind(ARMORY_SCENE), CONNECT_DEFERRED)
+	$Right/Box/Gear/Armory.pressed.connect(get_tree().change_scene_to_file.bind(ARMORY_SCENE), CONNECT_DEFERRED)
+	$Right/Box/Gear/Shop.pressed.connect(get_tree().change_scene_to_file.bind(SHOP_SCENE), CONNECT_DEFERRED)
 	$Right/Box/Pass.pressed.connect(get_tree().change_scene_to_file.bind(PASS_SCENE), CONNECT_DEFERRED)
 	$Right/Box/Row/Settings.pressed.connect(func() -> void: _settings_panel.visible = true)
 	$Right/Box/Row/Profile.pressed.connect(_profile_panel.open)

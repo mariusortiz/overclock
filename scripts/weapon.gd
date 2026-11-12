@@ -45,6 +45,12 @@ var overdrive := false
 ## Shots per trigger pull and their scatter in degrees (shotguns).
 var pellets := 1
 var spread := 0.0
+## Exotic guns (see Loadout.WEAPONS): reach of a shot, shots that go through
+## every enemy in line, a thick lasting beam, and fire set on the enemies hit.
+var shot_range := 200.0
+var pierce := false
+var beam := false
+var ignite := 0
 ## When set, the gun is held in this character's right hand.
 var holder: CharacterModel
 
@@ -104,6 +110,11 @@ func _equip(data: Dictionary) -> void:
 	blast_radius = data.get("blast_radius", 0.0)
 	pellets = data.get("pellets", 1)
 	spread = data.get("spread", 0.0)
+	shot_range = data.get("range", max_range)
+	pierce = data.get("pierce", false)
+	beam = data.get("beam", false)
+	ignite = data.get("ignite", 0)
+	_tracer_mesh.size = Vector3(0.12, 0.12, 1.0) if beam else Vector3(0.04, 0.04, 1.0)
 
 	for old in _model_pivot.get_children():
 		_model_pivot.remove_child(old)
@@ -188,13 +199,16 @@ func _fire() -> void:
 
 ## One shot from the camera along `direction`: hit, damage and effects.
 func _fire_ray(origin: Vector3, direction: Vector3) -> void:
-	var hit := _cast(origin, origin + direction * max_range)
+	if pierce:
+		_fire_piercing(origin, direction)
+		return
+	var hit := _cast(origin, origin + direction * shot_range)
 	if _use_aim_assist and spread == 0.0 and not _is_damageable(hit):
 		var assisted := _find_assist_hit(origin, direction)
 		if not assisted.is_empty():
 			hit = assisted
 
-	var end := origin + direction * max_range
+	var end := origin + direction * shot_range
 	if not hit.is_empty():
 		end = hit.position
 
@@ -210,7 +224,33 @@ func _fire_ray(origin: Vector3, direction: Vector3) -> void:
 				hit_confirmed.emit(headshot)
 			elif _level(Perk.Type.EXPLOSIVE) > 0:
 				_explode(end, null)
-		_spawn_tracer(_tracer_mesh, _muzzle.global_position, end)
+		_spawn_tracer(_tracer_mesh, _muzzle.global_position, end, 0.16 if beam else 0.08)
+
+
+## A shot that goes through enemies: it hits each one in line, up to the
+## first wall.
+func _fire_piercing(origin: Vector3, direction: Vector3) -> void:
+	var end := origin + direction * shot_range
+	var passed: Array[RID] = []
+	var hit_any := false
+	var headshot_any := false
+	for i in 12:
+		var query := PhysicsRayQueryParameters3D.create(origin, end, hit_mask, passed)
+		var hit := get_world_3d().direct_space_state.intersect_ray(query)
+		if hit.is_empty():
+			break
+		if not _is_damageable(hit):
+			end = hit.position
+			break
+		passed.append(hit.rid)
+		_spawn_fx(_impact_mesh, hit.position, 0.15)
+		headshot_any = _apply_hit(hit.collider, hit.position) or headshot_any
+		hit_any = true
+	if hit_any:
+		_hit_sound.pitch_scale = 1.6 if headshot_any else 1.0
+		_hit_sound.play()
+		hit_confirmed.emit(headshot_any)
+	_spawn_tracer(_tracer_mesh, _muzzle.global_position, end, 0.16 if beam else 0.08)
 
 
 func _launch_rocket(toward: Vector3) -> void:
@@ -248,8 +288,8 @@ func tag_kill(enemy: Node3D) -> void:
 func _damage_with_elements(enemy: Node3D, multiplier := 1) -> void:
 	tag_kill(enemy)
 	enemy.take_damage(damage * damage_multiplier * multiplier)
-	if _level(Perk.Type.FIRE) > 0:
-		enemy.ignite(_level(Perk.Type.FIRE))
+	if _level(Perk.Type.FIRE) > 0 or ignite > 0:
+		enemy.ignite(_level(Perk.Type.FIRE) + ignite)
 	if _level(Perk.Type.ICE) > 0:
 		enemy.chill(_level(Perk.Type.ICE))
 

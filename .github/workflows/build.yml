@@ -62,6 +62,7 @@ jobs:
           godot --headless --fixed-fps 60 --quit-after 300 2>&1 | tee run.log
           godot --headless --fixed-fps 60 --quit-after 60 res://scenes/armory.tscn 2>&1 | tee -a run.log
           godot --headless --fixed-fps 60 --quit-after 60 res://scenes/battle_pass.tscn 2>&1 | tee -a run.log
+          godot --headless --fixed-fps 60 --quit-after 120 res://scenes/shop.tscn 2>&1 | tee -a run.log
           godot --headless --fixed-fps 60 --quit-after 60 res://scenes/tools/poster.tscn 2>&1 | tee -a run.log
           godot --headless --fixed-fps 60 --quit-after 900 res://scenes/main.tscn 2>&1 | tee -a run.log
           # Flying enemies (from wave 3) and close-combat enemies (jungle).
@@ -76,6 +77,18 @@ jobs:
           for wave in 5 10 15 20 25; do
             godot --headless --fixed-fps 60 --quit-after 1200 res://scenes/main.tscn -- --start-wave=$wave 2>&1 | tee -a run.log
           done
+          # Shop content: each exotic gun, animated skin and boosted ultimate,
+          # trigger held down, ultimate fired after 5 s.
+          save_dir="$HOME/.local/share/godot/app_userdata/Overclock"
+          mkdir -p "$save_dir"
+          owned='["kunoichi", "captain", "ronin", "paladin", "godfather", "sand_ghost", "laser", "railgun", "plasma", "flamer", "flechette", "minigun", "skin_holo", "skin_galaxy", "skin_plasma", "skin_glitch", "skin_prism"]'
+          for combo in "kunoichi laser skin_holo" "captain railgun skin_galaxy" "ronin plasma skin_plasma" \
+              "paladin flamer skin_glitch" "godfather flechette skin_prism" "sand_ghost minigun skin_holo"; do
+            set -- $combo
+            printf '[loadout]\ncharacter="%s"\nweapon="%s"\nskin="%s"\n[progress]\nowned=%s\n' "$1" "$2" "$3" "$owned" > "$save_dir/save.cfg"
+            godot --headless --fixed-fps 60 --quit-after 900 res://scenes/main.tscn -- --start-wave=3 --autofire --ulti 2>&1 | tee -a run.log
+          done
+          rm "$save_dir/save.cfg"
           # The trailer's whole timeline, without drawing it.
           godot --headless --fixed-fps 30 --quit-after 4400 res://scenes/tools/trailer.tscn 2>&1 | tee -a run.log
           # "still in use at exit" only reports the music playing when --quit-after stops the game.

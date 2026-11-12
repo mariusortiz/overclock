@@ -58,11 +58,19 @@ var _last_kill_time := -100.0
 
 
 func _ready() -> void:
-	# Test option: "-- --arena=2" on the command line starts in that arena.
+	# Test options: "-- --arena=2" on the command line starts in that arena;
+	# "--autofire" holds the trigger down; "--ulti" fires the ultimate after 5 s.
 	var first_arena := 0
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--arena="):
 			first_arena = argument.get_slice("=", 1).to_int()
+		elif argument == "--autofire":
+			Input.action_press("fire")
+		elif argument == "--ulti":
+			get_tree().create_timer(5.0, false).timeout.connect(func() -> void:
+				player.ultimate.add_charge(1.0)
+				Input.action_press("ultimate")
+				get_tree().create_timer(0.2, false).timeout.connect(Input.action_release.bind("ultimate")))
 	_load_arena(first_arena)
 
 	hud.touch_controls.look.connect(_on_touch_look)
@@ -449,6 +457,18 @@ func _show_results(result: Hud.Result) -> void:
 		unlocked.append("skin Champion")
 	var rank := Leaderboard.add(score, waves.wave, Loadout.selected_character().name, _endless)
 	hud.show_game_over(score, maxi(score, best), is_record, xp, unlocked, result, completed, rank, _stats.counts)
+	# Shop money: credits from the score (halved like the XP), gems for the
+	# bosses beaten and for finishing all of the day's challenges.
+	var credits := Wallet.credits_for_score(score)
+	if result == Hud.Result.DEATH or result == Hud.Result.QUIT:
+		@warning_ignore("integer_division")
+		credits /= 2
+	var gems: int = int(_stats.counts.get("bosses", 0)) * Wallet.GEMS_PER_BOSS
+	if not completed.is_empty() and Challenges.done_count() == Challenges.PER_DAY:
+		gems += Wallet.GEMS_FOR_ALL_CHALLENGES
+	Wallet.add_credits(credits)
+	Wallet.add_gems(gems)
+	hud.show_rewards(credits, gems)
 
 
 func _on_touch_look(relative: Vector2) -> void:

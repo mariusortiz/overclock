@@ -7,6 +7,7 @@ Tous les fichiers externes du jeu sont sous licence [CC0 1.0](https://creativeco
 | Personnages et ennemis | [Ultimate Animated Character Pack](https://opengameart.org/content/animated-characters-pack) | Quaternius | `assets/models/quaternius/characters/` |
 | Boss (dragon, squelette, chauve-souris, slime) | [LowPoly Animated Monsters](https://opengameart.org/content/lowpoly-animated-monsters) | Quaternius | `assets/models/quaternius/monsters/` |
 | Armes à feu, lunette, silencieux | [Low Poly Guns Pack](https://opengameart.org/content/low-poly-guns-pack) | Quaternius | `assets/models/guns/` |
+| Armes exotiques de la boutique | [Blaster Kit](https://kenney.nl/assets/blaster-kit) | Kenney | `assets/models/guns/Blaster_*` |
 | Boss final (Titan) | [Animated Mech Pack](https://opengameart.org/content/animated-mech-pack) | Quaternius | `assets/models/quaternius/mechs/` |
 | Coffres, caisses d'armes | [Survival Kit](https://kenney.nl/assets/survival-kit) | Kenney | `assets/models/melee/` |
 | Décor de la station (conteneurs, machines, tuyaux) | [Space Station Kit](https://kenney.nl/assets/space-station-kit) | Kenney | `assets/models/station/` |
@@ -25,6 +26,6 @@ Tous les fichiers externes du jeu sont sous licence [CC0 1.0](https://creativeco
 | Musique de défaite | [Game Over Theme (No Hope)](https://opengameart.org/content/game-over-theme) | Cleyton Kauffman | `assets/audio/music/` |
 | Musique du trailer | [Cyber March](https://opengameart.org/content/cyber-march) | iamoneabe | `tools/trailer_music.mp3` |
 
-Le reste est produit par le projet : les armes de corps à corps (`tools/make_melee_models.py`), les textures de `assets/textures/` (dont les motifs des skins) et les sons `hit.wav`, `shot.wav` et `pickup.wav` sont générés par les scripts de `tools/`.
+Le reste est produit par le projet : les armes de corps à corps (`tools/make_melee_models.py`), les textures de `assets/textures/` (dont les motifs des skins), les finitions animées des skins de la boutique (`shaders/skin_fx.gdshader`) et les sons `hit.wav`, `shot.wav` et `pickup.wav` sont générés par les scripts de `tools/`.
 
 Moteur : [Godot Engine](https://godotengine.org) (licence MIT).

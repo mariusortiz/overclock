@@ -99,7 +99,7 @@ func _refresh() -> void:
 		if item == equipped:
 			status = "ÉQUIPÉ"
 		elif not Loadout.is_unlocked(item):
-			status = "VERROUILLÉ"
+			status = "BOUTIQUE" if item.get("shop", false) else "VERROUILLÉ"
 			card.modulate = Color(1, 1, 1, 0.55)
 		# A long hyphenated name is split at the hyphen rather than mid-word.
 		var title: String = item.name
@@ -121,6 +121,8 @@ func _refresh() -> void:
 	if _viewed.has("ulti"):
 		var ulti: Dictionary = Ultimate.INFO[_viewed.ulti]
 		_detail_status.text += "\nULTI · %s : %s" % [ulti.name, ulti.text]
+		if _viewed.has("boost"):
+			_detail_status.text += "  (%s)" % Ultimate.boost_text(_viewed.boost)
 	for bar in _detail_stats.get_children():
 		_detail_stats.remove_child(bar)
 		bar.queue_free()

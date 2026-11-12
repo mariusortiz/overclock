@@ -19,6 +19,14 @@ const CHARACTERS := [
 	{"id": "witch", "ulti": &"curse", "name": "Sorcière", "model": "Witch.fbx"},
 	{"id": "wizard", "ulti": &"timestop", "name": "Magicien", "model": "Wizard.fbx"},
 	{"id": "golden_knight", "ulti": &"blessing", "name": "Chevalier d'or", "model": "Knight_Golden_Male.fbx"},
+	# Sold in the shop (see Shop): their ultimate is boosted ("boost" scales its
+	# counts, damage, radius and duration; see Ultimate).
+	{"id": "kunoichi", "ulti": &"clones", "name": "Kunoichi", "model": "Ninja_Female.fbx", "shop": true, "boost": 1.6},
+	{"id": "captain", "ulti": &"broadside", "name": "Capitaine", "model": "Pirate_Female.fbx", "shop": true, "boost": 1.75},
+	{"id": "ronin", "ulti": &"whirlwind", "name": "Rōnin", "model": "Kimono_Female.fbx", "shop": true, "boost": 1.6},
+	{"id": "paladin", "ulti": &"blessing", "name": "Paladine d'or", "model": "Knight_Golden_Female.fbx", "shop": true, "boost": 1.5},
+	{"id": "godfather", "ulti": &"deadeye", "name": "Le Parrain", "model": "OldClassy_Male.fbx", "shop": true, "boost": 2.0},
+	{"id": "sand_ghost", "ulti": &"timestop", "name": "Ombre des sables", "model": "Ninja_Sand_Female.fbx", "shop": true, "boost": 1.6},
 ]
 
 ## Weapon skins are finishes: they keep the gun's shape. A skin with a pattern
@@ -42,6 +50,13 @@ const SKINS := [
 	{"id": "skin_gold", "kill": &"statue", "name": "Or", "pattern": true, "glow": 0.2, "scope": true, "silencer": true, "shot": Color(1.0, 0.85, 0.3)},
 	# Not in the battle pass: earned by beating the final boss.
 	{"id": "skin_champion", "kill": &"confetti", "name": "Champion", "pattern": true, "glow": 0.6, "scope": true, "silencer": true, "shot": Color(1.0, 0.3, 0.9)},
+	# Sold in the shop: animated finishes (shaders/skin_fx.gdshader, "fx" is
+	# its mode) instead of a printed pattern.
+	{"id": "skin_holo", "kill": &"vanish", "name": "Hologramme", "pattern": true, "fx": 0, "colors": [Color(0.0, 0.9, 1.0), Color(0.05, 0.15, 0.35)], "glow": 0.0, "scope": true, "silencer": false, "shot": Color(0.3, 1.0, 1.0), "shop": true},
+	{"id": "skin_galaxy", "kill": &"ascend", "name": "Galaxie", "pattern": true, "fx": 1, "colors": [Color(1.0, 0.95, 1.0), Color(0.12, 0.03, 0.25)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(0.75, 0.5, 1.0), "shop": true},
+	{"id": "skin_plasma", "kill": &"burn", "name": "Plasma", "pattern": true, "fx": 2, "colors": [Color(1.0, 0.45, 0.05), Color(0.9, 0.05, 0.6)], "glow": 0.0, "scope": false, "silencer": false, "shot": Color(1.0, 0.35, 0.6), "shop": true},
+	{"id": "skin_glitch", "kill": &"pixelate", "name": "Glitch", "pattern": true, "fx": 3, "colors": [Color(0.1, 1.0, 0.4), Color(1.0, 0.1, 0.5)], "glow": 0.0, "scope": false, "silencer": true, "shot": Color(0.3, 1.0, 0.5), "shop": true},
+	{"id": "skin_prism", "kill": &"confetti", "name": "Prisme", "pattern": true, "fx": 4, "colors": [Color.WHITE, Color.WHITE], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 1.0, 1.0), "shop": true},
 ]
 ## How each skin's elimination looks, for the armory.
 const KILL_NAMES := {
@@ -115,6 +130,15 @@ const WEAPONS := [
 	{"id": "sniper_4", "name": "Précision IV", "model": "SniperRifle_4", "length": 1.27, "fire_rate": 1.5, "damage": 6, "magazine": 8, "reload_time": 2.0, "zoom_fov": 20.0, "has_scope": true},
 	{"id": "sniper_5", "name": "Précision V", "model": "SniperRifle_5", "length": 1.27, "fire_rate": 0.7, "damage": 12, "magazine": 3, "reload_time": 2.0, "zoom_fov": 20.0, "has_scope": true},
 	{"id": "sniper_6", "name": "Précision VI", "model": "SniperRifle_6", "length": 1.44, "fire_rate": 1.0, "damage": 9, "magazine": 5, "reload_time": 2.0, "zoom_fov": 20.0, "has_scope": true},
+	# Exotic guns, sold in the shop. "beam": a thick continuous ray; "pierce":
+	# the shot goes through every enemy in line; "range": shorter reach;
+	# "ignite": sets the enemies hit on fire (that many seconds' worth).
+	{"id": "laser", "name": "Laser", "model": "Blaster_Laser", "length": 0.62, "fire_rate": 15.0, "damage": 1, "magazine": 80, "reload_time": 1.8, "zoom_fov": 40.0, "beam": true, "shop": true},
+	{"id": "railgun", "name": "Fusil à rail", "model": "Blaster_Rail", "length": 1.05, "fire_rate": 1.1, "damage": 9, "magazine": 4, "reload_time": 2.0, "zoom_fov": 22.0, "pierce": true, "beam": true, "shop": true},
+	{"id": "plasma", "name": "Canon plasma", "model": "Blaster_Plasma", "length": 0.68, "fire_rate": 2.2, "damage": 5, "magazine": 8, "reload_time": 1.8, "zoom_fov": 40.0, "blast_radius": 3.0, "shop": true},
+	{"id": "flamer", "name": "Lance-flammes", "model": "Blaster_Flame", "length": 0.6, "fire_rate": 8.0, "damage": 1, "magazine": 60, "reload_time": 2.0, "zoom_fov": 40.0, "pellets": 2, "spread": 9.0, "range": 11.0, "ignite": 1, "shop": true},
+	{"id": "flechette", "name": "Lance-fléchettes", "model": "Blaster_Flechette", "length": 0.7, "fire_rate": 3.0, "damage": 2, "magazine": 10, "reload_time": 1.6, "zoom_fov": 36.0, "pellets": 5, "spread": 2.5, "pierce": true, "shop": true},
+	{"id": "minigun", "name": "Minigun", "model": "Blaster_Minigun", "length": 1.0, "fire_rate": 24.0, "damage": 1, "magazine": 150, "reload_time": 3.2, "zoom_fov": 44.0, "shop": true},
 ]
 
 const GUN_DIR := "res://assets/models/guns/"
@@ -125,6 +149,9 @@ const SILENCER_LENGTH := 0.78  # in model units
 ## Parts of a gun that a skin leaves alone (material names of the models).
 const UNPAINTED_PARTS: Array[String] = ["Black", "Black2", "Glass", "DarkMetal"]
 const PATTERN_SCALE := 0.6
+const SKIN_FX_SHADER := preload("res://shaders/skin_fx.gdshader")
+## The animated finishes' cells are this many times smaller than a pattern's.
+const SKIN_FX_SCALE := 4.0
 
 ## Close-range secondary attack. "sweep" hits every enemy in front instead of
 ## one. "model" is a .obj of assets/models/melee (see tools/make_melee_models.py):
@@ -187,6 +214,8 @@ const MELEE_SKIN_KEY := "melee_skin"
 
 
 static func is_unlocked(item: Dictionary) -> bool:
+	if item.get("shop", false):
+		return Wallet.owns(item.id)
 	if item.id == CHAMPION_SKIN_ID:
 		return SaveData.load_progress(CHAMPION_KEY, false)
 	return BattlePass.is_unlocked(item.id)
@@ -280,7 +309,7 @@ static func instantiate_melee(item: Dictionary, skin := {}) -> Node3D:
 static func melee_part(model: String, skin := {}) -> MeshInstance3D:
 	var part := MeshInstance3D.new()
 	part.mesh = load(MELEE_DIR + model + ".obj")
-	var finish: StandardMaterial3D = null
+	var finish: Material = null
 	if not skin.is_empty() and skin.pattern:
 		finish = _finish(skin, MELEE_PATTERN_SCALE)
 	for surface in part.mesh.get_surface_count():
@@ -326,6 +355,8 @@ static func _melee_material(part_name: String) -> StandardMaterial3D:
 
 ## Why a locked item is locked, for the menus.
 static func unlock_text(item: Dictionary) -> String:
+	if item.get("shop", false):
+		return "En vente à la boutique"
 	if item.id == CHAMPION_SKIN_ID:
 		return "Bats le boss final de la ville"
 	return "Palier %d du passe de combat" % BattlePass.required_tier(item.id)
@@ -355,10 +386,19 @@ static func _apply_skin(gun: Node3D, skin: Dictionary) -> void:
 
 ## The material a skin paints with: its pattern, repeated every 1 / `scale`
 ## meters, and its glow if it has one.
-static func _finish(skin: Dictionary, scale: float) -> StandardMaterial3D:
+static func _finish(skin: Dictionary, scale: float) -> Material:
 	var key := "%s %s" % [skin.id, scale]
 	if _materials.has(key):
 		return _materials[key]
+	if skin.has("fx"):
+		var animated := ShaderMaterial.new()
+		animated.shader = SKIN_FX_SHADER
+		animated.set_shader_parameter("mode", skin.fx)
+		animated.set_shader_parameter("color_a", skin.colors[0])
+		animated.set_shader_parameter("color_b", skin.colors[1])
+		animated.set_shader_parameter("scale", scale * SKIN_FX_SCALE)
+		_materials[key] = animated
+		return animated
 	var finish := StandardMaterial3D.new()
 	finish.albedo_texture = load(SKIN_DIR + skin.id + ".png")
 	finish.uv1_triplanar = true

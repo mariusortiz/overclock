@@ -80,7 +80,7 @@ func _ready() -> void:
 	health = max_health
 	var character := Loadout.selected_character()
 	_model = Loadout.instantiate_character(character)
-	ultimate.setup(self, character.ulti)
+	ultimate.setup(self, character.ulti, character.get("boost", 1.0))
 	add_child(ultimate)
 	_model_pivot.add_child(_model)
 	weapon.setup(Loadout.selected_weapon(), perks)

@@ -187,7 +187,58 @@ Les skins d'armes sont des finitions : ils gardent la forme de l'arme et la repe
 | Or | se change en statue dorée qui s'effondre |
 | Champion | explosion de confettis et éclair de lumière |
 
-Les boss gardent leur propre chute. Le skin Champion ne s'obtient qu'en battant le boss final. Il y a 13 personnages : ils ne diffèrent que par leur apparence et leur ulti.
+Les boss gardent leur propre chute. Le skin Champion ne s'obtient qu'en battant le boss final. Il y a 13 personnages dans le passe et 6 de plus à la boutique : ils ne diffèrent que par leur apparence et leur ulti.
+
+## Boutique
+
+La boutique, accessible depuis l'accueil, vend du contenu qu'on ne trouve pas dans le passe de combat : 6 armes exotiques, 5 skins à finition animée et 6 personnages à ulti boostée. Un achat est équipé tout de suite et reste dans l'arsenal.
+
+Elle a cinq onglets. **Du jour** montre quatre offres, les mêmes pour tous les joueurs, renouvelées à minuit ; la première est à -30 %. **Héros**, **Armes** et **Skins** forment le catalogue permanent. **Gemmes** vend des packs de gemmes contre de l'argent réel (Android uniquement, voir « Paiements » plus bas).
+
+Deux monnaies :
+- les **crédits** se gagnent en jouant : un vingtième du score à chaque partie (divisé par deux si tu meurs ou quittes) ;
+- les **gemmes** s'achètent, et se gagnent aussi en petite quantité : 3 par boss vaincu, 10 quand les trois défis du jour sont réussis.
+
+Chaque article se paie au choix en crédits ou en gemmes : personnage 6000 crédits ou 450 gemmes, arme 3500 ou 260, skin 2500 ou 180.
+
+| Arme exotique | Particularité | Cadence | Dégâts | Chargeur |
+|---|---|---|---|---|
+| Laser | rayon continu | 15/s | 1 | 80 |
+| Fusil à rail | rayon qui transperce tous les ennemis alignés | 1,1/s | 9 | 4 |
+| Canon plasma | boule qui explose (3 m) | 2,2/s | 5 | 8 |
+| Lance-flammes | portée 11 m, enflamme | 8/s | 1 ×2 | 60 |
+| Lance-fléchettes | 5 fléchettes qui transpercent | 3/s | 2 ×5 | 10 |
+| Minigun | cadence extrême, longue recharge | 24/s | 1 | 150 |
+
+| Skin animé | Finition | Élimination |
+|---|---|---|
+| Hologramme | lignes lumineuses qui défilent | rayon de lumière |
+| Galaxie | étoiles qui scintillent sur une nébuleuse | envol |
+| Plasma | vagues orange et magenta | braises |
+| Glitch | blocs de couleur qui sautent | pixels |
+| Prisme | arc-en-ciel qui défile | confettis |
+
+| Personnage | Ulti boostée |
+|---|---|
+| Kunoichi | Clones ×1,6 : trois clones au lieu de deux |
+| Capitaine | Bordée ×1,75 : 14 roquettes, plus fortes |
+| Rōnin | Tourbillon ×1,6 : 8 m, 48 dégâts |
+| Paladine d'or | Bénédiction ×1,5 : plus 4,5 s d'invulnérabilité |
+| Le Parrain | Duel ×2 : 12 ennemis, double dégâts |
+| Ombre des sables | Arrêt du temps ×1,6 : 8 s |
+
+### Paiements (gemmes contre de l'argent réel)
+
+Le code est prêt (`scripts/billing.gd`), mais l'achat de gemmes reste inactif tant que ces étapes ne sont pas faites. D'ici là, le bouton indique « bientôt sur Android » ; la version web n'aura jamais de paiement.
+
+1. Créer un compte Google Play Console (frais unique de 25 $) et un profil de paiement marchand.
+2. Créer l'application avec le nom de paquet de l'APK, et l'envoyer au moins une fois en test interne : Google Play Billing ne fonctionne qu'avec une version distribuée par le Play Store.
+3. Dans « Produits intégrés », créer trois produits gérés : `gems_100`, `gems_550` et `gems_1200`, avec leur prix.
+4. Installer le plugin [Godot Google Play Billing](https://github.com/godot-sdk-integrations/godot-google-play-billing) (version 3.x) dans `addons/GodotGooglePlayBilling/` et l'activer dans les réglages du projet.
+5. Dans le preset d'export Android, activer `gradle_build/use_gradle_build` ; la CI doit alors installer le modèle de build Android. Signer avec une clé de publication (stockée en secret GitHub), pas la clé de debug.
+6. Ajouter des testeurs de licence dans la Play Console pour acheter sans être débité.
+
+Limite : les achats sont vérifiés par Google sur le téléphone, sans serveur de vérification. C'est suffisant pour un jeu solo, mais un joueur déterminé peut tricher sur sa propre sauvegarde.
 
 ## Développer en local (optionnel)
 

@@ -60,10 +60,21 @@ theme_type_variation = &"PrimaryButton"
 theme_override_font_sizes/font_size = 46
 text = "JOUER"
 
-[node name="Armory" type="Button" parent="Right/Box"]
+[node name="Gear" type="HBoxContainer" parent="Right/Box"]
+theme_override_constants/separation = 12
+
+[node name="Armory" type="Button" parent="Right/Box/Gear"]
 custom_minimum_size = Vector2(0, 84)
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 34
 text = "ARSENAL"
+
+[node name="Shop" type="Button" parent="Right/Box/Gear"]
+custom_minimum_size = Vector2(0, 84)
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 34
+text = "BOUTIQUE"
 
 [node name="Pass" type="Button" parent="Right/Box"]
 custom_minimum_size = Vector2(0, 84)
