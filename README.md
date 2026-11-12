@@ -10,7 +10,13 @@ Cette version web est mise à jour à chaque push sur `main`. Elle s'ouvre aussi
 
 Sur téléphone, elle s'installe comme une application : menu du navigateur, « Ajouter à l'écran d'accueil » (Chrome sur Android) ou Partager puis « Sur l'écran d'accueil » (Safari sur iPhone). Elle s'ouvre alors en plein écran, à l'horizontale, avec l'icône du jeu. Après une mise à jour, la nouvelle version peut demander d'ouvrir le jeu deux fois : la première ouverture la télécharge, la seconde l'affiche.
 
-La compilation de l'APK Android est désactivée pour l'instant. Le preset d'export Android (`export_presets.cfg`) et la clé de debug (`ci/debug.keystore`) restent en place pour la réactiver plus tard.
+### APK Android
+
+Chaque push sur `main` compile aussi un APK et le publie dans la release **latest-debug** du dépôt public [overclock-builds](https://github.com/mariusortiz/overclock-builds). Le lien ne change jamais :
+
+https://github.com/mariusortiz/overclock-builds/releases/download/latest-debug/overclock-debug.apk
+
+Ouvre-le sur le téléphone, puis installe l'APK (il faut autoriser le navigateur à installer des applications inconnues). Les mises à jour s'installent par-dessus l'ancienne version, car elles sont toutes signées avec la même clé de debug. L'APK utilise le moteur de rendu complet (Vulkan) : le rendu et les FPS y sont meilleurs que dans le navigateur.
 
 ## Contrôles
 
@@ -21,9 +27,9 @@ La compilation de l'APK Android est désactivée pour l'instant. Le preset d'exp
 | Tirer | Bouton TIR en bas à droite (on peut viser en gardant le doigt dessus) | Clic gauche |
 | Viser (zoom) | Bouton VISER : un appui l'active, un autre le désactive | Maintenir le clic droit |
 | Corps à corps | Bouton COUP | F |
-| Ulti | Bouton ULTI, quand la jauge est pleine | E |
-| Inspecter son arme | Bouton INSP. (un 2e appui pendant l'inspection montre l'arme de mêlée) | Y |
-| Recharger | Bouton RECH. à gauche du bouton TIR (automatique quand le chargeur est vide) | R |
+| Ulti | Bouton ULTI : sa jauge se remplit autour de lui, il devient doré quand elle est pleine | E |
+| Inspecter son arme | Bouton INSPECTER sous le bouton pause (un 2e appui pendant l'inspection montre l'arme de mêlée) | Y |
+| Recharger | Bouton RECHARGER à gauche du bouton TIR (automatique quand le chargeur est vide) | R |
 | Pause et réglages | Bouton II en haut à droite, ou bouton retour d'Android | Échap |
 | Sauter | Bouton SAUT au-dessus du bouton TIR | Espace |
 
@@ -161,7 +167,7 @@ Les skins d'armes sont des finitions : ils gardent la forme de l'arme et la repe
 - `assets/` : modèles 3D, sons et musique CC0 (voir `CREDITS.md`), plus les textures générées par les scripts de `tools/`
 - `tools/` : scripts Python qui génèrent les arènes (`scenes/arenas/`), les textures et les sons
 - `ci/debug.keystore` : clé de debug publique (mot de passe `android`), utilisée uniquement pour les APK de test. La clé de release ne sera jamais commitée.
-- `.github/workflows/build.yml` : contrôles automatiques et compilation de la version web
+- `.github/workflows/build.yml` : contrôles automatiques, compilation de la version web et de l'APK
 
 ## Licence des assets
 

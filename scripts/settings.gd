@@ -11,12 +11,14 @@ var music_enabled := true
 var vibration_enabled := true
 ## The view shakes when the player is hit or a rocket goes off.
 var camera_shake := true
+## Frames per second in the corner of the screen, for checking performance.
+var show_fps := false
 ## Off: no shadows, no glow and a lower 3D resolution, for slower phones.
 var high_quality := true
 
 
 func _ready() -> void:
-	for property: StringName in [&"sensitivity", &"music_enabled", &"vibration_enabled", &"camera_shake", &"high_quality"]:
+	for property: StringName in [&"sensitivity", &"music_enabled", &"vibration_enabled", &"camera_shake", &"high_quality", &"show_fps"]:
 		set(property, SaveData.load_setting(property, get(property)))
 	_apply()
 

@@ -30,12 +30,13 @@ func _ready() -> void:
 	_add_toggle("Vibrations", &"vibration_enabled")
 	_add_toggle("Tremblement de l'écran", &"camera_shake")
 	_add_toggle("Graphismes élevés", &"high_quality")
+	_add_toggle("Afficher les FPS", &"show_fps")
 
 
 func _add_toggle(text: String, property: StringName) -> void:
 	var toggle := CheckButton.new()
 	toggle.text = text
-	toggle.custom_minimum_size.y = 60
+	toggle.custom_minimum_size.y = 52
 	toggle.add_theme_font_size_override("font_size", 26)
 	toggle.button_pressed = Settings.get(property)
 	toggle.toggled.connect(func(on: bool) -> void: Settings.set_value(property, on))

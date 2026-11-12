@@ -22,6 +22,7 @@ var _flash_tween: Tween
 var _banner_tween: Tween
 var _perk_options: Array = []
 var _hint := Label.new()
+var _health_number := Label.new()
 var _hint_tween: Tween
 
 @onready var touch_controls: TouchControls = $TouchControls
@@ -60,6 +61,9 @@ var _hint_tween: Tween
 
 func _ready() -> void:
 	touch_controls.visible = _is_touch
+	# On touch screens the ULTI button shows the gauge itself.
+	_ultimate_label.visible = not _is_touch
+	_build_health_number()
 	_banner.modulate.a = 0.0
 	_replay_button.pressed.connect(replay_pressed.emit)
 	_menu_button.pressed.connect(menu_pressed.emit)
@@ -73,6 +77,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	_fps_label.visible = Settings.show_fps
 	_fps_label.text = "%d FPS" % Engine.get_frames_per_second()
 	_desktop_hint.visible = not _is_touch and not _game_over \
 			and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED
@@ -81,6 +86,19 @@ func _process(_delta: float) -> void:
 func set_health(current: int, maximum: int) -> void:
 	_health_bar.max_value = maximum
 	_health_bar.value = current
+	_health_number.text = str(current)
+
+
+## Health in figures, on the bar.
+func _build_health_number() -> void:
+	_health_number.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_health_number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_health_number.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_health_number.add_theme_font_size_override("font_size", 16)
+	_health_number.add_theme_color_override("font_outline_color", Color.BLACK)
+	_health_number.add_theme_constant_override("outline_size", 6)
+	_health_number.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_health_bar.add_child(_health_number)
 
 
 ## Darkens the whole screen; await it before changing what is behind.
@@ -116,6 +134,7 @@ func set_ammo(current: int, magazine: int, reloading: bool) -> void:
 
 ## `ratio`: charge of the ultimate, from 0 to 1.
 func set_ultimate(ratio: float) -> void:
+	touch_controls.set_ultimate(ratio)
 	var is_ready := ratio >= 1.0
 	var text := "ULTI PRÊTE" if is_ready else "ULTI  %d %%" % floori(ratio * 100.0)
 	if is_ready and not _is_touch:

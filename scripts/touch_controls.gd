@@ -7,19 +7,26 @@ extends Control
 signal look(relative: Vector2)
 
 const ACCENT := Color(0, 0.9, 1)
+const GOLD := Color(1.0, 0.85, 0.2)
+const FONT := preload("res://assets/ui/fonts/kenney_mini_square_mono.ttf")
+## Where the joystick waits, faintly drawn, until a thumb lands on the left half.
+const JOYSTICK_REST := Vector2(190, -175)  # from the bottom left corner
 const FIRE_RADIUS := 85.0
 const FIRE_MARGIN := Vector2(70, 60)
 const BUTTON_GAP := 16.0
 
-## Round buttons. "offset" is measured from the center of the fire button.
-## A "toggle" button switches its action on and off at each tap.
+## Round buttons, each with an icon and a short word under it. "offset" is
+## measured from the center of the fire button, except for those marked
+## "top", measured from the top right corner. A "toggle" button switches its
+## action on and off at each tap.
 const BUTTONS := [
-	{"action": "fire", "label": "TIR", "radius": FIRE_RADIUS, "font_size": 30, "offset": Vector2.ZERO, "toggle": false},
-	{"action": "reload", "label": "RECH.", "radius": 52.0, "font_size": 20, "offset": Vector2(-153, 30), "toggle": false},
-	{"action": "melee", "label": "COUP", "radius": 52.0, "font_size": 20, "offset": Vector2(-140, -95), "toggle": false},
-	{"action": "ultimate", "label": "ULTI", "radius": 52.0, "font_size": 20, "offset": Vector2(-275, 75), "toggle": false},
-	{"action": "inspect", "label": "INSP.", "radius": 42.0, "font_size": 17, "offset": Vector2(-385, -40), "toggle": false},
-	{"action": "aim", "label": "VISER", "radius": 52.0, "font_size": 20, "offset": Vector2(-265, -40), "toggle": true},
+	{"action": "fire", "label": "TIR", "radius": FIRE_RADIUS, "offset": Vector2.ZERO, "toggle": false},
+	{"action": "reload", "label": "RECHARGER", "radius": 52.0, "offset": Vector2(-153, 30), "toggle": false},
+	{"action": "melee", "label": "COUP", "radius": 52.0, "offset": Vector2(-140, -95), "toggle": false},
+	{"action": "ultimate", "label": "ULTI", "radius": 52.0, "offset": Vector2(-275, 75), "toggle": false},
+	{"action": "aim", "label": "VISER", "radius": 52.0, "offset": Vector2(-265, -40), "toggle": true},
+	# Rarely needed in a fight: away from the others, under the pause button.
+	{"action": "inspect", "label": "INSPECTER", "radius": 38.0, "offset": Vector2(-80, 165), "toggle": false, "top": true},
 ]
 
 @export var joystick_radius := 110.0
@@ -35,6 +42,8 @@ var _joy_vector := Vector2.ZERO
 ## Action of a button that pulses to draw attention (tutorial), or &"".
 var _highlighted := &""
 var _time := 0.0
+## Charge of the ultimate, 0 to 1, drawn around its button.
+var _ultimate_charge := 0.0
 
 @onready var _jump_button: TouchScreenButton = $JumpButton
 
@@ -157,8 +166,14 @@ func highlight(action: StringName) -> void:
 	queue_redraw()
 
 
+## The ultimate's gauge, drawn as a ring around its button.
+func set_ultimate(ratio: float) -> void:
+	_ultimate_charge = clampf(ratio, 0.0, 1.0)
+	queue_redraw()
+
+
 func _process(delta: float) -> void:
-	if _highlighted != &"":
+	if _highlighted != &"" or _ultimate_charge >= 1.0:
 		_time += delta
 		queue_redraw()
 
@@ -167,22 +182,83 @@ func _draw() -> void:
 	for i in BUTTONS.size():
 		var button: Dictionary = BUTTONS[i]
 		var active: bool = Input.is_action_pressed(button.action) if button.toggle else _button_fingers[i] != -1
-		_draw_button(_button_center(i), button.radius, button.label, button.font_size, active)
+		_draw_button(_button_center(i), button, active)
 		if button.action == _highlighted:
 			var pulse := 0.5 + 0.5 * sin(_time * 6.0)
 			draw_arc(_button_center(i), button.radius + 8.0 + pulse * 10.0, 0.0, TAU, 48,
-					Color(1.0, 0.85, 0.2, 1.0 - pulse * 0.6), 5.0)
+					Color(GOLD, 1.0 - pulse * 0.6), 5.0)
 	if _move_finger != -1:
 		draw_circle(_joy_origin, joystick_radius, Color(1, 1, 1, 0.08))
 		draw_arc(_joy_origin, joystick_radius, 0.0, TAU, 48, Color(ACCENT, 0.5), 3.0)
 		draw_circle(_joy_origin + _joy_vector * joystick_radius, knob_radius, Color(ACCENT, 0.55))
+	else:
+		# Where to put the thumb, until it is there.
+		var rest := Vector2(JOYSTICK_REST.x, size.y + JOYSTICK_REST.y)
+		draw_arc(rest, joystick_radius, 0.0, TAU, 48, Color(ACCENT, 0.22), 3.0)
+		draw_circle(rest, knob_radius, Color(ACCENT, 0.12))
+		_draw_label(rest + Vector2(0, joystick_radius + 26), "BOUGER", 16, Color(1, 1, 1, 0.35))
 
 
-func _draw_button(center: Vector2, radius: float, label: String, font_size: int, active: bool) -> void:
-	draw_circle(center, radius, Color(ACCENT, 0.45 if active else 0.15))
-	draw_arc(center, radius, 0.0, TAU, 48, Color(ACCENT, 1.0 if active else 0.7), 4.0)
-	var text_origin := center + Vector2(-radius, font_size * 0.35)
-	draw_string(ThemeDB.fallback_font, text_origin, label, HORIZONTAL_ALIGNMENT_CENTER, radius * 2.0, font_size)
+func _draw_button(center: Vector2, button: Dictionary, active: bool) -> void:
+	var radius: float = button.radius
+	var action: String = button.action
+	var ready_ultimate := action == "ultimate" and _ultimate_charge >= 1.0
+	var color := GOLD if ready_ultimate else ACCENT
+	var fill := 0.45 if active else 0.15
+	if ready_ultimate:
+		fill = 0.3 + 0.2 * sin(_time * 5.0)
+	draw_circle(center, radius, Color(color, fill))
+	draw_arc(center, radius, 0.0, TAU, 48, Color(color, 1.0 if active else 0.7), 4.0)
+	if action == "ultimate" and not ready_ultimate:
+		# Its gauge fills around the edge.
+		draw_arc(center, radius - 6.0, -PI / 2.0, -PI / 2.0 + TAU * _ultimate_charge, 48, GOLD, 6.0)
+	var big := radius >= FIRE_RADIUS
+	var icon_size := radius * (0.55 if big else 0.62)
+	var label_size := 22 if big else (12 if radius < 45.0 else 14)
+	_draw_icon(action, center - Vector2(0, radius * 0.16), icon_size, Color.WHITE)
+	_draw_label(center + Vector2(0, radius * 0.62), button.label, label_size, Color(1, 1, 1, 0.9))
+
+
+func _draw_label(at: Vector2, text: String, font_size: int, color: Color) -> void:
+	var width := FONT.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	draw_string(FONT, at + Vector2(-width / 2.0, font_size * 0.35), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
+
+
+## A simple line icon for each action, `size` pixels across.
+func _draw_icon(action: String, center: Vector2, size_px: float, color: Color) -> void:
+	var r := size_px / 2.0
+	var line := maxf(size_px * 0.09, 2.5)
+	match action:
+		"fire":  # crosshair
+			draw_arc(center, r * 0.7, 0.0, TAU, 32, color, line)
+			for direction: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
+				draw_line(center + direction * r * 0.35, center + direction * r, color, line)
+			draw_circle(center, line * 0.8, color)
+		"reload":  # arrow going round
+			draw_arc(center, r * 0.7, -PI * 0.35, PI * 1.35, 32, color, line)
+			var tip := center + Vector2(cos(-PI * 0.35), sin(-PI * 0.35)) * r * 0.7
+			draw_colored_polygon([tip + Vector2(-r * 0.05, -r * 0.42), tip + Vector2(r * 0.38, r * 0.05),
+					tip + Vector2(-r * 0.3, r * 0.2)], color)
+		"melee":  # blade, slanted
+			var axis := Vector2(1, -1).normalized()
+			var side := Vector2(axis.y, -axis.x)
+			var guard := center - axis * r * 0.25
+			draw_colored_polygon([guard + side * r * 0.16, center + axis * r * 0.95, guard - side * r * 0.16], color)
+			draw_line(guard + side * r * 0.32, guard - side * r * 0.32, color, line)
+			draw_line(guard, guard - axis * r * 0.6, color, line * 1.6)
+		"ultimate":  # lightning bolt, as on the logo
+			var bolt := PackedVector2Array()
+			for point: Vector2 in [Vector2(0.55, 0), Vector2(0.1, 0.56), Vector2(0.42, 0.56), Vector2(0.28, 1),
+					Vector2(0.8, 0.4), Vector2(0.47, 0.4)]:
+				bolt.append(center + (point - Vector2(0.45, 0.5)) * size_px)
+			draw_colored_polygon(bolt, color)
+		"aim":  # scope
+			draw_arc(center, r * 0.8, 0.0, TAU, 32, color, line)
+			draw_line(center + Vector2(-r * 0.8, 0), center + Vector2(r * 0.8, 0), color, line * 0.6)
+			draw_line(center + Vector2(0, -r * 0.8), center + Vector2(0, r * 0.8), color, line * 0.6)
+		"inspect":  # magnifying glass
+			draw_arc(center + Vector2(-r * 0.15, -r * 0.15), r * 0.5, 0.0, TAU, 24, color, line)
+			draw_line(center + Vector2(r * 0.2, r * 0.2), center + Vector2(r * 0.75, r * 0.75), color, line * 1.4)
 
 
 func _fire_center() -> Vector2:
@@ -190,7 +266,10 @@ func _fire_center() -> Vector2:
 
 
 func _button_center(index: int) -> Vector2:
-	return _fire_center() + BUTTONS[index].offset
+	var button: Dictionary = BUTTONS[index]
+	if button.get("top", false):
+		return Vector2(size.x, 0) + button.offset
+	return _fire_center() + button.offset
 
 
 func _jump_rect() -> Rect2:
