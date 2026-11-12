@@ -2,7 +2,8 @@ extends AudioStreamPlayer
 ## Background music, autoloaded as "Music" so it keeps playing across scenes
 ## and while the game is paused.
 
-enum Track { MAIN, BOSS, DEATH, DESERT, JUNGLE, VOLCANO, CITY }
+## CAPTURE and RACE are the zone capture and the ship race modes.
+enum Track { MAIN, BOSS, DEATH, DESERT, JUNGLE, VOLCANO, CITY, CAPTURE, RACE }
 
 # Loaded on demand rather than preloaded, so this script still compiles
 # before the audio files have been imported for the first time.
@@ -14,6 +15,8 @@ const PATHS := {
 	Track.JUNGLE: "res://assets/audio/music/jungle_battle.ogg",
 	Track.VOLCANO: "res://assets/audio/music/fire_level.mp3",
 	Track.CITY: "res://assets/audio/music/city_loop.mp3",
+	Track.CAPTURE: "res://assets/audio/music/omega_droid.ogg",
+	Track.RACE: "res://assets/audio/music/virtual_rush.ogg",
 }
 
 var _current := -1

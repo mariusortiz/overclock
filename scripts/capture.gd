@@ -41,7 +41,7 @@ func _ready() -> void:
 	_arena = load("res://scenes/arenas/%s.tscn" % ARENAS[index]).instantiate()
 	add_child(_arena)
 	move_child(_arena, 0)
-	Music.play_track(_arena.music_track)
+	Music.play_track(Music.Track.CAPTURE)
 	_arena.apply_quality(Settings.high_quality)
 
 	_place_bases_and_zones()

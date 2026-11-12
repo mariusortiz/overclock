@@ -56,7 +56,7 @@ var _pause_panel := PanelContainer.new()
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	Music.play_track(Music.Track.BOSS)
+	Music.play_track(Music.Track.RACE)
 	_build_world()
 	var seed_value := randi()
 	for argument in OS.get_cmdline_user_args():

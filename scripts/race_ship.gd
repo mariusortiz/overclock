@@ -35,8 +35,14 @@ var finish_time := 0.0
 ## Charge of the boost the pilot triggers, 0 to 1 (gates fill it).
 var boost_charge := 0.0
 
+## Which built-in hull (0 dart, 1 delta, 2 twin boom); -1 picks one from the
+## color, so each pilot keeps the same ship.
+var design := -1
+
 var _body := Node3D.new()
-var _flame: MeshInstance3D
+var _flames: Array[MeshInstance3D] = []
+## Where the engines are, in the ship's frame (the flames come out of them).
+var _engines: Array[Vector3] = []
 
 
 func _ready() -> void:
@@ -46,20 +52,25 @@ func _ready() -> void:
 		_body.add_child(model)
 	else:
 		_build_model()
-	_flame = MeshInstance3D.new()
-	var cone := CylinderMesh.new()
-	cone.top_radius = 0.0
-	cone.bottom_radius = 0.28
-	cone.height = 1.6
+	if _engines.is_empty():
+		_engines.append(Vector3(0, 0, LENGTH * 0.5))
 	var flame_material := StandardMaterial3D.new()
 	flame_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	flame_material.albedo_color = color.lerp(Color.WHITE, 0.4)
+	var cone := CylinderMesh.new()
+	cone.top_radius = 0.0
+	cone.bottom_radius = 0.22 if _engines.size() > 1 else 0.3
+	cone.height = 1.5
 	cone.material = flame_material
-	_flame.mesh = cone
-	_flame.rotation.x = -PI / 2.0
-	_flame.position.z = LENGTH * 0.5 + 0.8
-	_flame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_body.add_child(_flame)
+	for engine in _engines:
+		var flame := MeshInstance3D.new()
+		flame.mesh = cone
+		# The cone's tip (+Y) trails behind (+Z).
+		flame.rotation.x = PI / 2.0
+		flame.position = engine + Vector3(0, 0, 0.75)
+		flame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_body.add_child(flame)
+		_flames.append(flame)
 
 
 func is_flying() -> bool:
@@ -92,7 +103,8 @@ func fly(delta: float, steer: Vector2, track: RaceTrack) -> void:
 	# Bank into the turn a little.
 	frame.basis = frame.basis * Basis(Vector3.FORWARD, -steer.x * 0.35) * Basis(Vector3.RIGHT, steer.y * 0.15)
 	transform = frame
-	_flame.scale = Vector3.ONE * (1.6 if boost_left > 0.0 else 1.0) * randf_range(0.85, 1.15)
+	for flame in _flames:
+		flame.scale = Vector3.ONE * (1.6 if boost_left > 0.0 else 1.0) * randf_range(0.85, 1.15)
 
 
 func boost(seconds := BOOST_TIME) -> void:
@@ -131,38 +143,106 @@ func _load_model() -> Node3D:
 	return null
 
 
-## A dart-shaped ship: hull, wings, fin and a glowing cockpit in its color.
+## A ship made of simple shapes, nose toward -Z: a light hull, dark
+## details, stripes and fins in the pilot's color, a glass cockpit and
+## glowing engines. Three silhouettes.
 func _build_model() -> void:
-	var hull_material := StandardMaterial3D.new()
-	hull_material.albedo_color = Color(0.85, 0.87, 0.92)
-	hull_material.metallic = 0.5
-	hull_material.roughness = 0.35
-	var accent := StandardMaterial3D.new()
-	accent.albedo_color = color
-	accent.emission_enabled = true
-	accent.emission = color
-	accent.emission_energy_multiplier = 1.2
-	var parts := [
-		# [mesh size, position, material, mesh kind]
-		[Vector3(0.9, 0.5, LENGTH), Vector3.ZERO, hull_material, "prism_nose"],
-		[Vector3(3.2, 0.12, 1.3), Vector3(0, -0.05, 0.6), accent, "box"],
-		[Vector3(0.12, 0.7, 0.9), Vector3(0, 0.45, 1.0), accent, "box"],
-		[Vector3(0.5, 0.3, 0.9), Vector3(0, 0.3, -0.3), accent, "box"],
-	]
-	for part: Array in parts:
-		var mesh_instance := MeshInstance3D.new()
-		var mesh: PrimitiveMesh
-		if part[3] == "prism_nose":
-			var prism := PrismMesh.new()
-			prism.size = Vector3(part[0].x, part[0].z, part[0].y)
-			mesh = prism
-			# The prism's apex is +Y: turn it to point forward (-Z).
-			mesh_instance.rotation.x = -PI / 2.0
-		else:
-			var box := BoxMesh.new()
-			box.size = part[0]
-			mesh = box
-		mesh.material = part[2]
-		mesh_instance.mesh = mesh
-		mesh_instance.position = part[1]
-		_body.add_child(mesh_instance)
+	if design < 0:
+		design = int(absf(color.h * 7.0 + color.s * 3.0)) % 3
+	var hull := _material(Color(0.86, 0.88, 0.93), 0.5, 0.3)
+	var dark := _material(Color(0.12, 0.13, 0.18), 0.6, 0.4)
+	var accent := _material(color, 0.2, 0.4, 1.0)
+	var glass := _material(Color(0.25, 0.75, 1.0), 0.1, 0.05, 0.6)
+	var glow := _material(color.lerp(Color.WHITE, 0.5), 0.0, 0.5, 3.0)
+	match design:
+		0:  # Dart: long nose, swept wings, twin fins.
+			_part(_prism(Vector3(0.9, LENGTH * 0.62, 0.5)), Vector3(0, 0, -LENGTH * 0.19), Vector3(-90, 0, 0), hull)
+			_part(_box(Vector3(0.9, 0.5, LENGTH * 0.42)), Vector3(0, 0, LENGTH * 0.3), Vector3.ZERO, hull)
+			for side: float in [-1.0, 1.0]:
+				_part(_box(Vector3(1.6, 0.08, 1.0)), Vector3(side * 1.1, -0.05, 0.75), Vector3(0, side * -28.0, 0), accent)
+				_part(_box(Vector3(0.08, 0.6, 0.7)), Vector3(side * 0.42, 0.45, 1.25), Vector3(0, 0, side * -12.0), accent)
+			_part(_box(Vector3(0.95, 0.06, 0.25)), Vector3(0, 0.27, -0.2), Vector3.ZERO, accent)
+			_part(_sphere(0.28, 0.6), Vector3(0, 0.3, -0.05), Vector3.ZERO, glass)
+			_engine(Vector3(0, 0, LENGTH * 0.5), 0.28, dark, glow)
+		1:  # Delta: one wide triangular wing around a short body.
+			_part(_prism(Vector3(3.4, LENGTH * 0.9, 0.22)), Vector3(0, -0.02, 0.2), Vector3(-90, 0, 0), hull)
+			_part(_box(Vector3(0.8, 0.45, LENGTH * 0.75)), Vector3(0, 0.1, 0.1), Vector3.ZERO, dark)
+			_part(_prism(Vector3(0.8, 0.9, 0.45)), Vector3(0, 0.1, -LENGTH * 0.42), Vector3(-90, 0, 0), dark)
+			for side: float in [-1.0, 1.0]:
+				_part(_box(Vector3(0.12, 0.5, 0.8)), Vector3(side * 1.55, 0.2, 1.05), Vector3.ZERO, accent)
+				_part(_box(Vector3(1.0, 0.04, 0.12)), Vector3(side * 0.9, 0.11, 0.5), Vector3(0, side * 20.0, 0), accent)
+			_part(_sphere(0.3, 0.55), Vector3(0, 0.38, -0.3), Vector3.ZERO, glass)
+			_engine(Vector3(-0.25, 0.1, LENGTH * 0.48), 0.2, dark, glow)
+			_engine(Vector3(0.25, 0.1, LENGTH * 0.48), 0.2, dark, glow)
+		_:  # Twin boom: a pod between two engine booms.
+			_part(_capsule(0.4, LENGTH * 0.7), Vector3(0, 0.1, -0.2), Vector3(-90, 0, 0), hull)
+			_part(_box(Vector3(2.6, 0.08, 0.9)), Vector3(0, 0, 0.35), Vector3.ZERO, accent)
+			for side: float in [-1.0, 1.0]:
+				_part(_capsule(0.26, LENGTH * 0.8), Vector3(side * 1.25, 0, 0.3), Vector3(-90, 0, 0), dark)
+				_part(_box(Vector3(0.06, 0.55, 0.5)), Vector3(side * 1.25, 0.35, 1.2), Vector3.ZERO, accent)
+				_engine(Vector3(side * 1.25, 0, LENGTH * 0.5 + 0.2), 0.22, dark, glow)
+			_part(_sphere(0.3, 0.55), Vector3(0, 0.38, -0.5), Vector3.ZERO, glass)
+
+
+func _engine(at: Vector3, radius: float, shell: Material, glow: Material) -> void:
+	var nozzle := CylinderMesh.new()
+	nozzle.top_radius = radius
+	nozzle.bottom_radius = radius * 1.2
+	nozzle.height = 0.5
+	_part(nozzle, at, Vector3(90, 0, 0), shell)
+	var disc := CylinderMesh.new()
+	disc.top_radius = radius * 0.9
+	disc.bottom_radius = radius * 0.9
+	disc.height = 0.05
+	_part(disc, at + Vector3(0, 0, 0.26), Vector3(90, 0, 0), glow)
+	_engines.append(at)
+
+
+func _part(mesh: PrimitiveMesh, at: Vector3, degrees: Vector3, material: Material) -> void:
+	mesh.material = material
+	var instance := MeshInstance3D.new()
+	instance.mesh = mesh
+	instance.position = at
+	instance.rotation_degrees = degrees
+	_body.add_child(instance)
+
+
+func _material(albedo: Color, metallic: float, roughness: float, glow := 0.0) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = albedo
+	material.metallic = metallic
+	material.roughness = roughness
+	if glow > 0.0:
+		material.emission_enabled = true
+		material.emission = albedo
+		material.emission_energy_multiplier = glow
+	return material
+
+
+## A prism whose apex (+Y) is turned forward by the part's rotation.
+func _prism(size: Vector3) -> PrismMesh:
+	var prism := PrismMesh.new()
+	prism.size = size
+	return prism
+
+
+func _box(size: Vector3) -> BoxMesh:
+	var box := BoxMesh.new()
+	box.size = size
+	return box
+
+
+func _sphere(radius: float, squash: float) -> SphereMesh:
+	var sphere := SphereMesh.new()
+	sphere.radius = radius
+	sphere.height = radius * 2.0 * squash
+	sphere.radial_segments = 16
+	sphere.rings = 8
+	return sphere
+
+
+func _capsule(radius: float, length: float) -> CapsuleMesh:
+	var capsule := CapsuleMesh.new()
+	capsule.radius = radius
+	capsule.height = length
+	return capsule
