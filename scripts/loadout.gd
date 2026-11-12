@@ -23,7 +23,7 @@ const CHARACTERS := [
 	# counts, damage, radius and duration; see Ultimate).
 	{"id": "kunoichi", "ulti": &"clones", "name": "Kunoichi", "model": "Ninja_Female.fbx", "shop": true, "boost": 1.6},
 	{"id": "captain", "ulti": &"broadside", "name": "Capitaine", "model": "Pirate_Female.fbx", "shop": true, "boost": 1.75},
-	{"id": "ronin", "ulti": &"whirlwind", "name": "Rōnin", "model": "Kimono_Female.fbx", "shop": true, "boost": 1.6},
+	{"id": "ronin", "ulti": &"whirlwind", "name": "Ronin", "model": "Kimono_Female.fbx", "shop": true, "boost": 1.6},
 	{"id": "paladin", "ulti": &"blessing", "name": "Paladine d'or", "model": "Knight_Golden_Female.fbx", "shop": true, "boost": 1.5},
 	{"id": "godfather", "ulti": &"deadeye", "name": "Le Parrain", "model": "OldClassy_Male.fbx", "shop": true, "boost": 2.0},
 	{"id": "sand_ghost", "ulti": &"timestop", "name": "Ombre des sables", "model": "Ninja_Sand_Female.fbx", "shop": true, "boost": 1.6},

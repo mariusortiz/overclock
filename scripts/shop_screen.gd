@@ -7,6 +7,8 @@ extends Control
 const MENU_SCENE := "res://scenes/menu.tscn"
 const CARD_SIZE := Vector2(214, 108)
 const TAB_FONT_SIZE := 17
+## Characters that fit on one line of a card.
+const CARD_LINE_LENGTH := 12
 const BUTTON_HEIGHT := 64
 const GOLD := Color(1.0, 0.85, 0.3)
 const DEAL := Color(0.3, 1.0, 0.5)
@@ -107,12 +109,16 @@ func _card_text(offer: Dictionary) -> String:
 	if offer.has("product"):
 		return "%d GEMMES\n%s" % [offer.gems, offer.label]
 	var item: Dictionary = offer.item
+	# A long hyphenated name is split at the hyphen rather than mid-word.
+	var title: String = item.name
+	if title.length() > CARD_LINE_LENGTH:
+		title = title.replace("-", "-\n")
 	if Wallet.owns(item.id):
-		return "%s\nPOSSÉDÉ" % item.name
+		return "%s\nPOSSÉDÉ" % title
 	var price := "%d CR" % offer.credits
 	if offer.discount:
 		price = "-%d %%  %s" % [roundi(Shop.DAILY_DISCOUNT * 100), price]
-	return "%s\n%s" % [item.name, price]
+	return "%s\n%s" % [title, price]
 
 
 func _same(a: Dictionary, b: Dictionary) -> bool:
@@ -191,12 +197,12 @@ func _description(item: Dictionary, kind: String) -> String:
 			if item.get("beam", false):
 				traits.append("rayon continu")
 			if item.has("blast_radius"):
-				traits.append("explose (%s m)" % String.num(item.blast_radius))
+				traits.append("explose (%s m)" % str(item.blast_radius).trim_suffix(".0"))
 			if item.has("ignite"):
 				traits.append("enflamme, portée %d m" % item.range)
 			if item.has("pellets"):
 				traits.append("%d projectiles par tir" % item.pellets)
-			traits.append("cadence %s · dégâts %d · chargeur %d" % [String.num(item.fire_rate), item.damage, item.magazine])
+			traits.append("cadence %s/s · dégâts %d · chargeur %d" % [str(item.fire_rate).trim_suffix(".0"), item.damage, item.magazine])
 			return ", ".join(traits)
 		_:
 			return "Finition animée · élimination : %s" % Loadout.KILL_NAMES.get(item.kill, "")

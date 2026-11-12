@@ -222,7 +222,7 @@ Chaque article se paie au choix en crédits ou en gemmes : personnage 6000 créd
 |---|---|
 | Kunoichi | Clones ×1,6 : trois clones au lieu de deux |
 | Capitaine | Bordée ×1,75 : 14 roquettes, plus fortes |
-| Rōnin | Tourbillon ×1,6 : 8 m, 48 dégâts |
+| Ronin | Tourbillon ×1,6 : 8 m, 48 dégâts |
 | Paladine d'or | Bénédiction ×1,5 : plus 4,5 s d'invulnérabilité |
 | Le Parrain | Duel ×2 : 12 ennemis, double dégâts |
 | Ombre des sables | Arrêt du temps ×1,6 : 8 s |
