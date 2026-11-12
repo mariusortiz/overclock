@@ -196,7 +196,7 @@ La boutique, accessible depuis l'accueil, vend du contenu qu'on ne trouve pas da
 Elle a cinq onglets. **Du jour** montre quatre offres, les mêmes pour tous les joueurs, renouvelées à minuit ; la première est à -30 %. **Héros**, **Armes** et **Skins** forment le catalogue permanent. **Gemmes** vend des packs de gemmes contre de l'argent réel (Android uniquement, voir « Paiements » plus bas).
 
 Deux monnaies :
-- les **crédits** se gagnent en jouant : un vingtième du score à chaque partie (divisé par deux si tu meurs ou quittes) ;
+- les **crédits** se gagnent en jouant : un dixième du score à chaque partie (divisé par deux si tu meurs ou quittes) ;
 - les **gemmes** s'achètent, et se gagnent aussi en petite quantité : 3 par boss vaincu, 10 quand les trois défis du jour sont réussis.
 
 Chaque article se paie au choix en crédits ou en gemmes : personnage 6000 crédits ou 450 gemmes, arme 3500 ou 260, skin 2500 ou 180.

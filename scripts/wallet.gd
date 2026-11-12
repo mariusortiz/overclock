@@ -7,7 +7,7 @@ const CREDITS_KEY := "credits"
 const GEMS_KEY := "gems"
 const OWNED_KEY := "owned"
 ## Credits per point of score at the end of a game (half after a death).
-const CREDITS_PER_SCORE_POINT := 0.05
+const CREDITS_PER_SCORE_POINT := 0.1
 const GEMS_PER_BOSS := 3
 const GEMS_FOR_ALL_CHALLENGES := 10
 

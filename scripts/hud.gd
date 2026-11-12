@@ -449,7 +449,7 @@ func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: A
 	if not counts.is_empty():
 		var shots: float = counts.get("shots", 0)
 		var accuracy := 0 if shots == 0 else roundi(100.0 * minf(counts.get("hits", 0) / shots, 1.0))
-		_final_score.text += "\n%d éliminations  ·  %d tirs à la tête  ·  précision %d %%" % [
+		_final_score.text += "\n%d élim.  ·  %d à la tête  ·  %d %% de précision" % [
 				counts.get("kills", 0), counts.get("headshots", 0), accuracy]
 	if rank > 0:
 		_best_score.text += "  ·  %de du classement" % rank if rank > 1 else "  ·  1er du classement"
