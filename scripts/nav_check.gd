@@ -30,7 +30,8 @@ func _ready() -> void:
 			await get_tree().physics_frame
 			OS.delay_msec(10)
 			map = arena.get_navigation_map()
-			if not NavigationServer3D.map_get_path(map, START, START + Vector3(0, 0, -4), true).is_empty():
+			if (arena as Arena).is_navigation_ready \
+					and not NavigationServer3D.map_get_path(map, START, START + Vector3(0, 0, -4), true).is_empty():
 				break
 		print("NAV info %s: %d navigation polygons" % [arena_name, arena.navigation_mesh.get_polygon_count()])
 		for marker: Marker3D in arena.get_node("NavCheckpoints").get_children():

@@ -77,6 +77,10 @@ jobs:
           for wave in 5 10 15 20 25; do
             godot --headless --fixed-fps 60 --quit-after 1200 res://scenes/main.tscn -- --start-wave=$wave 2>&1 | tee -a run.log
           done
+          # Zone capture: a whole match's first minute on two arenas.
+          for arena in 0 3; do
+            godot --headless --fixed-fps 60 --quit-after 3600 res://scenes/capture.tscn -- --arena=$arena 2>&1 | tee -a run.log
+          done
           # Shop content: each exotic gun, animated skin and boosted ultimate,
           # trigger held down, ultimate fired after 5 s.
           save_dir="$HOME/.local/share/godot/app_userdata/Overclock"

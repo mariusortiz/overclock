@@ -36,6 +36,11 @@ func _draw() -> void:
 		_draw_dot(player, crate.global_position, SupplyCrate.COLOR, 5.0)
 	for power_up: PowerUp in get_tree().get_nodes_in_group("power_ups"):
 		_draw_dot(player, power_up.global_position, PowerUp.INFO[power_up.type].color, 3.0)
+	# Team modes: the zones in their holder's color, the allies in cyan.
+	for zone: CaptureZone in get_tree().get_nodes_in_group("capture_zones"):
+		_draw_dot(player, zone.global_position, zone.color(), 7.0)
+	for ally: Node3D in get_tree().get_nodes_in_group("allies"):
+		_draw_dot(player, ally.global_position, CaptureZone.ALLY_COLOR, 3.5)
 	for enemy: Node3D in get_tree().get_nodes_in_group("targets"):
 		_draw_dot(player, enemy.global_position, ENEMY_COLOR, 6.5 if enemy is Boss else 3.5)
 	draw_colored_polygon([center + Vector2(0, -8), center + Vector2(6, 6), center + Vector2(-6, 6)], Color.WHITE)

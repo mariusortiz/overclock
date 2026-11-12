@@ -347,6 +347,24 @@ func _die() -> void:
 	died.emit()
 
 
+## Back on its feet at `at`, full health and ammo, briefly invulnerable
+## (team modes, after a death).
+func revive(at: Vector3, protection := 2.0) -> void:
+	global_position = at
+	velocity = Vector3.ZERO
+	health = max_health
+	health_changed.emit(health, max_health)
+	set_physics_process(true)
+	set_process_unhandled_input(true)
+	weapon.set_physics_process(true)
+	melee.set_physics_process(true)
+	ultimate.set_physics_process(true)
+	weapon.on_perks_changed()
+	_model.play(&"idle", true)
+	invulnerable = true
+	get_tree().create_timer(protection, false).timeout.connect(func() -> void: invulnerable = false)
+
+
 func _update_effects(delta: float) -> void:
 	for type: PowerUp.Type in _effects.keys():
 		_effects[type] -= delta

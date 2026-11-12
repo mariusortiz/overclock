@@ -82,9 +82,9 @@ func knockback(_direction: Vector3, _strength: float) -> void:
 	pass
 
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, from := Vector3.INF) -> void:
 	if not _shielded:
-		super(amount)
+		super(amount, from)
 
 
 func _physics_process(delta: float) -> void:

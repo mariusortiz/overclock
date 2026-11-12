@@ -12,6 +12,11 @@ extends NavigationRegion3D
 ## Music played in this arena (a Music.Track value).
 @export var music_track := 0
 
+## The navigation mesh is baked and in use.
+signal navigation_ready
+const NAVIGATION_ATTEMPTS := 5
+var is_navigation_ready := false
+
 
 func _ready() -> void:
 	add_to_group("arena")
@@ -19,6 +24,26 @@ func _ready() -> void:
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	bake_navigation_mesh(false)
+	await get_tree().physics_frame
+	# The navigation map can keep the empty region it had before the bake (it
+	# happens to the first arena of a run): switching the region off and on
+	# makes it take the baked mesh.
+	for attempt in NAVIGATION_ATTEMPTS:
+		if _has_path():
+			break
+		enabled = false
+		for i in 3:
+			await get_tree().physics_frame
+		enabled = true
+		for i in 3:
+			await get_tree().physics_frame
+	is_navigation_ready = true
+	navigation_ready.emit()
+
+
+func _has_path() -> bool:
+	return not NavigationServer3D.map_get_path(get_navigation_map(), player_spawn_position(),
+			boss_spawn_position(), true).is_empty()
 
 
 func player_spawn_position() -> Vector3:

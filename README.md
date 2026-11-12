@@ -48,6 +48,13 @@ Les deux sont jouées par le moteur avec les modèles du jeu (`scripts/trailer.g
 | Abandonner la partie | Pause, puis QUITTER : la partie compte, avec la moitié de l'XP | Échap |
 | Sauter | Bouton SAUT au-dessus du bouton TIR | Espace |
 
+## Modes de jeu
+
+JOUER propose le mode à lancer :
+
+- **Vagues** : le mode d'origine, des vagues d'ennemis et un boss toutes les cinq vagues, jusqu'au Titan.
+- **Capture de zone** : ton équipe (toi et 3 bots alliés) contre 4 bots adverses, dans une arène tirée au hasard. Trois zones, A, B et C : seul dans une zone, ton équipe la prend en 5 s (plus vite à plusieurs) ; à plusieurs camps dedans, elle est disputée et ne bouge plus. Chaque zone tenue rapporte un point par seconde ; la première équipe à 150 gagne. On réapparaît à sa base 5 s après être tombé. Le score vient des éliminations (100), des zones prises en étant dedans (250) et de la victoire (1500) ; une défaite ne rapporte que la moitié de l'XP et des crédits. Les alliés ont un losange cyan au-dessus de la tête, les adversaires un rouge ; la mini-carte montre les zones et les alliés.
+
 ## Power-ups
 
 Un robot détruit laisse parfois un cube lumineux au sol. Marche dessus pour le ramasser.

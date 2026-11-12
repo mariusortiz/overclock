@@ -14,7 +14,8 @@ signal perk_chosen(type: Perk.Type)
 signal exit_chosen(leave: bool)
 
 ## How a game ended.
-enum Result { DEATH, VICTORY, LEFT, QUIT }
+## TEAM_WIN and DEFEAT end a team mode (zone capture).
+enum Result { DEATH, VICTORY, LEFT, QUIT, TEAM_WIN, DEFEAT }
 
 const BANNER_TIME := 2.5
 const FADE_TIME := 0.4
@@ -181,6 +182,16 @@ func set_ultimate(ratio: float) -> void:
 
 func set_score(score: int) -> void:
 	_score_label.text = "SCORE  %d" % score
+
+
+## The line at the top in modes without waves.
+func set_mode_text(text: String) -> void:
+	_wave_label.text = text
+
+
+## Replaces the record line of the end screen.
+func set_result_line(text: String) -> void:
+	_best_score.text = text
 
 
 func set_wave(number: int, enemies_left: int) -> void:
@@ -457,12 +468,19 @@ func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: A
 		_xp_label.text += "  (moitié : tu es mort)"
 	elif result == Result.QUIT:
 		_xp_label.text += "  (moitié : partie quittée)"
+	elif result == Result.DEFEAT:
+		_xp_label.text += "  (moitié : défaite)"
 	for challenge in challenges:
 		_xp_label.text += "\nDéfi réussi : %s  +%d XP" % [challenge.text, challenge.xp]
 	if not unlocked.is_empty():
 		_xp_label.text += "\nDébloqué : " + ", ".join(unlocked)
 	if result == Result.QUIT:
 		_end_title.text = "PARTIE QUITTÉE"
+	elif result == Result.DEFEAT:
+		_end_title.text = "DÉFAITE"
+	elif result == Result.TEAM_WIN:
+		_end_title.text = "VICTOIRE"
+		_end_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 	elif result != Result.DEATH:
 		_end_title.text = "VICTOIRE" if result == Result.VICTORY else "XP ENCAISSÉE"
 		_end_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))

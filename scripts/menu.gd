@@ -2,6 +2,12 @@ extends Control
 ## Home screen: play, armory, shop, battle pass, daily challenges and stats, settings.
 
 const GAME_SCENE := "res://scenes/main.tscn"
+const CAPTURE_SCENE := "res://scenes/capture.tscn"
+## The game modes offered by JOUER: [title, description, scene].
+const MODES := [
+	["VAGUES", "Survis aux vagues et bats les 5 boss", GAME_SCENE],
+	["CAPTURE DE ZONE", "4 contre 4 avec des bots · tiens les zones A, B et C", CAPTURE_SCENE],
+]
 const ARMORY_SCENE := "res://scenes/armory.tscn"
 const PASS_SCENE := "res://scenes/battle_pass.tscn"
 const SHOP_SCENE := "res://scenes/shop.tscn"
@@ -11,6 +17,7 @@ const POSTER_SCENE := "res://scenes/tools/poster.tscn"
 @onready var _best_label: Label = $Right/Box/Best
 @onready var _settings_panel: Control = $SettingsPanel
 var _profile_panel := ProfilePanel.new()
+var _mode_panel := Control.new()
 
 
 func _ready() -> void:
@@ -32,7 +39,8 @@ func _ready() -> void:
 			_stage.preview_pose = -2 if value == "jump" else value.to_int()
 
 	# Deferred: a scene must not be removed while its button handles the click.
-	$Right/Box/Play.pressed.connect(get_tree().change_scene_to_file.bind(GAME_SCENE), CONNECT_DEFERRED)
+	_build_mode_panel()
+	$Right/Box/Play.pressed.connect(func() -> void: _mode_panel.visible = true)
 	$Right/Box/Gear/Armory.pressed.connect(get_tree().change_scene_to_file.bind(ARMORY_SCENE), CONNECT_DEFERRED)
 	$Right/Box/Gear/Shop.pressed.connect(get_tree().change_scene_to_file.bind(SHOP_SCENE), CONNECT_DEFERRED)
 	$Right/Box/Pass.pressed.connect(get_tree().change_scene_to_file.bind(PASS_SCENE), CONNECT_DEFERRED)
@@ -85,9 +93,50 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func _notification(what: int) -> void:
 	# Android back button: close the settings, or leave the game.
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		if _settings_panel.visible:
+		if _mode_panel.visible:
+			_mode_panel.visible = false
+		elif _settings_panel.visible:
 			_settings_panel.visible = false
 		elif _profile_panel.visible:
 			_profile_panel.visible = false
 		else:
 			get_tree().quit()
+
+
+## JOUER opens this: one big button per mode, and a way back.
+func _build_mode_panel() -> void:
+	_mode_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_mode_panel.visible = false
+	add_child(_mode_panel)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.6)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_mode_panel.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_mode_panel.add_child(center)
+	var panel := PanelContainer.new()
+	center.add_child(panel)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 14)
+	panel.add_child(box)
+	var title := Label.new()
+	title.text = "MODE DE JEU"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 36)
+	title.add_theme_color_override("font_color", Color(0.16, 0.83, 1.0))
+	box.add_child(title)
+	for mode: Array in MODES:
+		var button := Button.new()
+		button.text = "%s\n%s" % [mode[0], mode[1]]
+		button.custom_minimum_size = Vector2(560, 104)
+		button.add_theme_font_size_override("font_size", 24)
+		button.pressed.connect(get_tree().change_scene_to_file.bind(mode[2]), CONNECT_DEFERRED)
+		box.add_child(button)
+	var back := Button.new()
+	back.text = "RETOUR"
+	back.custom_minimum_size.y = 64
+	back.add_theme_font_size_override("font_size", 24)
+	back.pressed.connect(func() -> void: _mode_panel.visible = false)
+	box.add_child(back)
+	move_child(_mode_panel, -1)

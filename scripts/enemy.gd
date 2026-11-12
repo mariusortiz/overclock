@@ -39,6 +39,11 @@ const KAMIKAZE_RADIUS := 3.5
 const KAMIKAZE_DAMAGE := 25
 const KAMIKAZE_COLOR := Color(1.0, 0.25, 0.1)
 const HIT_FLASH_TIME := 0.07
+## Physics layer of the player's allies (team modes): the player's shots do
+## not hit it, the foes' bolts do.
+const ALLY_LAYER := 16
+const PLAYER_LAYER := 2
+const TARGETS_LAYER := 4
 ## The small health bar over an enemy shows for this long after a hit.
 const HEALTH_BAR_TIME := 2.5
 const HEALTH_BAR_SIZE := Vector2(0.07, 0.009)
@@ -85,6 +90,11 @@ var _chill_left := 0.0
 var _chill_factor := 1.0
 var _status_material := StandardMaterial3D.new()
 var _player: Player
+## Who this one fights: "enemy" (the player's foes, the default) or "ally"
+## (on the player's side, in team modes). Set before it enters the tree.
+var team := &"enemy"
+## What it shoots at and walks to this frame (see _pick_target), or null.
+var _target: Node3D
 var _model: CharacterModel
 var _base_scale := Vector3.ONE
 var _attack_animation := &"shoot"
@@ -119,7 +129,11 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 
 func _ready() -> void:
-	add_to_group("targets")
+	if team == &"ally":
+		add_to_group("allies")
+		collision_layer = ALLY_LAYER
+	else:
+		add_to_group("targets")
 	if elite:
 		max_health *= ELITE_HEALTH
 		drop_chance = 1.0
@@ -176,7 +190,7 @@ func is_head_hit(point: Vector3) -> bool:
 	return point.y >= global_position.y + head_base
 
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, _from := Vector3.INF) -> void:
 	if _dead:
 		return
 	_health -= amount
@@ -277,6 +291,7 @@ func _update_statuses(delta: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	_update_statuses(delta)
+	_target = null if _dead else _pick_target()
 	var slow := _chill_factor if _chill_left > 0.0 else 1.0
 
 	if flying and not _dead:
@@ -288,8 +303,14 @@ func _physics_process(delta: float) -> void:
 	var wanted := Vector3.ZERO
 	var animation := &"idle"
 	_freeze_left -= delta
-	if not _dead and _freeze_left <= 0.0 and _player and _player.health > 0:
-		var to_player := _player.global_position - global_position
+	if not _dead and _freeze_left <= 0.0 and _target == null and _idle_goal() != Vector3.INF:
+		# Nobody to fight: walk to where it should be (team modes).
+		wanted = _chase_direction(delta, _idle_goal()) * move_speed * slow
+		if not wanted.is_zero_approx():
+			animation = &"walk"
+			_face(wanted, delta)
+	if not _dead and _freeze_left <= 0.0 and _target != null:
+		var to_player := _target.global_position - global_position
 		_face(to_player, delta)
 		var can_shoot := to_player.length() <= attack_range and _has_line_of_sight()
 		if _aim_left > 0.0:
@@ -310,7 +331,7 @@ func _physics_process(delta: float) -> void:
 		elif (can_shoot and absf(to_player.y) < LEVEL_HEIGHT) or _aim_left > 0.0:
 			animation = _aim_animation
 		else:
-			wanted = _chase_direction(delta) * move_speed * slow
+			wanted = _chase_direction(delta, _target.global_position) * move_speed * slow
 			if not wanted.is_zero_approx():
 				animation = &"walk"
 
@@ -356,15 +377,15 @@ func _equip() -> void:
 func _fly(delta: float, slow: float) -> void:
 	var wanted := Vector3.ZERO
 	_freeze_left -= delta
-	if _freeze_left <= 0.0 and _player and _player.health > 0:
-		var to_player := _player.global_position - global_position
+	if _freeze_left <= 0.0 and _target != null:
+		var to_player := _target.global_position - global_position
 		_face(to_player, delta)
 		var flat := Vector3(to_player.x, 0, to_player.z)
 		var distance := flat.length()
 		var toward := flat / maxf(distance, 0.01)
 		# Close in or back off to the orbit distance, while drifting sideways.
 		wanted = toward * clampf(distance - FLY_DISTANCE, -1.0, 1.0) + toward.cross(Vector3.UP) * 0.6
-		wanted.y = clampf(_player.global_position.y + FLY_HEIGHT - global_position.y, -1.0, 1.0)
+		wanted.y = clampf(_target.global_position.y + FLY_HEIGHT - global_position.y, -1.0, 1.0)
 		wanted *= move_speed * slow
 		if distance <= attack_range and _has_line_of_sight():
 			_fire_cooldown -= delta * slow
@@ -387,18 +408,30 @@ func _face(to_player: Vector3, delta: float) -> void:
 
 func _has_line_of_sight() -> bool:
 	var from := global_position + Vector3.UP * EYE_HEIGHT
-	var query := PhysicsRayQueryParameters3D.create(from, _player.get_aim_position(), WORLD_MASK)
+	var query := PhysicsRayQueryParameters3D.create(from, _target.get_aim_position(), WORLD_MASK)
 	return get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
 
-func _chase_direction(delta: float) -> Vector3:
+## Who to fight now. The player by default; team modes choose among foes.
+func _pick_target() -> Node3D:
+	if _player and _player.health > 0:
+		return _player
+	return null
+
+
+## Where to go when there is nobody to fight, or Vector3.INF to stay put.
+func _idle_goal() -> Vector3:
+	return Vector3.INF
+
+
+func _chase_direction(delta: float, goal: Vector3) -> Vector3:
 	# The navigation map is empty until the arena has baked and synced.
 	if NavigationServer3D.map_get_iteration_id(_agent.get_navigation_map()) == 0:
 		return Vector3.ZERO
 	_repath_left -= delta
 	if _repath_left <= 0.0:
 		_repath_left = REPATH_INTERVAL
-		_agent.target_position = _player.global_position
+		_agent.target_position = goal
 	if _agent.is_navigation_finished():
 		return Vector3.ZERO
 	var direction := _agent.get_next_path_position() - global_position
@@ -421,14 +454,14 @@ func _shoot() -> void:
 ## What a shot does. Bosses override this.
 func _attack() -> void:
 	if role == &"kamikaze":
-		if global_position.distance_to(_player.global_position) <= attack_range + 0.5:
+		if global_position.distance_to(_target.global_position) <= attack_range + 0.5:
 			_die()
 		return
 	if melee_damage > 0:
-		if global_position.distance_to(_player.global_position) <= attack_range + 0.5:
-			_player.take_damage(melee_damage, global_position)
+		if global_position.distance_to(_target.global_position) <= attack_range + 0.5:
+			_target.take_damage(melee_damage, global_position)
 		return
-	_spawn_projectile(_muzzle.global_position.direction_to(_player.get_aim_position()))
+	_spawn_projectile(_muzzle.global_position.direction_to(_target.get_aim_position()))
 
 
 ## The sniper's shot, at the end of its aim: it hits if the player is still
@@ -437,11 +470,13 @@ func _snipe() -> void:
 	_shot_sound.play()
 	_model.play(_attack_animation, true)
 	_shoot_animation_left = SHOOT_ANIMATION_TIME
-	var target := _player.get_aim_position()
+	if _target == null:
+		return
+	var target: Vector3 = _target.get_aim_position()
 	var query := PhysicsRayQueryParameters3D.create(_muzzle.global_position, target, WORLD_MASK)
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	if hit.is_empty():
-		_player.take_damage(SNIPER_DAMAGE, global_position)
+		_target.take_damage(SNIPER_DAMAGE, global_position)
 	else:
 		target = hit.position
 	Effects.tracer(get_tree().current_scene, _muzzle.global_position, target, LASER_COLOR)
@@ -449,7 +484,7 @@ func _snipe() -> void:
 
 ## Red line from the sniper's gun to the player while it takes aim.
 func _update_laser() -> void:
-	var aiming := _aim_left > 0.0 and not _dead and _player != null
+	var aiming := _aim_left > 0.0 and not _dead and _target != null
 	if not aiming:
 		if _laser:
 			_laser.queue_free()
@@ -467,7 +502,7 @@ func _update_laser() -> void:
 		_laser.add_to_group("transient")
 		get_tree().current_scene.add_child(_laser)
 	var from := _muzzle.global_position
-	var to := _player.get_aim_position()
+	var to: Vector3 = _target.get_aim_position()
 	if from.is_equal_approx(to):
 		return
 	_laser.look_at_from_position((from + to) / 2.0, to)
@@ -516,12 +551,15 @@ func _spawn_projectile(direction: Vector3) -> void:
 	var projectile: Projectile = projectile_scene.instantiate()
 	projectile.position = _muzzle.global_position
 	projectile.direction = direction
+	# Bolts hit the walls and the other side only.
+	projectile.collision_mask = WORLD_MASK | (TARGETS_LAYER if team == &"ally" else PLAYER_LAYER | ALLY_LAYER)
 	get_tree().current_scene.add_child(projectile)
 
 
 func _die() -> void:
 	_dead = true
 	remove_from_group("targets")
+	remove_from_group("allies")
 	collision_layer = 0
 	_update_laser()
 	if role == &"kamikaze":
