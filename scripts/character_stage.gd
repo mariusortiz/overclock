@@ -25,6 +25,7 @@ var _gun_scale := 1.0
 var _melee_scale := 1.0
 ## Height of the middle of the melee weapon's model, above the hand.
 var _melee_middle := 0.0
+var _melee_tip_up := true
 
 @onready var _pivot: Node3D = $SubViewport/World/Pivot
 @onready var _weapon_holder: Node3D = $SubViewport/World/Pivot/WeaponHolder
@@ -50,7 +51,7 @@ func _process(delta: float) -> void:
 	_pivot.rotation.y = PI + sin(_time * TURN_SPEED) * TURN_RANGE
 	if _character:
 		_character.place_in_hand(_weapon_holder, "R", false)
-		_character.place_in_hand(_melee_holder, "L", true, true)
+		_character.place_in_hand(_melee_holder, "L", true, _melee_tip_up)
 
 
 ## What the stage shows: the character with the loadout in hand, or one
@@ -88,6 +89,7 @@ func show_melee(item: Dictionary, skin := {}) -> void:
 	var bounds := Loadout.melee_bounds(item)
 	_melee_scale = minf(FLOAT_MELEE_HEIGHT / bounds.size.y, FLOAT_MELEE_MAX_SCALE)
 	_melee_middle = bounds.get_center().y
+	_melee_tip_up = Loadout.is_carried_tip_up(item)
 	_replace(_melee_holder, Loadout.instantiate_melee(item, skin))
 
 

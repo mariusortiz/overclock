@@ -217,7 +217,7 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 	# The gun sits in the hand but keeps pointing forward; a blade follows the arm.
-	if _model.place_in_hand(_gun, "R", melee_damage > 0, true):
+	if _model.place_in_hand(_gun, "R", melee_damage > 0):
 		_muzzle.global_position = _gun.global_position - global_basis.z * 0.5 + Vector3.UP * 0.2
 
 

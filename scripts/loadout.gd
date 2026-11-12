@@ -164,6 +164,8 @@ const MELEE_PAINTED_PARTS: Array[String] = ["Blade", "Accent"]
 const MELEE_TEXTURE_SCALE := 9.0
 ## A blade is small: the skin's pattern is drawn finer on it than on a gun.
 const MELEE_PATTERN_SCALE := 4.0
+## Length above the hand, in meters, from which a weapon counts as long.
+const MELEE_LONG := 0.7
 
 ## Materials already built, by melee part name or by skin and scale. Kept for the
 ## whole session: a weapon must never outlive the material it is drawn with.
@@ -273,6 +275,13 @@ static func instantiate_melee(item: Dictionary, skin := {}) -> Node3D:
 	var held := Node3D.new()
 	held.add_child(part)
 	return held
+
+
+## How a melee weapon is carried at rest. A long one is held tip up, along
+## the forearm, so that it does not drag on the ground; a short one would
+## disappear behind the arm, so it points forward, out of the fist.
+static func is_carried_tip_up(item: Dictionary) -> bool:
+	return melee_bounds(item).end.y > MELEE_LONG
 
 
 ## Box around a melee weapon's model, to frame it when it is shown alone.

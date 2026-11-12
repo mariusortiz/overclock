@@ -66,7 +66,7 @@ func _create_card(number: int, reached: int) -> Control:
 	box.add_child(_label("PALIER %d" % number, 22, UNLOCKED_COLOR if unlocked else Color.WHITE))
 	# Long names get a smaller size so that words are not cut.
 	var item_name: String = reward.item.name
-	box.add_child(_label(item_name, 28 if item_name.length() <= 9 else 19, Color.WHITE))
+	box.add_child(_label(item_name, 28 if item_name.length() <= 7 else 19, Color.WHITE))
 	box.add_child(_label(reward.kind, 18, Color(0.7, 0.8, 1.0)))
 	box.add_child(_label("OBTENU" if unlocked else "%d XP" % BattlePass.tier_cost(number), 20,
 			UNLOCKED_COLOR if unlocked else Color(1.0, 0.24, 0.95)))

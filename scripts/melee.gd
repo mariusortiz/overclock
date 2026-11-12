@@ -27,6 +27,7 @@ var damage_multiplier := 1
 
 var _cooldown_left := 0.0
 var _swing_left := 0.0
+var _tip_up := true
 
 @onready var _model_pivot: Node3D = $ModelPivot
 @onready var _hit_sound: AudioStreamPlayer = $HitSound
@@ -39,6 +40,7 @@ func setup(data: Dictionary) -> void:
 	sweep = data.sweep
 	cone_deg = data.cone
 	knockback = data.knockback
+	_tip_up = Loadout.is_carried_tip_up(data)
 	_model_pivot.add_child(Loadout.instantiate_melee(data, Loadout.selected_melee_skin()))
 
 
@@ -47,8 +49,8 @@ func _process(_delta: float) -> void:
 	# rests in the left hand and moves to the striking (right) hand for a swing.
 	var swinging := _swing_left > 0.0
 	if holder:
-		# At rest it is carried tip up; in a swing it points where the arm strikes.
-		holder.place_in_hand(_model_pivot, "R" if swinging else "L", true, not swinging)
+		# In a swing it points where the arm strikes; at rest, see Loadout.is_carried_tip_up.
+		holder.place_in_hand(_model_pivot, "R" if swinging else "L", true, _tip_up and not swinging)
 	if gun_visual:
 		gun_visual.visible = not swinging
 
