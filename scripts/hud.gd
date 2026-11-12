@@ -239,6 +239,8 @@ func _build_hint() -> void:
 	_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hint.modulate.a = 0.0
 	add_child(_hint)
+	# Under the choice panels and the pause menu, which dim everything behind them.
+	move_child(_hint, pause_menu.get_index())
 
 
 ## First beat of the death sequence: big title over the slowed-down game.
