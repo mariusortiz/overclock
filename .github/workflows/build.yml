@@ -90,7 +90,7 @@ jobs:
           done
           rm "$save_dir/save.cfg"
           # The trailer's whole timeline, without drawing it.
-          godot --headless --fixed-fps 30 --quit-after 4400 res://scenes/tools/trailer.tscn 2>&1 | tee -a run.log
+          godot --headless --fixed-fps 30 --quit-after 4700 res://scenes/tools/trailer.tscn 2>&1 | tee -a run.log
           # "still in use at exit" only reports the music playing when --quit-after stops the game.
           # Enemies must be able to walk up to every deck.
           # The check quits by itself; the time limit only guards against a hang.

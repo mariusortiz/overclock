@@ -1,7 +1,7 @@
 extends Node
 ## Directs the two-minute trailer: a showcase, with no fighting. It visits the
 ## arenas, parades their enemies and bosses, then scrolls past every weapon and
-## every hero, with title cards on top. Nothing of the game itself runs here:
+## every hero, then the shop's exclusive guns and heroes, with title cards on top. Nothing of the game itself runs here:
 ## the director only borrows its scenes and models.
 ##
 ## Rendered by .github/workflows/trailer.yml with Godot's movie mode:
@@ -9,7 +9,7 @@ extends Node
 ## The music is laid over the picture afterwards, by the same workflow.
 
 const URL := "mariusortiz.github.io/overclock-builds"
-const DURATION := 141.0
+const DURATION := 151.0
 const TEXT_COLOR := Color(0.16, 0.9, 1.0)
 const ACCENT := Color(1.0, 0.24, 0.95)
 const FONT := preload("res://assets/ui/fonts/kenney_mini_square_mono.ttf")
@@ -222,11 +222,12 @@ func _run() -> void:
 	# 88 s: the armory.
 	_build_showroom()
 	_flash()
-	_line_up_guns()
-	var last_gun := (Loadout.WEAPONS.size() - 1) * GUN_SPACING
+	var guns := _base(Loadout.WEAPONS)
+	_line_up_guns(guns, _base(Loadout.SKINS))
+	var last_gun := (guns.size() - 1) * GUN_SPACING
 	_dolly(Vector3(-1.5, 1.2, 3.3), Vector3(last_gun + 1.5, 1.2, 3.3),
 			Vector3(-1.5, 1.05, 0), Vector3(last_gun + 1.5, 1.05, 0), 15.0)
-	_show_caption("ARSENAL", "%%d ARMES · %d SKINS" % Loadout.SKINS.size(), 13.5, Loadout.WEAPONS.size())
+	_show_caption("ARSENAL", "%%d ARMES · %d SKINS" % _base(Loadout.SKINS).size(), 13.5, guns.size())
 	await _until(103.0)
 
 	# 103 s: the blades, then the butterfly knife flipping in the hand.
@@ -236,7 +237,7 @@ func _run() -> void:
 	var last_blade := (Loadout.MELEE.size() - 1) * BLADE_SPACING
 	_dolly(Vector3(-1.2, 1.25, 3.4), Vector3(last_blade + 1.2, 1.25, 3.4),
 			Vector3(-1.2, 1.15, 0), Vector3(last_blade + 1.2, 1.15, 0), 7.0)
-	_show_caption("CORPS À CORPS", "%%d LAMES · %d SKINS" % Loadout.SKINS.size(), 6.0, Loadout.MELEE.size())
+	_show_caption("CORPS À CORPS", "%%d LAMES · %d SKINS" % _base(Loadout.SKINS).size(), 6.0, Loadout.MELEE.size())
 	await _until(110.0)
 	_build_showroom()
 	_blink()
@@ -249,33 +250,68 @@ func _run() -> void:
 	# 113.6 s: the heroes, dancing.
 	_build_showroom()
 	_flash()
-	_line_up_heroes()
-	var last_hero := (Loadout.CHARACTERS.size() - 1) * HERO_SPACING
+	var heroes := _base(Loadout.CHARACTERS)
+	_line_up_heroes(heroes)
+	var last_hero := (heroes.size() - 1) * HERO_SPACING
 	_dolly(Vector3(-1.0, 1.5, 4.9), Vector3(last_hero + 1.0, 1.5, 4.9),
 			Vector3(-1.0, 1.45, 0), Vector3(last_hero + 1.0, 1.45, 0), 12.0)
-	_show_caption("CHACUN SON ULTI · ET SES DANSES", "%d HÉROS", 10.5, Loadout.CHARACTERS.size())
+	_show_caption("CHACUN SON ULTI · ET SES DANSES", "%d HÉROS", 10.5, heroes.size())
 	await _until(125.6)
 
-	# 125.6 s: the last boss, and what beating it earns.
+	# 125.6 s: the shop. Exotic guns in animated finishes, then the exclusive
+	# heroes, showered with gold.
+	_build_showroom()
+	_flash()
+	var exotic := _shop(Loadout.WEAPONS)
+	var animated := _shop(Loadout.SKINS)
+	_line_up_guns(exotic, animated)
+	var last_exotic := (exotic.size() - 1) * GUN_SPACING
+	_dolly(Vector3(-1.2, 1.25, 3.0), Vector3(last_exotic + 1.2, 1.25, 3.0),
+			Vector3(-1.2, 1.1, 0), Vector3(last_exotic + 1.2, 1.1, 0), 5.0)
+	_show_caption("NOUVEAU · BOUTIQUE", "%%d ARMES EXOTIQUES · %d SKINS ANIMÉS" % animated.size(), 4.6, exotic.size())
+	await _until(130.6)
+	_build_showroom()
+	_blink()
+	var exclusive := _shop(Loadout.CHARACTERS)
+	_line_up_heroes(exclusive)
+	for index in exclusive.size():
+		_add_sparkles(Vector3(index * HERO_SPACING, 0.1, 0))
+	var last_exclusive := (exclusive.size() - 1) * HERO_SPACING
+	_dolly(Vector3(-0.8, 1.5, 4.6), Vector3(last_exclusive + 0.8, 1.5, 4.6),
+			Vector3(-0.8, 1.45, 0), Vector3(last_exclusive + 0.8, 1.45, 0), 5.0)
+	_show_caption("%d HÉROS EXCLUSIFS" % exclusive.size(), "ULTIS BOOSTÉES", 4.6)
+	await _until(135.6)
+
+	# 135.6 s: the last boss, and what beating it earns.
 	_load_arena(CITY)
 	_flash()
 	_present_boss(Boss.Kind.TITAN, 4.6)
 	_show_caption("AU BOUT DE LA VILLE", "LE TITAN", 3.8)
-	await _until(130.2)
+	await _until(140.2)
 	_clear_actors()
 	_blink()
 	_celebrate()
 	_show_caption("BATS-LE", "GAGNE LE SKIN CHAMPION", 3.8)
-	await _until(134.6)
+	await _until(144.6)
 
 	# End card.
 	_fade_shade(1.0, 0.9)
-	await _until(135.7)
+	await _until(145.7)
 	_end_sparks.emitting = true
 	_show_title("%s\nSUR ANDROID ET DANS LE NAVIGATEUR\n\n5 ARÈNES · 5 BOSS · %d ARMES · %d LAMES · %d HÉROS" % [
 			URL, Loadout.WEAPONS.size(), Loadout.MELEE.size(), Loadout.CHARACTERS.size()], 5.1, true)
 	await _until(DURATION)
 	get_tree().quit()
+
+
+## The items of `items` earned by playing (the battle pass), and those sold
+## in the shop.
+func _base(items: Array) -> Array:
+	return items.filter(func(item: Dictionary) -> bool: return not item.get("shop", false))
+
+
+func _shop(items: Array) -> Array:
+	return items.filter(func(item: Dictionary) -> bool: return item.get("shop", false))
 
 
 func _until(time: float) -> void:
@@ -687,7 +723,8 @@ func _kill_montage(start: float) -> void:
 	_flash()
 	var enemy_scene: PackedScene = load(ENEMY_SCENE)
 	var model: PackedScene = load(MONTAGE_MODEL)
-	var count := Loadout.SKINS.size()
+	var skins := _base(Loadout.SKINS)
+	var count := skins.size()
 	var enemies: Array[Enemy] = []
 	for index in count:
 		var enemy: Enemy = enemy_scene.instantiate()
@@ -708,7 +745,7 @@ func _kill_montage(start: float) -> void:
 			aim + Vector3(-1.0, 0, 0), aim + Vector3(last + 1.0, 0, 0), MONTAGE_STEP * count + 0.8)
 	for index in count:
 		await _until(start + 0.6 + MONTAGE_STEP * index)
-		var skin: Dictionary = Loadout.SKINS[index]
+		var skin: Dictionary = skins[index]
 		var enemy := enemies[index]
 		if is_instance_valid(enemy):
 			enemy.set_kill_effect(skin.kill, skin.shot)
@@ -729,11 +766,11 @@ func _release_bats() -> void:
 		_actor(WaveManager.FLYING_MODEL, 1.0, 0.0, at, -angle, &"idle", _flock)
 
 
-## Every gun of the game in a row, each with a finish, turning slowly.
-func _line_up_guns() -> void:
-	for index in Loadout.WEAPONS.size():
-		var item: Dictionary = Loadout.WEAPONS[index]
-		var skin: Dictionary = Loadout.SKINS[index % Loadout.SKINS.size()]
+## `guns` in a row, each with one of `skins` in turn, turning slowly.
+func _line_up_guns(guns: Array, skins: Array) -> void:
+	for index in guns.size():
+		var item: Dictionary = guns[index]
+		var skin: Dictionary = skins[index % skins.size()]
 		var holder := _gun_on_show(item, skin, index, _set)
 		_shine(holder)
 		_floaters.append(holder)
@@ -782,7 +819,8 @@ func _shine(item: Node) -> void:
 func _line_up_blades() -> void:
 	for index in Loadout.MELEE.size():
 		var item: Dictionary = Loadout.MELEE[index]
-		var skin: Dictionary = Loadout.SKINS[(index * 3 + 1) % Loadout.SKINS.size()]
+		var skins := _base(Loadout.SKINS)
+		var skin: Dictionary = skins[(index * 3 + 1) % skins.size()]
 		var holder := _blade_on_show(item, skin, index, _set)
 		_shine(holder)
 		_spinners.append(holder)
@@ -792,10 +830,11 @@ func _line_up_blades() -> void:
 		_label(str(skin.name).to_upper(), Vector3(index * BLADE_SPACING, 0.26, 0), skin_color, 22)
 
 
-## Every hero side by side, gun in hand, with the name of their ultimate.
-func _line_up_heroes() -> void:
-	for index in Loadout.CHARACTERS.size():
-		var item: Dictionary = Loadout.CHARACTERS[index]
+## `heroes` side by side, dancing, with the name of their ultimate (and its
+## boost, for the shop's).
+func _line_up_heroes(heroes: Array) -> void:
+	for index in heroes.size():
+		var item: Dictionary = heroes[index]
 		var at := Vector3(index * HERO_SPACING, 0, 0)
 		var scene: PackedScene = load(Loadout.CHARACTER_DIR + str(item.model))
 		# Each hero dances one of the dances; the reflection dances along.
@@ -809,7 +848,10 @@ func _line_up_heroes() -> void:
 			_dancers.append([hero, dance, index * 0.37])
 		var ultimate: Dictionary = Ultimate.INFO[item.ulti]
 		_label(str(item.name).to_upper(), at + Vector3(0, 2.85, 0), Color.WHITE, 40)
-		_label(str(ultimate.name).to_upper(), at + Vector3(0, 2.62, 0), ACCENT, 30)
+		var ulti_text := str(ultimate.name).to_upper()
+		if item.has("boost"):
+			ulti_text += " ×%s" % String.num(item.boost, 2)
+		_label(ulti_text, at + Vector3(0, 2.62, 0), ACCENT, 30)
 
 
 func _label(text: String, at: Vector3, color: Color, font_size: int) -> void:
