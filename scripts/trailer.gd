@@ -46,7 +46,8 @@ const BLADE_SPACING := 2.3
 const ENEMY_SCENE := "res://scenes/enemy.tscn"
 ## The kill montage: where its row of enemies starts, their spacing, and the
 ## time between two falls.
-const MONTAGE_START := Vector3(-12, 0.1, 12)
+const MONTAGE_START := Vector3(0, 0, 0)
+const MONTAGE_MODEL := "res://assets/models/quaternius/characters/BlueSoldier_Male.fbx"
 const MONTAGE_SPACING := 2.0
 const MONTAGE_STEP := 0.72
 const BLADE_HEIGHT := 1.35
@@ -681,20 +682,25 @@ func _add_sparkles(at: Vector3) -> void:
 ## A row of enemies falling one after the other, each the way one skin
 ## kills; its name comes up as it falls. `start` is the time it begins.
 func _kill_montage(start: float) -> void:
-	_load_arena(0)
+	# In the dark hall: nothing in the way, and the floor reflects the effects.
+	_build_showroom()
 	_flash()
 	var enemy_scene: PackedScene = load(ENEMY_SCENE)
-	var arena := _arena()
+	var model: PackedScene = load(MONTAGE_MODEL)
 	var count := Loadout.SKINS.size()
 	var enemies: Array[Enemy] = []
 	for index in count:
 		var enemy: Enemy = enemy_scene.instantiate()
-		enemy.model_scene = arena.enemy_model
+		enemy.model_scene = model
 		enemy.weapon_id = ""
 		enemy.drop_chance = 0.0
+		enemy.show_hit_info = false
 		enemy.position = MONTAGE_START + Vector3(index * MONTAGE_SPACING, 0, 0)
 		enemy.rotation.y = PI
 		_set.add_child(enemy)
+		# The hall's floor has no collision: they stand still where they are.
+		enemy.set_physics_process(false)
+		enemy._model.play(&"idle")
 		enemies.append(enemy)
 	var last := (count - 1) * MONTAGE_SPACING
 	var aim := MONTAGE_START + Vector3.UP * 1.1

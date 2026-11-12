@@ -99,6 +99,8 @@ var _headshot_pending := false
 var _aim_left := 0.0
 ## The glow drawn over the model (elite, kamikaze), restored after a hit flash.
 var _overlay: Material
+## Off for a staged death (the trailer): no damage number, no health bar.
+var show_hit_info := true
 var _health_bar: Node3D
 var _health_fill: MeshInstance3D
 var _health_bar_left := 0.0
@@ -179,11 +181,13 @@ func take_damage(amount: int) -> void:
 		return
 	_health -= amount
 	health_changed.emit(maxi(_health, 0), max_health)
-	_show_health_bar()
+	if show_hit_info:
+		_show_health_bar()
 	var color := Effects.HEADSHOT_COLOR if _headshot_pending else Effects.DAMAGE_COLOR
 	if _burn_tick_left == BURN_TICK:
 		color = Effects.DAMAGE_OVER_TIME_COLOR
-	Effects.damage_number(get_tree().current_scene, get_aim_position() + Vector3.UP * 0.6, amount, color, _headshot_pending)
+	if show_hit_info:
+		Effects.damage_number(get_tree().current_scene, get_aim_position() + Vector3.UP * 0.6, amount, color, _headshot_pending)
 	_headshot_pending = false
 	if _health <= 0:
 		_die()
