@@ -26,6 +26,9 @@ var _melee_scale := 1.0
 ## Height of the middle of the melee weapon's model, above the hand.
 var _melee_middle := 0.0
 var _melee_tip_up := true
+## Test option (see Menu): index of a Dances.LIST dance to show, -2 for the
+## jump pose, or -1 for none.
+var preview_pose := -1
 
 @onready var _pivot: Node3D = $SubViewport/World/Pivot
 @onready var _weapon_holder: Node3D = $SubViewport/World/Pivot/WeaponHolder
@@ -49,6 +52,11 @@ func _process(delta: float) -> void:
 			holder.scale = Vector3.ONE * _melee_scale
 		return
 	_pivot.rotation.y = PI + sin(_time * TURN_SPEED) * TURN_RANGE
+	if _character and preview_pose != -1:
+		_pivot.rotation.y = PI
+		_character.play(&"idle")
+		_character.pose.weight = 1.0
+		_character.pose.targets = Dances.JUMP if preview_pose == -2 else Dances.pose_at(Dances.LIST[preview_pose], _time)
 	if _character:
 		_character.place_in_hand(_weapon_holder, "R", false)
 		_character.place_in_hand(_melee_holder, "L", true, _melee_tip_up)

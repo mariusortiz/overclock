@@ -21,6 +21,12 @@ func _ready() -> void:
 	_settings_panel.visible = false
 	add_child(_profile_panel)
 	_profile_panel.visible = false
+	# Test option: "-- --pose=2" shows the third dance on the home screen,
+	# "--pose=jump" the jump.
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--pose="):
+			var value := argument.get_slice("=", 1)
+			_stage.preview_pose = -2 if value == "jump" else value.to_int()
 
 	# Deferred: a scene must not be removed while its button handles the click.
 	$Right/Box/Play.pressed.connect(get_tree().change_scene_to_file.bind(GAME_SCENE), CONNECT_DEFERRED)
