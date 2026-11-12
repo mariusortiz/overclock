@@ -213,12 +213,10 @@ func _spawn() -> void:
 		boss_spawned.emit(enemy)
 
 
-## The middle of the arena, or the nearest walkable point to it when some
-## scenery stands there.
+## Where the boss appears: the arena's boss spawn, on the floor in the open.
 func _arena_center() -> Vector3:
-	var map: RID = (get_parent() as Node3D).get_world_3d().navigation_map
-	var center := NavigationServer3D.map_get_closest_point(map, Vector3.ZERO)
-	return center if center != Vector3.ZERO else Vector3(0, 0.1, 0)
+	var arena := get_tree().get_first_node_in_group("arena") as Arena
+	return arena.boss_spawn_position() if arena else Vector3(0, 0.1, 0)
 
 
 ## The bosses take turns, one per arena, and get tougher each time they come

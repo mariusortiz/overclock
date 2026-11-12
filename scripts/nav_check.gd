@@ -1,11 +1,11 @@
 extends Node
-## Test run by the CI: checks that enemies can walk from the floor up to each
-## deck of every arena. Prints one NAV line per deck and exits with an error
-## if a deck cannot be reached.
+## Test run by the CI: checks that enemies can walk from the floor up to every
+## level of every arena (the markers under NavCheckpoints, placed by
+## tools/make_arena.py). Prints one NAV line per level and exits with an error
+## if one cannot be reached.
 
 const ARENAS: Array[String] = ["station", "desert", "jungle", "volcano", "city"]
 const START := Vector3(0.0, 0.2, 18.0)
-const DECKS: Array[Vector3] = [Vector3(-24.5, 3.1, 0.0), Vector3(24.5, 3.1, 0.0)]
 const MAX_WAIT_FRAMES := 600
 
 
@@ -33,12 +33,13 @@ func _ready() -> void:
 			if not NavigationServer3D.map_get_path(map, START, START + Vector3(0, 0, -4), true).is_empty():
 				break
 		print("NAV info %s: %d navigation polygons" % [arena_name, arena.navigation_mesh.get_polygon_count()])
-		for deck in DECKS:
-			var path := NavigationServer3D.map_get_path(map, START, deck, true)
-			var reached := not path.is_empty() and path[-1].distance_to(deck) < 1.5
+		for marker: Marker3D in arena.get_node("NavCheckpoints").get_children():
+			var level := marker.global_position
+			var path := NavigationServer3D.map_get_path(map, START, level, true)
+			var reached := not path.is_empty() and path[-1].distance_to(level) < 1.5
 			# The end of the path tells where enemies get stuck when it fails.
-			print("NAV %s %s deck at x=%d: %d points, ends at %s" % [
-				"OK" if reached else "FAIL", arena_name, deck.x, path.size(),
+			print("NAV %s %s level %s at %s: %d points, ends at %s" % [
+				"OK" if reached else "FAIL", arena_name, marker.name, level, path.size(),
 				path[-1] if not path.is_empty() else "nowhere"])
 			failed = failed or not reached
 		remove_child(arena)

@@ -25,6 +25,11 @@ func player_spawn_position() -> Vector3:
 	return $PlayerSpawn.global_position
 
 
+## Where a wave's boss appears: on the floor, in the open.
+func boss_spawn_position() -> Vector3:
+	return $BossSpawn.global_position
+
+
 ## Low quality turns off shadows and glow.
 func apply_quality(high: bool) -> void:
 	($Sun as DirectionalLight3D).shadow_enabled = high
