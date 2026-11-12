@@ -287,6 +287,18 @@ Le code est prêt (`scripts/billing.gd`), mais l'achat de gemmes reste inactif t
 
 Limite : les achats sont vérifiés par Google sur le téléphone, sans serveur de vérification. C'est suffisant pour un jeu solo, mais un joueur déterminé peut tricher sur sa propre sauvegarde.
 
+## Boutique du site (produits dérivés)
+
+La page `site/boutique.html` (publiée sur `/overclock-builds/site/boutique.html`) présente 7 articles : deux t-shirts, un sweat, une affiche, un mug, une planche d'autocollants et un tote bag. Le site ne vend rien lui-même : chaque bouton mène vers un service d'impression à la demande, qui gère paiement, fabrication et livraison. Tant qu'aucun lien n'est renseigné, les boutons affichent « Bientôt disponible ».
+
+Pour ouvrir la boutique :
+
+1. Créer un compte sur un service d'impression à la demande (Spreadshop, gratuit, livre en Europe ; Printful ou Redbubble marchent aussi).
+2. Y créer les 7 produits avec les fichiers d'impression de `merch/` : `logo.png` (t-shirt bleu nuit), `escouade.png` (t-shirt blanc), `rivaux.png` (sweat), `affiche_titan.png` (affiche, 1600 × 2400), `bulle.png` (mug), `sticker_*.png` (autocollants), `flotte.png` (tote bag). Les PNG sont transparents ; `logo.svg` et `bulle.svg` sont vectoriels.
+3. Coller l'adresse de chaque produit dans `site/boutique.json` (clé du produit) et celle de la boutique dans `shop_url`, puis pousser : le bouton devient « Acheter ».
+
+Les images de la page (`site/img/merch/`) sont de simples aperçus, refaits par `python3 tools/make_merch_mockups.py`. Les fichiers d'impression sont rendus par la scène `scenes/tools/merch.tscn` (`tools/make_merch.gd`, même style que l'anime).
+
 ## Développer en local (optionnel)
 
 1. Installe Godot 4.5.1 (la version standard, pas .NET).

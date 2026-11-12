@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 180">
+  <style>@font-face { font-family: "Kenney"; src: url("../assets/ui/fonts/kenney_mini_square_mono.ttf"); }</style>
+  <polygon points="40,4 856,4 820,176 4,176" fill="#081236" stroke="#29d4ff" stroke-width="8"/>
+  <polygon points="190,140 760,140 756,154 186,154" fill="#ff3df2"/>
+  <polygon points="122,22 76,96 108,96 92,158 156,72 122,72" fill="#ff3df2"/>
+  <text x="200" y="118" fill="#e8ecff" font-family="Kenney, monospace" font-size="84" letter-spacing="4">OVERCLOCK</text>
+</svg>

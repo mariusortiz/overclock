@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boutique Overclock</title>
+<meta name="description" content="T-shirts, sweat, affiche, mug, autocollants et tote bag aux couleurs d'Overclock.">
+<link rel="icon" href="../index.icon.png">
+<style>
+  @font-face {
+    font-family: "Kenney Mini Square Mono";
+    src: url("kenney_mini_square_mono.ttf") format("truetype");
+    font-display: swap;
+  }
+  :root {
+    --bg: #060b2a;
+    --panel: #0c1440;
+    --line: #1d2a6b;
+    --text: #e8ecff;
+    --muted: #9aa6d8;
+    --cyan: #29d4ff;
+    --magenta: #ff3df2;
+    --gold: #ffd84d;
+    --title: "Kenney Mini Square Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  img, video { display: block; max-width: 100%; }
+  a { color: var(--cyan); }
+  h1, h2, h3, .button, .tag { font-family: var(--title); font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; }
+  .wrap { width: min(1120px, 100% - 32px); margin-inline: auto; }
+
+  /* Hero */
+  .hero { position: relative; min-height: min(92vh, 760px); display: grid; align-items: end; overflow: hidden; }
+  .hero > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .hero::after { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(6, 11, 42, 0.7) 0%, rgba(6, 11, 42, 0) 65%),
+      linear-gradient(180deg, rgba(6, 11, 42, 0.15) 0%, rgba(6, 11, 42, 0.55) 55%, var(--bg) 100%); }
+  .hero .wrap { position: relative; z-index: 1; padding-block: 48px 56px; }
+  .logo { width: min(520px, 100%); height: auto; }
+  .hero p { max-width: 560px; margin: 18px 0 28px; font-size: 1.15rem; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
+  .actions { display: flex; flex-wrap: wrap; gap: 14px; }
+  .button { display: inline-flex; align-items: center; justify-content: center; min-height: 56px; padding: 14px 28px;
+    font-size: 1.15rem; text-decoration: none; color: var(--bg); background: var(--cyan);
+    clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%); transition: transform 0.15s, filter 0.15s; }
+  .button:hover, .button:focus-visible { transform: translateY(-2px); filter: brightness(1.12); }
+  .button.alt { background: var(--magenta); }
+  .button.ghost { background: transparent; color: var(--cyan); outline: 2px solid var(--cyan); outline-offset: -2px; clip-path: none; }
+  .note { margin-top: 14px; font-size: 0.9rem; color: var(--muted); }
+
+  section { padding-block: 64px; }
+  h2 { font-size: clamp(1.6rem, 4vw, 2.3rem); margin: 0 0 8px; color: var(--cyan); }
+  .lead { margin: 0 0 32px; color: var(--muted); max-width: 640px; }
+  .tag { display: inline-block; font-size: 0.8rem; padding: 3px 10px; background: var(--magenta); color: var(--bg); margin-bottom: 10px; }
+
+  /* Videos */
+  .videos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; }
+  .video { background: var(--panel); border: 1px solid var(--line); }
+  .video video { width: 100%; aspect-ratio: 16 / 9; background: #000; }
+  .video div { padding: 16px 20px 20px; }
+  .video h3 { margin: 0 0 4px; font-size: 1.2rem; }
+  .video p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+  /* Episodes */
+  .episodes { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .episode { display: block; background: var(--panel); border: 1px solid var(--line); color: var(--text); text-decoration: none; transition: transform 0.15s, border-color 0.15s; }
+  .episode:hover, .episode:focus-visible { transform: translateY(-3px); border-color: var(--cyan); }
+  .episode img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #000; }
+  .episode div { padding: 10px 14px 14px; }
+  .episode span { font-family: var(--title); font-size: 0.75rem; color: var(--magenta); letter-spacing: 0.06em; }
+  .episode h3 { margin: 2px 0 4px; font-size: 1rem; }
+  .episode p { margin: 0; color: var(--muted); font-size: 0.88rem; }
+
+  /* Features */
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+  .feature { background: var(--panel); border: 1px solid var(--line); }
+  .feature img { width: 100%; aspect-ratio: 16 / 8; object-fit: cover; }
+  .feature div { padding: 16px 20px 20px; }
+  .feature h3 { margin: 0 0 6px; font-size: 1.1rem; color: var(--text); }
+  .feature h3 b { color: var(--magenta); font-weight: 400; }
+  .feature p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  .feature.shop { border-color: var(--gold); }
+  .feature.shop h3 b { color: var(--gold); }
+
+  /* Install */
+  .install { background: linear-gradient(135deg, #0d1a5c, #2a0b4a); }
+  .steps { list-style: none; counter-reset: step; padding: 0; margin: 0 0 32px; display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .steps li { counter-increment: step; background: rgba(6, 11, 42, 0.55); border: 1px solid var(--line); padding: 20px; }
+  .steps li::before { content: counter(step); display: block; font-family: var(--title); font-size: 2rem; color: var(--magenta); line-height: 1; margin-bottom: 8px; }
+
+  footer { padding-block: 32px 48px; color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--line); }
+  footer p { margin: 4px 0; }
+
+  @media (max-width: 520px) {
+    body { font-size: 16px; }
+    .button { width: 100%; }
+    section { padding-block: 48px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .button { transition: none; }
+  }
+  .products { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+  .product { background: var(--panel); border: 1px solid var(--line); display: flex; flex-direction: column; }
+  .product img { width: 100%; aspect-ratio: 1; object-fit: cover; background: #e9ecf5; }
+  .product div { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .product h3 { margin: 0; font-size: 1.05rem; }
+  .product p { margin: 0 0 8px; color: var(--muted); font-size: 0.95rem; flex: 1; }
+  .product .button { font-size: 1rem; min-height: 48px; }
+  .button[aria-disabled="true"] { background: var(--line); color: var(--muted); pointer-events: none; }
+  .top { padding-block: 28px 8px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
+  .top .logo { width: min(320px, 70vw); }
+  .notice { margin-top: 32px; color: var(--muted); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<header class="wrap top">
+  <a href="./" aria-label="Retour au site">
+    <svg class="logo" viewBox="0 0 860 180" role="img" aria-label="Overclock">
+      <polygon points="40,4 856,4 820,176 4,176" fill="#081236" stroke="#29d4ff" stroke-width="8"/>
+      <polygon points="190,140 760,140 756,154 186,154" fill="#ff3df2"/>
+      <polygon points="122,22 76,96 108,96 92,158 156,72 122,72" fill="#ff3df2"/>
+      <text x="200" y="118" fill="#e8ecff" font-family="Kenney Mini Square Mono, monospace" font-size="84" letter-spacing="4">OVERCLOCK</text>
+    </svg>
+  </a>
+  <div class="actions">
+    <a class="button ghost" href="./">Le jeu</a>
+    <a class="button alt" id="shop" href="#" aria-disabled="true">Toute la boutique</a>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="wrap">
+      <h2>Boutique</h2>
+      <p class="lead">Les héros, le Titan et la flotte d'Overclock, dessinés dans le style de l'anime, sur des t-shirts, un sweat, une affiche, un mug, des autocollants et un tote bag.</p>
+      <div class="products">
+        <article class="product" data-id="tshirt_logo">
+          <img src="img/merch/tshirt_logo.jpg" alt="T-shirt Logo" loading="lazy">
+          <div>
+            <h3>T-shirt Logo</h3>
+            <p>Le logo Overclock, cyan et magenta, sur un t-shirt bleu nuit.</p>
+            <a class="button buy" href="#" aria-disabled="true">Bientôt disponible</a>
+          </div>
+        </article>
+        <article class="product" data-id="tshirt_escouade">
+          <img src="img/merch/tshirt_escouade.jpg" alt="T-shirt L'escouade" loading="lazy">
+          <div>
+            <h3>T-shirt L'escouade</h3>
+            <p>Le Soldat, la Kunoichi, la Capitaine et le Ronin, façon anime.</p>
+            <a class="button buy" href="#" aria-disabled="true">Bientôt disponible</a>
+          </div>
+        </article>
+        <article class="product" data-id="sweat_rivaux">
+          <img src="img/merch/sweat_rivaux.jpg" alt="Sweat Rivaux" loading="lazy">
+          <div>
+            <h3>Sweat Rivaux</h3>
+            <p>Vipère contre le Soldat, arme au poing. Pour la revanche.</p>
+            <a class="button buy" href="#" aria-disabled="true">Bientôt disponible</a>
+          </div>
+        </article>
+        <article class="product" data-id="affiche_titan">
+          <img src="img/merch/affiche_titan.jpg" alt="Affiche Titan Mk II" loading="lazy">
+          <div>
+            <h3>Affiche Titan Mk II</h3>
+            <p>L'escouade face au Titan rouge, dans la ville. Format affiche.</p>
+            <a class="button buy" href="#" aria-disabled="true">Bientôt disponible</a>
+          </div>
+        </article>
+        <article class="product" data-id="mug_bulle">
+          <img src="img/merch/mug_bulle.jpg" alt="Mug « Prochaine vague ! »" loading="lazy">
+          <div>
+            <h3>Mug « Prochaine vague ! »</h3>
+            <p>La réplique culte de l'anime, en bulle de manga.</p>
+            <a class="button buy" href="#" aria-disabled="true">Bientôt disponible</a>
+          </div>
+        </article>
+        <article class="product" data-id="stickers">
+          <img src="img/merch/stickers.jpg" alt="Planche d'autocollants" loading="lazy">
+          <div>
+            <h3>Planche d'autocollants</h3>
+            <p>Cinq héros découpés : Soldat, Kunoichi, Vipère, Ronin, Capitaine.</p>
+            <a class="button buy" href="#" aria-disabled="true">Bientôt disponible</a>
+          </div>
+        </article>
+        <article class="product" data-id="tote_flotte">
+          <img src="img/merch/tote_flotte.jpg" alt="Tote bag La flotte" loading="lazy">
+          <div>
+            <h3>Tote bag La flotte</h3>
+            <p>Dard, Faucon, Frelon et Nova, en formation.</p>
+            <a class="button buy" href="#" aria-disabled="true">Bientôt disponible</a>
+          </div>
+        </article>
+      </div>
+      <p class="notice">Commande, paiement, impression et livraison sont assurés par notre partenaire d'impression à la demande : chaque article est fabriqué à la commande. Les aperçus ci-dessus sont indicatifs.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Overclock · <a href="./">le site</a> · <a href="../">jouer</a></p>
+  </div>
+</footer>
+
+<script>
+  // Links to the print-on-demand shop, set in boutique.json (see README).
+  // An empty link leaves "Bientôt disponible".
+  fetch("boutique.json", { cache: "no-store" })
+    .then((response) => response.json())
+    .then((config) => {
+      if (config.shop_url) {
+        const shop = document.getElementById("shop");
+        shop.href = config.shop_url;
+        shop.removeAttribute("aria-disabled");
+      }
+      for (const card of document.querySelectorAll(".product")) {
+        const link = (config.products || {})[card.dataset.id];
+        if (link) {
+          const button = card.querySelector(".buy");
+          button.href = link;
+          button.textContent = "Acheter";
+          button.removeAttribute("aria-disabled");
+          button.target = "_blank";
+          button.rel = "noopener";
+        }
+      }
+    })
+    .catch(() => {});
+</script>
+</body>
+</html>
