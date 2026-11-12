@@ -108,7 +108,7 @@ Chaque partie rapporte de l'XP (un dixième du score, divisé par deux si tu meu
 
 ## Arsenal
 
-L'arsenal, accessible depuis l'accueil, a cinq onglets : personnage, arme, mêlée (corps à corps), skin d'arme et skin de mêlée. Un élément verrouillé peut être prévisualisé, mais pas équipé. Dans les onglets d'armes et de skins, l'arme est montrée seule : elle flotte et tourne sur elle-même.
+L'arsenal, accessible depuis l'accueil, a cinq onglets : héros, arme, mêlée (corps à corps), skin d'arme et skin de mêlée. Un élément verrouillé peut être prévisualisé, mais pas équipé. Dans les onglets d'armes et de skins, l'arme est montrée seule : elle flotte et tourne sur elle-même.
 
 | Arme | Cadence | Dégâts | Chargeur |
 |---|---|---|---|

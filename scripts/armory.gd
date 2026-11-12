@@ -7,12 +7,12 @@ const CARD_SIZE := Vector2(214, 108)
 ## Characters that fit on one line of a card.
 const CARD_LINE_LENGTH := 12
 ## Five tabs share the width of the panel.
-const TAB_FONT_SIZE := 18
+const TAB_FONT_SIZE := 17
 
 ## One tab per kind of item. "stats" lists what the detail panel shows:
 ## [label, key in the item, value that fills the bar].
 var _tabs := [
-	{"label": "PERSONNAGE", "key": Loadout.CHARACTER_KEY, "items": Loadout.CHARACTERS, "stats": []},
+	{"label": "HÉROS", "key": Loadout.CHARACTER_KEY, "items": Loadout.CHARACTERS, "stats": []},
 	{"label": "ARME", "key": Loadout.WEAPON_KEY, "items": Loadout.WEAPONS,
 		"stats": [["CADENCE", "fire_rate", 14.0], ["DÉGÂTS", "damage", 10.0], ["CHARGEUR", "magazine", 40.0]]},
 	{"label": "MÊLÉE", "key": Loadout.MELEE_KEY, "items": Loadout.MELEE,

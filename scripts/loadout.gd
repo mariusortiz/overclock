@@ -150,20 +150,22 @@ const MELEE_TEXTURE_DIR := "res://assets/textures/melee/"
 ## Look of each part of a melee weapon, by the material name it has in the
 ## model: [texture or "", color, metallic, roughness].
 const MELEE_MATERIALS := {
-	"Blade": ["steel", Color(0.82, 0.84, 0.88), 0.85, 0.3],
-	"Edge": ["", Color(0.93, 0.95, 0.98), 0.9, 0.18],
+	"Blade": ["steel", Color(0.95, 0.97, 1.0), 0.45, 0.35],
+	"Edge": ["", Color(1.0, 1.0, 1.0), 0.3, 0.25],
 	"Wood": ["wood", Color.WHITE, 0.0, 0.7],
 	"Grip": ["grip", Color.WHITE, 0.0, 0.85],
 	"Wrap": ["wrap", Color.WHITE, 0.0, 0.8],
-	"Guard": ["steel", Color(0.28, 0.28, 0.32), 0.8, 0.4],
-	"Brass": ["", Color(0.8, 0.6, 0.25), 0.9, 0.3],
+	"Guard": ["steel", Color(0.36, 0.36, 0.42), 0.5, 0.4],
+	"Brass": ["", Color(0.9, 0.68, 0.28), 0.5, 0.35],
 	"Accent": ["", Color(0.75, 0.12, 0.12), 0.3, 0.5],
 }
 ## Parts of a melee weapon that a skin repaints.
 const MELEE_PAINTED_PARTS: Array[String] = ["Blade", "Accent"]
 const MELEE_TEXTURE_SCALE := 9.0
+## A blade is small: the skin's pattern is drawn finer on it than on a gun.
+const MELEE_PATTERN_SCALE := 4.0
 
-## Materials already built, by melee part name or by skin id. Kept for the
+## Materials already built, by melee part name or by skin and scale. Kept for the
 ## whole session: a weapon must never outlive the material it is drawn with.
 static var _materials := {}
 
@@ -261,7 +263,7 @@ static func instantiate_melee(item: Dictionary, skin := {}) -> Node3D:
 	part.mesh = load(MELEE_DIR + item.model + ".obj")
 	var finish: StandardMaterial3D = null
 	if not skin.is_empty() and skin.pattern:
-		finish = _finish(skin)
+		finish = _finish(skin, MELEE_PATTERN_SCALE)
 	for surface in part.mesh.get_surface_count():
 		var part_name := part.mesh.surface_get_material(surface).resource_name
 		if finish and part_name in MELEE_PAINTED_PARTS:
@@ -319,7 +321,7 @@ static func find(id: String) -> Dictionary:
 static func _apply_skin(gun: Node3D, skin: Dictionary) -> void:
 	if not skin.pattern:
 		return
-	var finish := _finish(skin)
+	var finish := _finish(skin, PATTERN_SCALE)
 	for part: MeshInstance3D in gun.get_children():
 		for surface in part.mesh.get_surface_count():
 			var original := part.mesh.surface_get_material(surface)
@@ -327,14 +329,16 @@ static func _apply_skin(gun: Node3D, skin: Dictionary) -> void:
 				part.set_surface_override_material(surface, finish)
 
 
-## The material a skin paints with: its pattern, and its glow if it has one.
-static func _finish(skin: Dictionary) -> StandardMaterial3D:
-	if _materials.has(skin.id):
-		return _materials[skin.id]
+## The material a skin paints with: its pattern, repeated every 1 / `scale`
+## meters, and its glow if it has one.
+static func _finish(skin: Dictionary, scale: float) -> StandardMaterial3D:
+	var key := "%s %s" % [skin.id, scale]
+	if _materials.has(key):
+		return _materials[key]
 	var finish := StandardMaterial3D.new()
 	finish.albedo_texture = load(SKIN_DIR + skin.id + ".png")
 	finish.uv1_triplanar = true
-	finish.uv1_scale = Vector3.ONE * PATTERN_SCALE
+	finish.uv1_scale = Vector3.ONE * scale
 	finish.metallic = 0.4
 	finish.roughness = 0.4
 	finish.cull_mode = BaseMaterial3D.CULL_DISABLED
@@ -342,7 +346,7 @@ static func _finish(skin: Dictionary) -> StandardMaterial3D:
 		finish.emission_enabled = true
 		finish.emission = skin.shot
 		finish.emission_energy_multiplier = skin.glow
-	_materials[skin.id] = finish
+	_materials[key] = finish
 	return finish
 
 

@@ -13,8 +13,10 @@ const FLOAT_HEIGHT := 1.05
 ## A gun shown alone is scaled to this length, in meters.
 const FLOAT_GUN_LENGTH := 1.5
 ## A melee weapon shown alone is scaled to this height, within a limit.
-const FLOAT_MELEE_HEIGHT := 1.25
-const FLOAT_MELEE_MAX_SCALE := 2.4
+const FLOAT_MELEE_HEIGHT := 1.7
+const FLOAT_MELEE_MAX_SCALE := 3.4
+## It leans a little, so that a blade is never seen exactly edge-on.
+const FLOAT_MELEE_TILT := 0.3
 
 var _time := 0.0
 var _character: CharacterModel
@@ -42,6 +44,7 @@ func _process(delta: float) -> void:
 		if _focus == Focus.MELEE:
 			# Held by its handle: lower it so that its middle is the one floating.
 			holder.position.y -= _melee_middle * _melee_scale
+			holder.rotation.x = FLOAT_MELEE_TILT
 			holder.scale = Vector3.ONE * _melee_scale
 		return
 	_pivot.rotation.y = PI + sin(_time * TURN_SPEED) * TURN_RANGE
