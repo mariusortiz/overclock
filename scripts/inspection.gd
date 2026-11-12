@@ -39,7 +39,7 @@ const GUN_ROLL := [
 	[2.9, Vector3(360, 270, 0)], [3.3, Vector3(370, 270, -6)], [3.7, Vector3(360, 300, -30)],
 ]
 ## How far the magazine is out of the gun, in magazine heights, and its spin.
-const MAGAZINE_OUT := [[1.0, 0.0], [1.3, 1.3], [1.6, 2.1], [1.9, 2.1], [2.1, 1.3], [2.3, 0.0]]
+const MAGAZINE_OUT := [[1.0, 0.0], [1.3, 1.2], [1.6, 1.8], [1.9, 1.8], [2.1, 1.2], [2.3, 0.0]]
 const MAGAZINE_SPIN := [[1.3, 0.0], [1.95, 360.0]]
 ## The gun jumps a little when the magazine clicks back in.
 const GUN_KICK := [[2.25, 0.0], [2.32, 0.02], [2.5, 0.0]]
@@ -130,12 +130,18 @@ func _show_gun(gun: Dictionary, skin: Dictionary) -> void:
 		return
 	var in_grip: bool = MAGAZINE_IN_GRIP.any(func(prefix: String) -> bool: return id.begins_with(prefix))
 	var box := BoxMesh.new()
-	box.size = Vector3(0.022, 0.1, 0.045) if in_grip else Vector3(0.026, 0.13, 0.055)
+	box.size = Vector3(0.03, 0.12, 0.055) if in_grip else Vector3(0.032, 0.15, 0.07)
 	box.material = Loadout.magazine_material(skin)
 	_magazine = MeshInstance3D.new()
 	_magazine.mesh = box
 	_magazine_height = box.size.y
-	_magazine_seat = model.position + Vector3(0, -0.02, 0.0 if in_grip else -GUN_LENGTH * 0.2)
+	# Seated, it is flush with the underside of the gun; the model's lowest
+	# point tells where that is.
+	var measures: Dictionary = WeaponModels.DATA[gun.model]
+	var low: Vector3 = measures.min
+	var high: Vector3 = measures.max
+	var bottom := low.y * GUN_LENGTH / (high.x - low.x)
+	_magazine_seat = model.position + Vector3(0, bottom + _magazine_height / 2.0, 0.0 if in_grip else -GUN_LENGTH * 0.2)
 	_item.add_child(_magazine)
 
 

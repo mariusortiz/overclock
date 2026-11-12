@@ -291,11 +291,11 @@ static func is_carried_tip_up(item: Dictionary) -> bool:
 	return melee_bounds(item).end.y > MELEE_LONG
 
 
-## What a gun's magazine is made of: the skin's finish, or dark metal.
+## What a gun's magazine is made of: the skin's finish, or bare steel.
 static func magazine_material(skin: Dictionary) -> StandardMaterial3D:
 	if skin.pattern:
 		return _finish(skin, PATTERN_SCALE)
-	return _melee_material("Guard")
+	return _melee_material("Blade")
 
 
 ## Box around a melee weapon's model, to frame it when it is shown alone.
