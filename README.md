@@ -81,6 +81,8 @@ Les arènes font 60 m de côté. La partie commence dans la station, et chaque b
 | Volcan | Zombies (et des flaques de lave qui blessent) | Mains nues, au contact |
 | Ville | Hommes en costume | Revolver |
 
+Dans toutes les arènes, d'autres ennemis se mêlent aux vagues. À partir de la vague 2, chaque vague (hors boss) compte un **ennemi d'élite** : plus grand, entouré d'un halo doré, trois fois plus résistant ; il lâche toujours un bonus et rapporte 400 points. À partir de la vague 4 arrivent les **tireurs d'élite** : ils restent à distance, reculent si tu t'approches, et un laser rouge te vise une seconde avant chaque tir (18 dégâts) ; sortir de leur ligne de vue suffit à l'esquiver. À partir de la vague 6, les **kamikazes**, rouges et clignotants, foncent sur toi et explosent au contact (25 dégâts dans un rayon de 3,5 m) ; ils explosent aussi quand on les abat, donc mieux vaut les toucher de loin.
+
 À partir de la vague 3, environ un ennemi sur quatre est une chauve-souris : elle vole à 4 ou 5 m, tourne autour de toi et crache des projectiles. Elle est plus fragile que les autres.
 
 Après chaque boss, avant de partir vers l'arène suivante, le jeu propose de rentrer au menu. Rentrer encaisse toute l'XP de la partie ; mourir plus loin n'en rapporte que la moitié.

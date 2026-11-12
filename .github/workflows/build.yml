@@ -46,6 +46,8 @@ jobs:
           godot --headless --fixed-fps 60 --quit-after 900 res://scenes/main.tscn 2>&1 | tee -a run.log
           # Flying enemies (from wave 3) and close-combat enemies (jungle).
           godot --headless --fixed-fps 60 --quit-after 900 res://scenes/main.tscn -- --arena=2 --start-wave=4 2>&1 | tee -a run.log
+          # Elites, snipers and kamikazes (from waves 2, 4 and 6).
+          godot --headless --fixed-fps 60 --quit-after 1500 res://scenes/main.tscn -- --start-wave=7 2>&1 | tee -a run.log
           # Each of the other arenas, 5 s of game time.
           for arena in 1 2 3 4; do
             godot --headless --fixed-fps 60 --quit-after 300 res://scenes/main.tscn -- --arena=$arena 2>&1 | tee -a run.log

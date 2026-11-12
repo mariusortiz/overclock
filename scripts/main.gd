@@ -5,6 +5,7 @@ const KILL_SCORE := 100
 const WAVE_BONUS := 250  # multiplied by the wave number
 const WAVE_HEAL := 25
 const BOSS_SCORE := 1000
+const ELITE_SCORE := 400
 const MENU_SCENE := "res://scenes/menu.tscn"
 const DAMAGE_VIBRATION_MS := 40
 const PERK_CHOICE_DELAY := 2.0
@@ -78,6 +79,8 @@ func _ready() -> void:
 	waves.enemies_left_changed.connect(_on_enemies_left_changed)
 	waves.boss_spawned.connect(_on_boss_spawned)
 	waves.boss_killed.connect(_on_boss_killed)
+	waves.elite_spawned.connect(hud.show_banner.bind("UN ENNEMI D'ÉLITE ARRIVE"))
+	waves.elite_killed.connect(_on_elite_killed)
 
 	hud.set_health(player.health, player.max_health)
 	hud.set_ammo(player.weapon.ammo, player.weapon.get_magazine_size(), false)
@@ -211,6 +214,11 @@ func _drop_crate() -> void:
 ## Announces a gun taken in hand, or an ultimate.
 func _on_weapon_equipped(title: String) -> void:
 	hud.show_banner(title.to_upper())
+
+
+func _on_elite_killed() -> void:
+	_add_score(ELITE_SCORE)
+	hud.show_banner("ÉLITE ABATTUE   +%d" % ELITE_SCORE)
 
 
 func _on_boss_spawned(boss: Boss) -> void:

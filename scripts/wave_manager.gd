@@ -9,6 +9,8 @@ signal enemy_killed
 signal enemies_left_changed(count: int)
 signal boss_spawned(boss: Boss)
 signal boss_killed(kind: Boss.Kind)
+signal elite_spawned
+signal elite_killed
 
 const BOSS_EVERY := 5
 const BOSS_ESCORT := 3
@@ -17,6 +19,16 @@ const FLYING_FROM_WAVE := 3
 const FLYING_CHANCE := 0.25
 const FLYING_SPAWN_HEIGHT := 6.0
 const FLYING_MODEL := preload("res://assets/models/quaternius/monsters/Bat.fbx")
+## One elite per wave from this wave on (not in boss waves).
+const ELITE_FROM_WAVE := 2
+## Snipers and kamikazes join from these waves, as these shares of the spawns.
+const SNIPER_FROM_WAVE := 4
+const SNIPER_CHANCE := 0.15
+const SNIPER_RANGE := 32.0
+const SNIPER_INTERVAL := 3.2
+const KAMIKAZE_FROM_WAVE := 6
+const KAMIKAZE_CHANCE := 0.12
+const KAMIKAZE_SPEED := 1.8
 
 @export var enemy_scene: PackedScene
 @export var boss_scene: PackedScene
@@ -31,6 +43,7 @@ var _to_spawn := 0
 var _alive := 0
 var _stopped := false
 var _boss_pending := false
+var _elite_pending := false
 var _spawn_timer := Timer.new()
 
 
@@ -82,10 +95,38 @@ func _configure(enemy: Enemy) -> void:
 		enemy.weapon_id = arena.enemy_weapon
 	if wave >= FLYING_FROM_WAVE and not is_boss_wave() and randf() < FLYING_CHANCE:
 		_make_flying(enemy)
+	elif not is_boss_wave():
+		var roll := randf()
+		if wave >= KAMIKAZE_FROM_WAVE and roll < KAMIKAZE_CHANCE:
+			_make_kamikaze(enemy)
+		elif wave >= SNIPER_FROM_WAVE and roll < KAMIKAZE_CHANCE + SNIPER_CHANCE:
+			_make_sniper(enemy)
+	# The elite comes at a random point of the wave, at the latest last.
+	if _elite_pending and randf() * _to_spawn < 1.0:
+		_elite_pending = false
+		enemy.elite = true
 	@warning_ignore("integer_division")
 	enemy.max_health += (wave - 1) / 2
 	enemy.move_speed *= minf(1.0 + 0.06 * (wave - 1), 1.5)
 	enemy.fire_interval = maxf(enemy.fire_interval - 0.08 * (wave - 1), 0.9)
+
+
+## Keeps its distance and takes aim with a laser before each shot.
+func _make_sniper(enemy: Enemy) -> void:
+	enemy.role = &"sniper"
+	enemy.weapon_id = "sniper"
+	enemy.melee_damage = 0
+	enemy.attack_range = SNIPER_RANGE
+	enemy.fire_interval = SNIPER_INTERVAL
+
+
+## Fragile and fast, glowing red: blows up on contact.
+func _make_kamikaze(enemy: Enemy) -> void:
+	enemy.role = &"kamikaze"
+	enemy.weapon_id = ""
+	enemy.melee_damage = 1  # the blast does the damage (see Enemy._blow_up)
+	enemy.max_health = 3
+	enemy.move_speed *= KAMIKAZE_SPEED
 
 
 ## Turns a regular enemy into a small bat that hovers and spits.
@@ -108,6 +149,7 @@ func _start_next_wave(delay: float) -> void:
 	wave += 1
 	_to_spawn = _enemy_count()
 	_boss_pending = is_boss_wave()
+	_elite_pending = wave >= ELITE_FROM_WAVE and not is_boss_wave()
 	wave_started.emit(wave)
 	enemies_left_changed.emit(_to_spawn)
 	_spawn_timer.start()
@@ -136,7 +178,11 @@ func _spawn() -> void:
 	if enemy.flying:
 		enemy.position.y += FLYING_SPAWN_HEIGHT
 	enemy.died.connect(_on_enemy_died)
+	if enemy.elite:
+		enemy.died.connect(elite_killed.emit)
 	get_parent().add_child(enemy)
+	if enemy.elite:
+		elite_spawned.emit()
 	_to_spawn -= 1
 	_alive += 1
 	if enemy is Boss:

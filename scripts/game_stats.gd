@@ -22,6 +22,7 @@ func setup(player: Player, waves: WaveManager) -> void:
 	waves.enemy_killed.connect(_on_enemy_killed)
 	waves.wave_cleared.connect(_on_wave_cleared)
 	waves.boss_killed.connect(func(_kind: Boss.Kind) -> void: add("bosses"))
+	waves.elite_killed.connect(add.bind("elites"))
 	player.weapon.fired.connect(add.bind("shots"))
 	player.weapon.hit_confirmed.connect(_on_hit)
 	player.melee.hit_confirmed.connect(add.bind("melee_hits"))
