@@ -291,14 +291,14 @@ size = Vector3(60, 0.5, 6)
 size = Vector3(60, 2.0, 6)
 
 [sub_resource type="BoxMesh" id="lava_mesh_2"]
-size = Vector3(4, 0.08, 4)
+size = Vector3(3, 0.08, 3)
 material = SubResource("m_lava")
 
 [sub_resource type="BoxShape3D" id="lava_body_2"]
-size = Vector3(4, 0.08, 4)
+size = Vector3(3, 0.08, 3)
 
 [sub_resource type="BoxShape3D" id="lava_zone_2"]
-size = Vector3(4, 2.0, 4)
+size = Vector3(3, 2.0, 3)
 
 [sub_resource type="BoxShape3D" id="prop_shape_1"]
 size = Vector3(2.878, 2.800, 3.324)
@@ -1065,7 +1065,7 @@ mesh = SubResource("box_mesh_24")
 shape = SubResource("box_shape_21")
 
 [node name="Box117" type="StaticBody3D" parent="Structure"]
-transform = Transform3D(6.123e-17, 0, -1, 0, 1, 0, 1, 0, 6.123e-17, 22, 0.8, -20)
+transform = Transform3D(6.123e-17, 0, -1, 0, 1, 0, 1, 0, 6.123e-17, 26, 0.8, -22)
 
 [node name="Mesh" type="MeshInstance3D" parent="Structure/Box117"]
 mesh = SubResource("box_mesh_25")
@@ -1074,7 +1074,7 @@ mesh = SubResource("box_mesh_25")
 shape = SubResource("box_shape_22")
 
 [node name="Box118" type="StaticBody3D" parent="Structure"]
-transform = Transform3D(-0.5878, 0, -0.809, 0, 1, 0, 0.809, 0, -0.5878, 20.85, 0.8, -16.47)
+transform = Transform3D(-0.5878, 0, -0.809, 0, 1, 0, 0.809, 0, -0.5878, 25.05, 0.8, -19.06)
 
 [node name="Mesh" type="MeshInstance3D" parent="Structure/Box118"]
 mesh = SubResource("box_mesh_25")
@@ -1083,7 +1083,7 @@ mesh = SubResource("box_mesh_25")
 shape = SubResource("box_shape_22")
 
 [node name="Box119" type="StaticBody3D" parent="Structure"]
-transform = Transform3D(-0.9511, 0, 0.309, 0, 1, 0, -0.309, 0, -0.9511, 14.15, 0.8, -14.29)
+transform = Transform3D(-0.9511, 0, 0.309, 0, 1, 0, -0.309, 0, -0.9511, 19.45, 0.8, -17.24)
 
 [node name="Mesh" type="MeshInstance3D" parent="Structure/Box119"]
 mesh = SubResource("box_mesh_25")
@@ -1092,7 +1092,7 @@ mesh = SubResource("box_mesh_25")
 shape = SubResource("box_shape_22")
 
 [node name="Box120" type="StaticBody3D" parent="Structure"]
-transform = Transform3D(-0.5878, 0, 0.809, 0, 1, 0, -0.809, 0, -0.5878, 11.15, 0.8, -16.47)
+transform = Transform3D(-0.5878, 0, 0.809, 0, 1, 0, -0.809, 0, -0.5878, 16.95, 0.8, -19.06)
 
 [node name="Mesh" type="MeshInstance3D" parent="Structure/Box120"]
 mesh = SubResource("box_mesh_25")
@@ -1101,7 +1101,7 @@ mesh = SubResource("box_mesh_25")
 shape = SubResource("box_shape_22")
 
 [node name="Box121" type="StaticBody3D" parent="Structure"]
-transform = Transform3D(-1.837e-16, 0, 1, 0, 1, 0, -1, 0, -1.837e-16, 10, 0.8, -20)
+transform = Transform3D(-1.837e-16, 0, 1, 0, 1, 0, -1, 0, -1.837e-16, 16, 0.8, -22)
 
 [node name="Mesh" type="MeshInstance3D" parent="Structure/Box121"]
 mesh = SubResource("box_mesh_25")
@@ -1110,7 +1110,7 @@ mesh = SubResource("box_mesh_25")
 shape = SubResource("box_shape_22")
 
 [node name="Box122" type="StaticBody3D" parent="Structure"]
-transform = Transform3D(0.5878, 0, 0.809, 0, 1, 0, -0.809, 0, 0.5878, 11.15, 0.8, -23.53)
+transform = Transform3D(0.5878, 0, 0.809, 0, 1, 0, -0.809, 0, 0.5878, 16.95, 0.8, -24.94)
 
 [node name="Mesh" type="MeshInstance3D" parent="Structure/Box122"]
 mesh = SubResource("box_mesh_25")
@@ -1119,7 +1119,7 @@ mesh = SubResource("box_mesh_25")
 shape = SubResource("box_shape_22")
 
 [node name="Box123" type="StaticBody3D" parent="Structure"]
-transform = Transform3D(0.9511, 0, -0.309, 0, 1, 0, 0.309, 0, 0.9511, 17.85, 0.8, -25.71)
+transform = Transform3D(0.9511, 0, -0.309, 0, 1, 0, 0.309, 0, 0.9511, 22.55, 0.8, -26.76)
 
 [node name="Mesh" type="MeshInstance3D" parent="Structure/Box123"]
 mesh = SubResource("box_mesh_25")
@@ -1128,7 +1128,7 @@ mesh = SubResource("box_mesh_25")
 shape = SubResource("box_shape_22")
 
 [node name="Box124" type="StaticBody3D" parent="Structure"]
-transform = Transform3D(0.5878, 0, -0.809, 0, 1, 0, 0.809, 0, 0.5878, 20.85, 0.8, -23.53)
+transform = Transform3D(0.5878, 0, -0.809, 0, 1, 0, 0.809, 0, 0.5878, 25.05, 0.8, -24.94)
 
 [node name="Mesh" type="MeshInstance3D" parent="Structure/Box124"]
 mesh = SubResource("box_mesh_25")
@@ -1157,7 +1157,7 @@ script = ExtResource("ext_4")
 shape = SubResource("lava_zone_1")
 
 [node name="Body2" type="StaticBody3D" parent="Lava"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0.04, -20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21, 0.04, -22)
 
 [node name="Mesh" type="MeshInstance3D" parent="Lava/Body2"]
 mesh = SubResource("lava_mesh_2")
@@ -1166,7 +1166,7 @@ mesh = SubResource("lava_mesh_2")
 shape = SubResource("lava_body_2")
 
 [node name="Zone2" type="Area3D" parent="Lava"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0.98, -20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21, 0.98, -22)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("ext_4")

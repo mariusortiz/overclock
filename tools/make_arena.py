@@ -230,7 +230,7 @@ class Builder:
         self.box((w, height, d), (x, height / 2, z), material or self.m["block"])
         self._footprint(x - w / 2, z - d / 2, x + w / 2, z + d / 2, 0.5)
 
-    def windows(self, x, z, w, d, top, rows, color_name="window"):
+    def windows(self, x, z, w, d, top, rows, color_name="m_window"):
         """Lit window strips on the four faces of a block."""
         for row in range(rows):
             y = 1.6 + row * (top - 2.0) / max(rows, 1)
@@ -293,13 +293,15 @@ def desert(b):
     oasis."""
     stone = b.m["block"]
     # Temple: three tiers, stairs on the south and north faces.
-    b.block(0, -8, 16, 16, 2.0, roof_rails="", check=True)
+    b.block(0, -8, 16, 16, 2.0)
     b.ramp((0, 4), (0, 0), 0, 2.0, 3.2)
     b.ramp((0, -20), (0, -16), 0, 2.0, 3.2)
-    b.block(0, -8, 8, 8, 4.0, check=True)
+    b.block(0, -8, 8, 8, 4.0)
     b.ramp((0, 0), (0, -4), 2.0, 4.0, 2.6)
-    b.block(0, -8, 4, 4, 5.0, check=True)
-    b.ramp((4, -8), (2, -8), 4.0, 5.0, 2.0)
+    b.block(0, -8, 4, 4, 5.0)
+    b.ramp((0, -4), (0, -6), 4.0, 5.0, 2.0)
+    # The parts of each tier left uncovered by the next.
+    b.checkpoints += [(5.5, 2.1, -2.0), (3.0, 4.1, -11.0), (0.0, 5.1, -8.5)]
     # West plateau and the stone bridge to the temple's second tier.
     b.block(-25, 6, 10, 24, 4.0, material=b.m["rock"], roof_rails="e", gaps=[("e", 8.4, 11.6), ("e", -6.6, -3.4)], check=True)
     b.ramp((-13, 10), (-20, 10), 0, 4.0, 3.0)
@@ -389,14 +391,14 @@ def volcano(b):
     b.ramp((10, 4), (18, 4), 0, 2.2, 3.0)
     b.ramp((27, 6), (27, 12), 2.2, 4.5, 2.8)
     # Crater: a ring of low rock walls around a lava pool, two ways in.
-    cx, cz, r = 16, -20, 6
+    cx, cz, r = 21, -22, 5
     for i in range(10):
         angle = math.tau * i / 10
         if i in (2, 7):
             continue
         x, z = cx + math.cos(angle) * r, cz + math.sin(angle) * r
         b.box((3.8, 1.6, 1.0), (x, 0.8, z), rock, rot_y(-math.degrees(angle) - 90))
-    b.lava.append((cx, cz, 4, 4, 0.08))
+    b.lava.append((cx, cz, 3, 3, 0.08))
     b.loot += [("pad", (-24, 3.05, -24)), ("chest", (24, 4.5, 18)), ("chest", (24, 2.2, 4))]
     for x, z, model, height, yaw in [
         (-6, 10, "rock_tallE", 2.8, 0), (8, 14, "rock_tallF", 3.0, 40), (-14, 14, "rock_tallG", 2.6, 0), (-24, 12, "rock_tallH", 3.2, 90),

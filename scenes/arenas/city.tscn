@@ -220,11 +220,11 @@ size = Vector3(3.4, 1, 0.12)
 
 [sub_resource type="BoxMesh" id="box_mesh_14"]
 size = Vector3(10.04, 0.5, 5.6)
-material = SubResource("window")
+material = SubResource("m_window")
 
 [sub_resource type="BoxMesh" id="box_mesh_15"]
 size = Vector3(7, 0.5, 8.04)
-material = SubResource("window")
+material = SubResource("m_window")
 
 [sub_resource type="BoxMesh" id="box_mesh_16"]
 size = Vector3(2.8, 0.3, 11.335)

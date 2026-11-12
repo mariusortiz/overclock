@@ -80,7 +80,8 @@ jobs:
           godot --headless --fixed-fps 30 --quit-after 4400 res://scenes/tools/trailer.tscn 2>&1 | tee -a run.log
           # "still in use at exit" only reports the music playing when --quit-after stops the game.
           # Enemies must be able to walk up to every deck.
-          godot --headless --fixed-fps 60 res://scenes/tools/nav_check.tscn 2>&1 | tee -a run.log
+          # The check quits by itself; the time limit only guards against a hang.
+          timeout 600 godot --headless --fixed-fps 60 res://scenes/tools/nav_check.tscn 2>&1 | tee -a run.log
           grep "^NAV" run.log
           if grep -q "^NAV FAIL" run.log; then exit 1; fi
           if grep -E "SCRIPT ERROR|Parse Error|^ERROR:" run.log | grep -v "still in use at exit"; then exit 1; fi
