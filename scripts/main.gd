@@ -37,6 +37,9 @@ var _arena_change_pending := false
 ## XP found in chests during this game, added to the battle pass at the end.
 var _bonus_xp := 0
 var _won := false
+## After the Titan, the game can go on: arenas come around again, and bosses
+## get tougher each time (see WaveManager._create_boss).
+var _endless := false
 var _boss: Boss
 var _stats := GameStats.new()
 
@@ -233,11 +236,12 @@ func _on_boss_killed(kind: Boss.Kind) -> void:
 	Music.play_track(_arena.music_track)
 	hud.hide_boss()
 	_add_score(BOSS_SCORE)
-	if kind == Boss.Kind.TITAN:
+	if kind == Boss.Kind.TITAN and not _endless:
 		_win()
 
 
-## The final boss is down: a trophy rises where it fell, then the results.
+## The final boss is down: a trophy rises where it fell, the Champion skin is
+## won, then the player chooses: go home, or carry on in endless mode.
 func _win() -> void:
 	_won = true
 	waves.stop()
@@ -247,14 +251,18 @@ func _win() -> void:
 
 	var trophy := Trophy.new()
 	trophy.position = Vector3(_boss.global_position.x, _arena.global_position.y, _boss.global_position.z)
+	trophy.add_to_group("transient")
 	add_child(trophy)
 	hud.show_banner("VICTOIRE")
+	SaveData.save_progress(Loadout.CHAMPION_KEY, true)
 	await get_tree().create_timer(VICTORY_TIME).timeout
 
+	_mouse_was_captured = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	Input.action_release("fire")
+	Input.action_release("aim")
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	SaveData.save_progress(Loadout.CHAMPION_KEY, true)
-	_show_results(Hud.Result.VICTORY)
+	get_tree().paused = true
+	hud.show_exit_choice("", _earned_xp(), true)
 
 
 func _on_wave_cleared(number: int) -> void:
@@ -303,7 +311,10 @@ func _on_exit_chosen(leave: bool) -> void:
 		waves.stop()
 		get_tree().paused = false
 		player.process_mode = Node.PROCESS_MODE_DISABLED
-		_show_results(Hud.Result.LEFT)
+		_show_results(Hud.Result.VICTORY if _won else Hud.Result.LEFT)
+		return
+	if _won:
+		_start_endless()
 		return
 	_resume()
 	await hud.fade_to_black()
@@ -318,6 +329,19 @@ func _slow_motion() -> void:
 	# Dying meanwhile starts its own slow motion: leave it alone.
 	if player.health > 0:
 		Engine.time_scale = 1.0
+
+
+## The game goes on past the Titan, from the first arena.
+func _start_endless() -> void:
+	_won = false
+	_endless = true
+	player.invulnerable = false
+	_resume()
+	await hud.fade_to_black()
+	_load_arena(_arena_index + 1)
+	hud.show_banner("MODE SANS FIN")
+	hud.fade_from_black()
+	waves.resume()
 
 
 ## XP this game is worth so far, if it ends without dying.
@@ -368,9 +392,10 @@ func _show_results(result: Hud.Result) -> void:
 	var unlocked := []
 	for id in BattlePass.add_xp(xp + challenge_xp):
 		unlocked.append(Loadout.find(id).item.name)
-	if result == Hud.Result.VICTORY:
+	if result == Hud.Result.VICTORY or _endless:
 		unlocked.append("skin Champion")
-	hud.show_game_over(score, maxi(score, best), is_record, xp, unlocked, result, completed)
+	var rank := Leaderboard.add(score, waves.wave, Loadout.selected_character().name, _endless)
+	hud.show_game_over(score, maxi(score, best), is_record, xp, unlocked, result, completed, rank)
 
 
 func _on_touch_look(relative: Vector2) -> void:

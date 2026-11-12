@@ -1,7 +1,10 @@
 class_name ProfilePanel
 extends Control
-## Home screen panel: today's challenges on the left, career stats on the
-## right. Built by code; open() refreshes it.
+## Home screen panel: today's challenges and the best games on the left,
+## career stats on the right. Built by code; open() refreshes it.
+
+## Best games listed (the leaderboard keeps more).
+const BEST_SHOWN := 5
 
 const CYAN := Color(0.16, 0.83, 1.0)
 const MAGENTA := Color(1.0, 0.24, 0.95)
@@ -9,6 +12,7 @@ const GOLD := Color(1.0, 0.85, 0.3)
 
 var _challenges := VBoxContainer.new()
 var _stats := GridContainer.new()
+var _best := GridContainer.new()
 
 
 func _ready() -> void:
@@ -33,11 +37,16 @@ func _ready() -> void:
 	box.add_child(columns)
 	var left := VBoxContainer.new()
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left.add_theme_constant_override("separation", 12)
+	left.add_theme_constant_override("separation", 10)
 	left.add_child(_title("DÉFIS DU JOUR"))
-	left.add_child(_label("Renouvelés chaque jour. L'XP est gagnée même si tu meurs.", 18, Color(1, 1, 1, 0.7)))
+	left.add_child(_label("Renouvelés chaque jour. L'XP est gagnée même si tu meurs.", 17, Color(1, 1, 1, 0.7)))
 	_challenges.add_theme_constant_override("separation", 14)
 	left.add_child(_challenges)
+	left.add_child(_title("MEILLEURES PARTIES"))
+	_best.columns = 4
+	_best.add_theme_constant_override("h_separation", 18)
+	_best.add_theme_constant_override("v_separation", 4)
+	left.add_child(_best)
 	columns.add_child(left)
 
 	var right := VBoxContainer.new()
@@ -59,8 +68,17 @@ func _ready() -> void:
 
 
 func open() -> void:
-	for child in _challenges.get_children() + _stats.get_children():
+	for child in _challenges.get_children() + _stats.get_children() + _best.get_children():
 		child.queue_free()
+	var best := Leaderboard.entries().slice(0, BEST_SHOWN)
+	if best.is_empty():
+		_best.add_child(_label("Aucune partie pour l'instant", 18, Color(1, 1, 1, 0.6)))
+	for index in best.size():
+		var entry: Dictionary = best[index]
+		_best.add_child(_label("%d." % (index + 1), 18, MAGENTA))
+		_best.add_child(_label(str(entry.score), 18, CYAN))
+		_best.add_child(_label("vague %d%s" % [entry.wave, " · sans fin" if entry.endless else ""], 18, Color.WHITE))
+		_best.add_child(_label("%s · %s" % [entry.hero, entry.date], 18, Color(1, 1, 1, 0.6)))
 	for challenge in Challenges.today():
 		_challenges.add_child(_challenge_row(challenge))
 	for line in GameStats.career_lines():
@@ -100,5 +118,4 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 	label.text = text
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if font_size <= 18 else TextServer.AUTOWRAP_OFF
 	return label

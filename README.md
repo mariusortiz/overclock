@@ -67,7 +67,7 @@ La toute première partie affiche quelques conseils, un à la fois : se déplace
 
 Chaque jour, trois défis (abattre 60 ennemis, toucher 25 fois à la tête, battre un boss…) sont tirés au sort, les mêmes pour tout le monde. Leur progression s'additionne sur les parties de la journée, et chaque défi réussi rapporte son XP, même si la partie se termine par une mort. Le bouton DÉFIS · STATS de l'accueil les montre, à côté des statistiques de carrière : parties, temps de jeu, ennemis, boss, meilleure vague, précision, tirs à la tête, arme favorite.
 
-Battre le Titan termine la partie : un trophée apparaît, tu gagnes le skin Champion et tu reviens au menu.
+Battre le Titan fait apparaître un trophée et donne le skin Champion. Tu choisis alors : rentrer au menu avec toute l'XP, ou continuer en **mode sans fin** : les arènes reviennent dans l'ordre, les boss reviennent plus forts à chaque tour, et la partie dure jusqu'à ta mort (qui ne rapporte que la moitié de l'XP, comme d'habitude) ou jusqu'à ce que tu rentres après un boss. Les dix meilleures parties jouées sur l'appareil forment un classement local, visible dans DÉFIS · STATS ; l'écran de fin indique la place obtenue.
 
 ## Arènes
 

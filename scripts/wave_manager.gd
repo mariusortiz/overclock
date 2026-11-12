@@ -64,10 +64,19 @@ func skip_to_next_boss() -> void:
 	wave = (wave / BOSS_EVERY + 1) * BOSS_EVERY - 1
 
 
-## Stops spawning for good (game over).
+## Stops spawning (game over, or the pause after the Titan).
 func stop() -> void:
 	_stopped = true
 	_spawn_timer.stop()
+
+
+## Starts again after stop(), with the next wave (endless mode).
+func resume() -> void:
+	_stopped = false
+	_to_spawn = 0
+	_alive = 0
+	_boss_pending = false
+	_start_next_wave(break_duration)
 
 
 # --- Difficulty curve -------------------------------------------------------

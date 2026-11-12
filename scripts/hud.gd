@@ -51,6 +51,7 @@ var _hint_tween: Tween
 @onready var _effects_label: RichTextLabel = $Effects
 @onready var _perk_choice: Control = $PerkChoice
 @onready var _exit_choice: Control = $ExitChoice
+@onready var _exit_title: Label = $ExitChoice/Center/Box/Title
 @onready var _continue_button: Button = $ExitChoice/Center/Box/Options/Continue
 @onready var _leave_button: Button = $ExitChoice/Center/Box/Options/Leave
 @onready var _perk_title: Label = $PerkChoice/Center/Box/Title
@@ -165,8 +166,11 @@ func _on_perk_button_pressed(index: int) -> void:
 
 
 ## After a boss: go on to `next_arena`, or go back to the menu with `xp`.
-func show_exit_choice(next_arena: String, xp: int) -> void:
+func show_exit_choice(next_arena: String, xp: int, endless := false) -> void:
+	_exit_title.text = "TITAN VAINCU" if endless else "BOSS VAINCU"
 	_continue_button.text = "CONTINUER\n\nDirection : %s\n\nMourir plus loin ne rapporte que la moitié de l'XP" % next_arena
+	if endless:
+		_continue_button.text = "MODE SANS FIN\n\nLes arènes reviennent,\nles boss plus forts\n\nMourir ne rapporte que la moitié de l'XP"
 	_leave_button.text = "RENTRER AU MENU\n\nEncaisser toute l'XP\n\n+%d XP" % xp
 	_leave_button.add_theme_color_override("font_color", ULTIMATE_READY_COLOR)
 	_exit_choice.visible = true
@@ -251,7 +255,7 @@ func show_death_title() -> void:
 ## `unlocked` lists the names of the rewards just earned. A victory
 ## celebrates and only offers to go back to the menu; a death halves the XP.
 func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: Array, result := Result.DEATH,
-		challenges: Array[Dictionary] = []) -> void:
+		challenges: Array[Dictionary] = [], rank := 0) -> void:
 	_death_title.visible = false
 	_game_over = true
 	pause_menu.enabled = false
@@ -262,6 +266,8 @@ func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: A
 	_final_score.text = "Score : %d" % score
 	_best_score.text = "Nouveau record !" if is_record else "Record : %d" % best
 	_xp_label.text = "+%d XP" % xp
+	if rank > 0:
+		_best_score.text += "  ·  %de du classement" % rank if rank > 1 else "  ·  1er du classement"
 	if result == Result.DEATH:
 		_xp_label.text += "  (moitié : tu es mort)"
 	for challenge in challenges:
