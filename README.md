@@ -104,11 +104,11 @@ Chaque personnage a une capacité ultime. Sa jauge, affichée au-dessus des muni
 
 ## Passe de combat
 
-Chaque partie rapporte de l'XP (un dixième du score, divisé par deux si tu meurs). Le passe compte 65 paliers, permanents et gratuits : les 30 premiers coûtent de plus en plus cher, les 35 suivants (le reste des armes) 1000 XP chacun. Chaque palier débloque un personnage, une arme, une arme de corps à corps ou un skin d'arme. Le Soldat, le Blaster, le Couteau et le skin Standard sont disponibles dès le départ. L'ordre des récompenses est dans `scripts/battle_pass.gd`.
+Chaque partie rapporte de l'XP (un dixième du score, divisé par deux si tu meurs). Le passe compte 70 paliers, permanents et gratuits : les 30 premiers coûtent de plus en plus cher, les 40 suivants (le reste des armes à feu, puis cinq lames) 1000 XP chacun. Chaque palier débloque un personnage, une arme, une arme de corps à corps ou un skin d'arme. Le Soldat, le Blaster, le Couteau et le skin Standard sont disponibles dès le départ. L'ordre des récompenses est dans `scripts/battle_pass.gd`.
 
 ## Arsenal
 
-L'arsenal, accessible depuis l'accueil, a quatre onglets : personnage, arme, corps à corps et skin. Un élément verrouillé peut être prévisualisé, mais pas équipé. Dans les onglets d'armes et de skins, l'arme est montrée seule : elle flotte et tourne sur elle-même.
+L'arsenal, accessible depuis l'accueil, a cinq onglets : personnage, arme, mêlée (corps à corps), skin d'arme et skin de mêlée. Un élément verrouillé peut être prévisualisé, mais pas équipé. Dans les onglets d'armes et de skins, l'arme est montrée seule : elle flotte et tourne sur elle-même.
 
 | Arme | Cadence | Dégâts | Chargeur |
 |---|---|---|---|
@@ -124,10 +124,17 @@ Un tir dans la tête fait le double de dégâts : le marqueur de touche devient 
 
 | Corps à corps | Délai | Dégâts | Portée |
 |---|---|---|---|
+| Kunaï (une cible) | 0,3 s | 3 | 2 m |
+| Couteau papillon (une cible) | 0,4 s | 4 | 2,1 m |
 | Couteau (une cible) | 0,5 s | 4 | 2,2 m |
+| Karambit (tous les ennemis juste devant) | 0,5 s | 5 | 2 m |
+| Katana (large balayage) | 0,7 s | 7 | 3,2 m |
 | Lance (transperce les ennemis alignés) | 0,8 s | 6 | 4,5 m |
-| Hache (tous les ennemis devant soi) | 1,1 s | 10 | 2,6 m |
+| Machette (une cible) | 0,9 s | 9 | 2,6 m |
 | Masse (repousse l'ennemi) | 1 s | 8 | 2,4 m |
+| Hache (tous les ennemis devant soi) | 1,1 s | 10 | 2,6 m |
+
+Les modèles des armes de corps à corps sont dessinés par code (`tools/make_melee_models.py`) : lame en acier brossé, manche en bois, en caoutchouc ou tressé. Les 13 skins servent aussi à ces armes, avec un choix séparé de celui de l'arme à feu : la finition repeint la lame et garde le manche. Elle ne change que l'apparence.
 
 Les skins d'armes sont des finitions : ils gardent la forme de l'arme et la repeignent d'un motif (néon, camouflage, fibre de carbone, lave…), certains la font briller ou lui ajoutent une lunette ou un silencieux, et chacun change la couleur du tir. Les statistiques ne changent pas. Le skin décide aussi de la façon dont meurent les ennemis abattus : ils fondent en flaque (Toxique, Océan), gèlent puis éclatent (Glace, Or), se consument (Lave, Solaire), se dissipent en rayon de lumière (Néon, Royal) ou explosent en morceaux (Sakura, Champion). Le skin Champion ne s'obtient qu'en battant le boss final. Il y a 13 personnages : ils ne diffèrent que par leur apparence et leur ulti.
 

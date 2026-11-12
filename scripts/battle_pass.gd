@@ -27,6 +27,8 @@ const REWARDS: Array[String] = [
 	"pistol_5", "shotgun_4", "rifle_5", "revolver_4", "smg_5",
 	"sniper_5", "pistol_6", "shotgun_5", "rifle_6", "revolver_5",
 	"sniper_6", "shotgun_6", "rifle_7", "rifle_8", "rifle_9",
+	# Tiers 66 and up: the blades.
+	"kunai", "butterfly", "karambit", "machete", "katana",
 ]
 
 

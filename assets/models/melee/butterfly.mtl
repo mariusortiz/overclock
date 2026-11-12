@@ -1,0 +1,15 @@
+newmtl Guard
+Kd 0.200 0.200 0.230
+
+newmtl Accent
+Kd 0.750 0.120 0.120
+
+newmtl Brass
+Kd 0.780 0.600 0.250
+
+newmtl Blade
+Kd 0.720 0.740 0.780
+
+newmtl Edge
+Kd 0.900 0.920 0.950
+

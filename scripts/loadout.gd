@@ -119,36 +119,55 @@ const UNPAINTED_PARTS: Array[String] = ["Black", "Black2", "Glass", "DarkMetal"]
 const PATTERN_SCALE := 0.6
 
 ## Close-range secondary attack. "sweep" hits every enemy in front instead of
-## one; "grip" is how far up the handle the hand holds it, in model units.
+## one. "model" is a .obj of assets/models/melee (see tools/make_melee_models.py):
+## handle along +Y, held at the origin, already at its size in the game.
 const MELEE := [
-	{
-		"id": "knife", "grip": 0.0, "name": "Couteau",
-		"model": "res://assets/models/characters/weapon-sword.glb", "scale": 1.3,
-		"damage": 4, "range": 2.2, "cooldown": 0.5, "sweep": false, "cone": 70.0, "knockback": 0.0,
-	},
-	{
-		# Long thrust that pierces every enemy lined up in front.
-		"id": "spear", "grip": 0.25, "name": "Lance",
-		"model": "res://assets/models/characters/weapon-spear.glb", "scale": 2.4,
-		"damage": 6, "range": 4.5, "cooldown": 0.8, "sweep": true, "cone": 18.0, "knockback": 0.0,
-	},
-	{
-		"id": "axe", "grip": 0.04, "name": "Hache",
-		"model": "res://assets/models/melee/tool-axe-upgraded.glb", "scale": 3.2,
-		"damage": 10, "range": 2.6, "cooldown": 1.1, "sweep": true, "cone": 70.0, "knockback": 0.0,
-	},
-	{
-		# Sends the enemy flying backward.
-		"id": "mace", "grip": 0.03, "name": "Masse",
-		"model": "res://assets/models/melee/tool-hammer-upgraded.glb", "scale": 5.0,
-		"damage": 8, "range": 2.4, "cooldown": 1.0, "sweep": false, "cone": 70.0, "knockback": 12.0,
-	},
+	{"id": "knife", "name": "Couteau", "model": "knife",
+		"damage": 4, "range": 2.2, "cooldown": 0.5, "sweep": false, "cone": 70.0, "knockback": 0.0},
+	# Long thrust that pierces every enemy lined up in front.
+	{"id": "spear", "name": "Lance", "model": "spear",
+		"damage": 6, "range": 4.5, "cooldown": 0.8, "sweep": true, "cone": 18.0, "knockback": 0.0},
+	{"id": "axe", "name": "Hache", "model": "axe",
+		"damage": 10, "range": 2.6, "cooldown": 1.1, "sweep": true, "cone": 70.0, "knockback": 0.0},
+	# Sends the enemy flying backward.
+	{"id": "mace", "name": "Masse", "model": "mace",
+		"damage": 8, "range": 2.4, "cooldown": 1.0, "sweep": false, "cone": 70.0, "knockback": 12.0},
+	{"id": "kunai", "name": "Kunaï", "model": "kunai",
+		"damage": 3, "range": 2.0, "cooldown": 0.3, "sweep": false, "cone": 70.0, "knockback": 0.0},
+	{"id": "butterfly", "name": "Couteau papillon", "model": "butterfly",
+		"damage": 4, "range": 2.1, "cooldown": 0.4, "sweep": false, "cone": 70.0, "knockback": 0.0},
+	# A short slash that catches everyone right in front.
+	{"id": "karambit", "name": "Karambit", "model": "karambit",
+		"damage": 5, "range": 2.0, "cooldown": 0.5, "sweep": true, "cone": 50.0, "knockback": 0.0},
+	{"id": "machete", "name": "Machette", "model": "machete",
+		"damage": 9, "range": 2.6, "cooldown": 0.9, "sweep": false, "cone": 70.0, "knockback": 0.0},
+	{"id": "katana", "name": "Katana", "model": "katana",
+		"damage": 7, "range": 3.2, "cooldown": 0.7, "sweep": true, "cone": 80.0, "knockback": 0.0},
 ]
+
+const MELEE_DIR := "res://assets/models/melee/"
+const MELEE_TEXTURE_DIR := "res://assets/textures/melee/"
+## Look of each part of a melee weapon, by the material name it has in the
+## model: [texture or "", color, metallic, roughness].
+const MELEE_MATERIALS := {
+	"Blade": ["steel", Color(0.82, 0.84, 0.88), 0.85, 0.3],
+	"Edge": ["", Color(0.93, 0.95, 0.98), 0.9, 0.18],
+	"Wood": ["wood", Color.WHITE, 0.0, 0.7],
+	"Grip": ["grip", Color.WHITE, 0.0, 0.85],
+	"Wrap": ["wrap", Color.WHITE, 0.0, 0.8],
+	"Guard": ["steel", Color(0.28, 0.28, 0.32), 0.8, 0.4],
+	"Brass": ["", Color(0.8, 0.6, 0.25), 0.9, 0.3],
+	"Accent": ["", Color(0.75, 0.12, 0.12), 0.3, 0.5],
+}
+## Parts of a melee weapon that a skin repaints.
+const MELEE_PAINTED_PARTS: Array[String] = ["Blade", "Accent"]
+const MELEE_TEXTURE_SCALE := 9.0
 
 const CHARACTER_KEY := "character"
 const WEAPON_KEY := "weapon"
 const MELEE_KEY := "melee"
 const SKIN_KEY := "skin"
+const MELEE_SKIN_KEY := "melee_skin"
 
 
 static func is_unlocked(item: Dictionary) -> bool:
@@ -171,6 +190,10 @@ static func selected_melee() -> Dictionary:
 
 static func selected_skin() -> Dictionary:
 	return _selected(SKINS, SKIN_KEY)
+
+
+static func selected_melee_skin() -> Dictionary:
+	return _selected(SKINS, MELEE_SKIN_KEY)
 
 
 static func select(key: String, item: Dictionary) -> void:
@@ -227,15 +250,44 @@ static func _add_part(gun: Node3D, model: String, basis: Basis, at: Vector3) -> 
 	gun.add_child(part)
 
 
-## Creates a melee weapon as held in the hand: its handle along +Y, gripped
-## "grip" model units above its lower end.
-static func instantiate_melee(item: Dictionary) -> Node3D:
-	var model: Node3D = load(item.model).instantiate()
-	var size: float = item.scale
-	model.transform = Transform3D(Basis.from_scale(Vector3.ONE * size), Vector3(0, -item.grip * size, 0))
+## Creates a melee weapon as held in the hand: its handle along +Y, the hand
+## at the origin. `skin` (an entry of SKINS) repaints its blade; none by default.
+static func instantiate_melee(item: Dictionary, skin := {}) -> Node3D:
+	var part := MeshInstance3D.new()
+	part.mesh = load(MELEE_DIR + item.model + ".obj")
+	var finish: StandardMaterial3D = null
+	if not skin.is_empty() and skin.pattern:
+		finish = _finish(skin)
+	for surface in part.mesh.get_surface_count():
+		var part_name := part.mesh.surface_get_material(surface).resource_name
+		if finish and part_name in MELEE_PAINTED_PARTS:
+			part.set_surface_override_material(surface, finish)
+		else:
+			part.set_surface_override_material(surface, _melee_material(part_name))
 	var held := Node3D.new()
-	held.add_child(model)
+	held.add_child(part)
 	return held
+
+
+## Box around a melee weapon's model, to frame it when it is shown alone.
+static func melee_bounds(item: Dictionary) -> AABB:
+	return (load(MELEE_DIR + item.model + ".obj") as Mesh).get_aabb()
+
+
+static func _melee_material(part_name: String) -> StandardMaterial3D:
+	var look: Array = MELEE_MATERIALS.get(part_name, MELEE_MATERIALS["Guard"])
+	var material := StandardMaterial3D.new()
+	var texture: String = look[0]
+	if texture != "":
+		material.albedo_texture = load(MELEE_TEXTURE_DIR + texture + ".png")
+		material.uv1_triplanar = true
+		material.uv1_scale = Vector3.ONE * MELEE_TEXTURE_SCALE
+	material.albedo_color = look[1]
+	material.metallic = look[2]
+	material.roughness = look[3]
+	# The generated models do not mind which way their faces turn.
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	return material
 
 
 ## Why a locked item is locked, for the menus.
@@ -259,21 +311,28 @@ static func find(id: String) -> Dictionary:
 static func _apply_skin(gun: Node3D, skin: Dictionary) -> void:
 	if not skin.pattern:
 		return
+	var finish := _finish(skin)
+	for part: MeshInstance3D in gun.get_children():
+		for surface in part.mesh.get_surface_count():
+			var original := part.mesh.surface_get_material(surface)
+			if original == null or not original.resource_name in UNPAINTED_PARTS:
+				part.set_surface_override_material(surface, finish)
+
+
+## The material a skin paints with: its pattern, and its glow if it has one.
+static func _finish(skin: Dictionary) -> StandardMaterial3D:
 	var finish := StandardMaterial3D.new()
 	finish.albedo_texture = load(SKIN_DIR + skin.id + ".png")
 	finish.uv1_triplanar = true
 	finish.uv1_scale = Vector3.ONE * PATTERN_SCALE
 	finish.metallic = 0.4
 	finish.roughness = 0.4
+	finish.cull_mode = BaseMaterial3D.CULL_DISABLED
 	if skin.glow > 0.0:
 		finish.emission_enabled = true
 		finish.emission = skin.shot
 		finish.emission_energy_multiplier = skin.glow
-	for part: MeshInstance3D in gun.get_children():
-		for surface in part.mesh.get_surface_count():
-			var original := part.mesh.surface_get_material(surface)
-			if original == null or not original.resource_name in UNPAINTED_PARTS:
-				part.set_surface_override_material(surface, finish)
+	return finish
 
 
 static func _selected(items: Array, key: String) -> Dictionary:

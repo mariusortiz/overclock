@@ -39,7 +39,7 @@ func setup(data: Dictionary) -> void:
 	sweep = data.sweep
 	cone_deg = data.cone
 	knockback = data.knockback
-	_model_pivot.add_child(Loadout.instantiate_melee(data))
+	_model_pivot.add_child(Loadout.instantiate_melee(data, Loadout.selected_melee_skin()))
 
 
 func _process(_delta: float) -> void:

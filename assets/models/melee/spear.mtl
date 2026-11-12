@@ -1,0 +1,18 @@
+newmtl Wood
+Kd 0.420 0.270 0.150
+
+newmtl Wrap
+Kd 0.120 0.100 0.140
+
+newmtl Brass
+Kd 0.780 0.600 0.250
+
+newmtl Accent
+Kd 0.750 0.120 0.120
+
+newmtl Blade
+Kd 0.720 0.740 0.780
+
+newmtl Edge
+Kd 0.900 0.920 0.950
+

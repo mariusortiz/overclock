@@ -6,10 +6,9 @@ Tous les fichiers externes du jeu sont sous licence [CC0 1.0](https://creativeco
 |---|---|---|---|
 | Personnages et ennemis | [Ultimate Animated Character Pack](https://opengameart.org/content/animated-characters-pack) | Quaternius | `assets/models/quaternius/characters/` |
 | Boss (dragon, squelette, chauve-souris, slime) | [LowPoly Animated Monsters](https://opengameart.org/content/lowpoly-animated-monsters) | Quaternius | `assets/models/quaternius/monsters/` |
-| Couteau, lance | [Mini Characters 2.0](https://kenney.nl/assets/mini-characters) | Kenney | `assets/models/characters/` |
 | Armes à feu, lunette, silencieux | [Low Poly Guns Pack](https://opengameart.org/content/low-poly-guns-pack) | Quaternius | `assets/models/guns/` |
 | Boss final (Titan) | [Animated Mech Pack](https://opengameart.org/content/animated-mech-pack) | Quaternius | `assets/models/quaternius/mechs/` |
-| Hache, masse, coffres, caisses d'armes | [Survival Kit](https://kenney.nl/assets/survival-kit) | Kenney | `assets/models/melee/` |
+| Coffres, caisses d'armes | [Survival Kit](https://kenney.nl/assets/survival-kit) | Kenney | `assets/models/melee/` |
 | Éléments de décor de l'arène | [Space Station Kit 1.0](https://kenney.nl/assets/space-station-kit) | Kenney | `assets/models/station/` |
 | Rochers, cactus, arbres, statues | [Nature Kit](https://kenney.nl/assets/nature-kit) | Kenney | `assets/models/nature/` |
 | Immeubles | [City Kit (Commercial)](https://kenney.nl/assets/city-kit-commercial) | Kenney | `assets/models/city/` |
@@ -24,6 +23,6 @@ Tous les fichiers externes du jeu sont sous licence [CC0 1.0](https://creativeco
 | Musique de défaite | [Game Over Theme (No Hope)](https://opengameart.org/content/game-over-theme) | Cleyton Kauffman | `assets/audio/music/` |
 | Musique du trailer | [Cyber March](https://opengameart.org/content/cyber-march) | iamoneabe | `tools/trailer_music.mp3` |
 
-Le reste est produit par le projet : les textures de `assets/textures/` (dont les motifs des skins) et les sons `hit.wav`, `shot.wav` et `pickup.wav` sont générés par les scripts de `tools/`.
+Le reste est produit par le projet : les armes de corps à corps (`tools/make_melee_models.py`), les textures de `assets/textures/` (dont les motifs des skins) et les sons `hit.wav`, `shot.wav` et `pickup.wav` sont générés par les scripts de `tools/`.
 
 Moteur : [Godot Engine](https://godotengine.org) (licence MIT).

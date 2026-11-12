@@ -12,12 +12,17 @@ const SPIN_SPEED := 0.9
 const FLOAT_HEIGHT := 1.05
 ## A gun shown alone is scaled to this length, in meters.
 const FLOAT_GUN_LENGTH := 1.5
-const FLOAT_MELEE_SCALE := 1.6
+## A melee weapon shown alone is scaled to this height, within a limit.
+const FLOAT_MELEE_HEIGHT := 1.25
+const FLOAT_MELEE_MAX_SCALE := 2.4
 
 var _time := 0.0
 var _character: CharacterModel
 var _focus := Focus.CHARACTER
 var _gun_scale := 1.0
+var _melee_scale := 1.0
+## Height of the middle of the melee weapon's model, above the hand.
+var _melee_middle := 0.0
 
 @onready var _pivot: Node3D = $SubViewport/World/Pivot
 @onready var _weapon_holder: Node3D = $SubViewport/World/Pivot/WeaponHolder
@@ -33,7 +38,11 @@ func _process(delta: float) -> void:
 		var holder := _weapon_holder if _focus == Focus.WEAPON else _melee_holder
 		holder.position = Vector3(0, FLOAT_HEIGHT + sin(_time * 1.6) * 0.05, 0)
 		holder.rotation = Vector3(0, _time * SPIN_SPEED, 0)
-		holder.scale = Vector3.ONE * (_gun_scale if _focus == Focus.WEAPON else FLOAT_MELEE_SCALE)
+		holder.scale = Vector3.ONE * _gun_scale
+		if _focus == Focus.MELEE:
+			# Held by its handle: lower it so that its middle is the one floating.
+			holder.position.y -= _melee_middle * _melee_scale
+			holder.scale = Vector3.ONE * _melee_scale
 		return
 	_pivot.rotation.y = PI + sin(_time * TURN_SPEED) * TURN_RANGE
 	if _character:
@@ -69,8 +78,14 @@ func show_weapon(item: Dictionary, skin := {}) -> void:
 	_replace(_weapon_holder, Loadout.instantiate_weapon(item, skin))
 
 
-func show_melee(item: Dictionary) -> void:
-	_replace(_melee_holder, Loadout.instantiate_melee(item))
+## `skin` defaults to the equipped melee skin.
+func show_melee(item: Dictionary, skin := {}) -> void:
+	if skin.is_empty():
+		skin = Loadout.selected_melee_skin()
+	var bounds := Loadout.melee_bounds(item)
+	_melee_scale = minf(FLOAT_MELEE_HEIGHT / bounds.size.y, FLOAT_MELEE_MAX_SCALE)
+	_melee_middle = bounds.get_center().y
+	_replace(_melee_holder, Loadout.instantiate_melee(item, skin))
 
 
 ## Shows the player's current selection.

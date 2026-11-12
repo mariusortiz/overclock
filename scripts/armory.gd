@@ -1,11 +1,13 @@
 extends Control
-## Armory: pick the character, the weapon, the melee weapon and the weapon
-## skin from a grid of cards. Locked items can be previewed but not equipped.
+## Armory: pick the character, the weapon, the melee weapon and a skin for
+## each of the two from a grid of cards. Locked items can be previewed but not equipped.
 
 const MENU_SCENE := "res://scenes/menu.tscn"
 const CARD_SIZE := Vector2(214, 108)
 ## Characters that fit on one line of a card.
 const CARD_LINE_LENGTH := 12
+## Five tabs share the width of the panel.
+const TAB_FONT_SIZE := 18
 
 ## One tab per kind of item. "stats" lists what the detail panel shows:
 ## [label, key in the item, value that fills the bar].
@@ -13,9 +15,10 @@ var _tabs := [
 	{"label": "PERSONNAGE", "key": Loadout.CHARACTER_KEY, "items": Loadout.CHARACTERS, "stats": []},
 	{"label": "ARME", "key": Loadout.WEAPON_KEY, "items": Loadout.WEAPONS,
 		"stats": [["CADENCE", "fire_rate", 14.0], ["DÉGÂTS", "damage", 10.0], ["CHARGEUR", "magazine", 40.0]]},
-	{"label": "CORPS À CORPS", "key": Loadout.MELEE_KEY, "items": Loadout.MELEE,
-		"stats": [["DÉGÂTS", "damage", 10.0], ["PORTÉE", "range", 4.5]]},
-	{"label": "SKIN", "key": Loadout.SKIN_KEY, "items": Loadout.SKINS, "stats": []},
+	{"label": "MÊLÉE", "key": Loadout.MELEE_KEY, "items": Loadout.MELEE,
+		"stats": [["DÉGÂTS", "damage", 10.0], ["PORTÉE", "range", 4.5], ["VITESSE", "speed", 3.4]]},
+	{"label": "SKIN ARME", "key": Loadout.SKIN_KEY, "items": Loadout.SKINS, "stats": []},
+	{"label": "SKIN MÊLÉE", "key": Loadout.MELEE_SKIN_KEY, "items": Loadout.SKINS, "stats": []},
 ]
 var _tab_index := 0
 var _viewed: Dictionary
@@ -34,6 +37,7 @@ func _ready() -> void:
 	for i in _tabs.size():
 		var button := Button.new()
 		button.text = _tabs[i].label
+		button.add_theme_font_size_override("font_size", TAB_FONT_SIZE)
 		button.toggle_mode = true
 		button.custom_minimum_size.y = 64
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -56,7 +60,7 @@ func _select_tab(index: int) -> void:
 	match _tabs[index].key:
 		Loadout.CHARACTER_KEY:
 			_stage.focus(CharacterStage.Focus.CHARACTER)
-		Loadout.MELEE_KEY:
+		Loadout.MELEE_KEY, Loadout.MELEE_SKIN_KEY:
 			_stage.focus(CharacterStage.Focus.MELEE)
 		_:
 			_stage.focus(CharacterStage.Focus.WEAPON)
@@ -72,6 +76,8 @@ func _equipped() -> Dictionary:
 			return Loadout.selected_melee()
 		Loadout.SKIN_KEY:
 			return Loadout.selected_skin()
+		Loadout.MELEE_SKIN_KEY:
+			return Loadout.selected_melee_skin()
 	return Loadout.selected_character()
 
 
@@ -117,7 +123,9 @@ func _refresh() -> void:
 		_detail_stats.remove_child(bar)
 		bar.queue_free()
 	for stat: Array in _tabs[_tab_index].stats:
-		_add_stat(stat[0], _viewed[stat[1]], stat[2])
+		# A melee weapon's speed is its number of blows per second.
+		var value: float = 1.0 / _viewed.cooldown if stat[1] == "speed" else _viewed[stat[1]]
+		_add_stat(stat[0], value, stat[2])
 
 
 ## Previews the item, and equips it when it is unlocked.
@@ -135,6 +143,8 @@ func _on_card_pressed(item: Dictionary) -> void:
 			_stage.show_melee(item)
 		Loadout.SKIN_KEY:
 			_stage.show_weapon(Loadout.selected_weapon(), item)
+		Loadout.MELEE_SKIN_KEY:
+			_stage.show_melee(Loadout.selected_melee(), item)
 	# Deferred: the cards are rebuilt, and one of them is handling this click.
 	_refresh.call_deferred()
 
