@@ -163,6 +163,10 @@ const MELEE_MATERIALS := {
 const MELEE_PAINTED_PARTS: Array[String] = ["Blade", "Accent"]
 const MELEE_TEXTURE_SCALE := 9.0
 
+## Materials already built, by melee part name or by skin id. Kept for the
+## whole session: a weapon must never outlive the material it is drawn with.
+static var _materials := {}
+
 const CHARACTER_KEY := "character"
 const WEAPON_KEY := "weapon"
 const MELEE_KEY := "melee"
@@ -274,7 +278,10 @@ static func melee_bounds(item: Dictionary) -> AABB:
 	return (load(MELEE_DIR + item.model + ".obj") as Mesh).get_aabb()
 
 
+## Shared by every weapon: one material per kind of part, made once.
 static func _melee_material(part_name: String) -> StandardMaterial3D:
+	if _materials.has(part_name):
+		return _materials[part_name]
 	var look: Array = MELEE_MATERIALS.get(part_name, MELEE_MATERIALS["Guard"])
 	var material := StandardMaterial3D.new()
 	var texture: String = look[0]
@@ -287,6 +294,7 @@ static func _melee_material(part_name: String) -> StandardMaterial3D:
 	material.roughness = look[3]
 	# The generated models do not mind which way their faces turn.
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_materials[part_name] = material
 	return material
 
 
@@ -321,6 +329,8 @@ static func _apply_skin(gun: Node3D, skin: Dictionary) -> void:
 
 ## The material a skin paints with: its pattern, and its glow if it has one.
 static func _finish(skin: Dictionary) -> StandardMaterial3D:
+	if _materials.has(skin.id):
+		return _materials[skin.id]
 	var finish := StandardMaterial3D.new()
 	finish.albedo_texture = load(SKIN_DIR + skin.id + ".png")
 	finish.uv1_triplanar = true
@@ -332,6 +342,7 @@ static func _finish(skin: Dictionary) -> StandardMaterial3D:
 		finish.emission_enabled = true
 		finish.emission = skin.shot
 		finish.emission_energy_multiplier = skin.glow
+	_materials[skin.id] = finish
 	return finish
 
 
