@@ -17,7 +17,7 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Music.play_track(Music.Track.MAIN)
 	_stage.show_loadout()
-	_best_label.text = "Record : %d  ·  Palier %d\nDéfis du jour : %d / %d  ·  %d crédits  ·  %d gemmes" % [
+	_best_label.text = "Record : %d  ·  Palier %d  ·  Défis : %d / %d\n%d crédits  ·  %d gemmes" % [
 			SaveData.load_high_score(), BattlePass.progress().tier, Challenges.done_count(), Challenges.PER_DAY,
 			Wallet.credits(), Wallet.gems()]
 	_settings_panel.visible = false

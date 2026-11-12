@@ -11,7 +11,7 @@ const BUTTON_HEIGHT := 64
 const GOLD := Color(1.0, 0.85, 0.3)
 const DEAL := Color(0.3, 1.0, 0.5)
 
-const TABS := ["DU JOUR", "HÉROS", "ARMES", "SKINS", "GEMMES"]
+const TABS := ["JOUR", "HÉROS", "ARMES", "SKINS", "GEMMES"]
 const KINDS := ["", "Personnage", "Arme", "Skin d'arme", ""]
 const GEMS_TAB := 4
 
@@ -52,6 +52,15 @@ func _notification(what: int) -> void:
 		get_tree().change_scene_to_file.call_deferred(MENU_SCENE)
 
 
+func _unhandled_key_input(event: InputEvent) -> void:
+	# Test shortcut (debug and web builds): F7 adds credits and gems.
+	if event.is_pressed() and (event as InputEventKey).keycode == KEY_F7 \
+			and (OS.is_debug_build() or OS.has_feature("web")):
+		Wallet.add_credits(5000)
+		Wallet.add_gems(300)
+		_refresh()
+
+
 func _select_tab(index: int) -> void:
 	_tab = index
 	for i in _tab_bar.get_child_count():
@@ -76,7 +85,7 @@ func _refresh() -> void:
 	if _tab == 0:
 		var left := Shop.seconds_to_refresh()
 		@warning_ignore("integer_division")
-		_balance.text += "  ·  nouvelles offres dans %d h %02d" % [left / 3600, (left % 3600) / 60]
+		_balance.text += "\nNouvelles offres dans %d h %02d" % [left / 3600, (left % 3600) / 60]
 	for card in _grid.get_children():
 		_grid.remove_child(card)
 		card.queue_free()
@@ -198,7 +207,8 @@ func _add_button(text: String, color: Color) -> Button:
 	button.text = text
 	button.custom_minimum_size.y = BUTTON_HEIGHT
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.add_theme_font_size_override("font_size", 22)
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	button.add_theme_font_size_override("font_size", 20)
 	button.add_theme_color_override("font_color", color)
 	_buttons.add_child(button)
 	return button
