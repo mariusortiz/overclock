@@ -766,7 +766,8 @@ func _release_bats() -> void:
 		_actor(WaveManager.FLYING_MODEL, 1.0, 0.0, at, -angle, &"idle", _flock)
 
 
-## `guns` in a row, each with one of `skins` in turn, turning slowly.
+## `guns` in a row, each with one of `skins` in turn (its finish, scope and
+## silencer, scaled to the gun), turning slowly.
 func _line_up_guns(guns: Array, skins: Array) -> void:
 	for index in guns.size():
 		var item: Dictionary = guns[index]
