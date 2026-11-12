@@ -7,6 +7,8 @@ signal replay_pressed
 signal menu_pressed
 ## The player gave up the game from the pause menu.
 signal quit_pressed
+## A dance was picked in the dance wheel (index in Dances.LIST).
+signal dance_chosen(index: int)
 signal perk_chosen(type: Perk.Type)
 ## Answer to the choice offered after a boss: go on, or go home with the XP.
 signal exit_chosen(leave: bool)
@@ -25,6 +27,8 @@ var _banner_tween: Tween
 var _perk_options: Array = []
 var _hint := Label.new()
 var _health_number := Label.new()
+var _dance_wheel := Control.new()
+var _wheel_mouse_was_captured := false
 var _hint_tween: Tween
 
 @onready var touch_controls: TouchControls = $TouchControls
@@ -75,6 +79,7 @@ func _ready() -> void:
 		_perk_buttons[i].pressed.connect(_on_perk_button_pressed.bind(i))
 	_continue_button.pressed.connect(_on_exit_button_pressed.bind(false))
 	_build_hint()
+	_build_dance_wheel()
 	_leave_button.pressed.connect(_on_exit_button_pressed.bind(true))
 
 
@@ -221,6 +226,61 @@ func show_banner(text: String) -> void:
 	_banner_tween.tween_property(_banner, "modulate:a", 0.0, 0.5)
 
 
+## Opens or closes the dance wheel; the game goes on meanwhile.
+func toggle_dance_wheel() -> void:
+	if _game_over:
+		return
+	_dance_wheel.visible = not _dance_wheel.visible
+	if _dance_wheel.visible:
+		_wheel_mouse_was_captured = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	elif _wheel_mouse_was_captured:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+## Six round buttons in a ring around the middle of the screen.
+func _build_dance_wheel() -> void:
+	const RADIUS := 190.0
+	const BUTTON_SIZE := Vector2(190, 70)
+	_dance_wheel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_dance_wheel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dance_wheel.visible = false
+	add_child(_dance_wheel)
+	move_child(_dance_wheel, pause_menu.get_index())
+	var middle := Control.new()
+	middle.anchor_left = 0.5
+	middle.anchor_right = 0.5
+	middle.anchor_top = 0.5
+	middle.anchor_bottom = 0.5
+	middle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dance_wheel.add_child(middle)
+	var title := Label.new()
+	title.text = "DANSES"
+	title.add_theme_font_size_override("font_size", 30)
+	title.add_theme_color_override("font_color", Color(0.16, 0.83, 1.0))
+	title.add_theme_color_override("font_outline_color", Color.BLACK)
+	title.add_theme_constant_override("outline_size", 8)
+	title.position = Vector2(-70, -20)
+	title.size = Vector2(140, 40)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	middle.add_child(title)
+	var count := Dances.LIST.size()
+	for index in count:
+		var angle := -PI / 2.0 + TAU * index / count
+		var button := Button.new()
+		button.text = Dances.LIST[index].name
+		button.add_theme_font_size_override("font_size", 20)
+		button.size = BUTTON_SIZE
+		button.position = Vector2(cos(angle), sin(angle)) * RADIUS * Vector2(1.5, 1.0) - BUTTON_SIZE / 2.0
+		button.pressed.connect(_on_dance_button_pressed.bind(index))
+		middle.add_child(button)
+
+
+func _on_dance_button_pressed(index: int) -> void:
+	toggle_dance_wheel()
+	dance_chosen.emit(index)
+
+
 ## Tutorial line in the middle of the screen, until hide_hint(). `button` is
 ## a touch button to draw attention to, by its action.
 func show_hint(text: String, button: StringName = &"") -> void:
@@ -268,6 +328,7 @@ func _build_hint() -> void:
 func show_death_title() -> void:
 	_game_over = true
 	_hint.visible = false
+	_dance_wheel.visible = false
 	pause_menu.enabled = false
 	_pause_button.visible = false
 	touch_controls.visible = false

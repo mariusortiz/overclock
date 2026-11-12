@@ -29,6 +29,8 @@ var _animation_player: AnimationPlayer
 var _animations := {}  # action -> animation name
 var _current_action := &""
 var _skeleton: Skeleton3D
+## Extra bone turns on top of the animation (jump, run, dances).
+var pose := PoseLayer.new()
 
 
 func _ready() -> void:
@@ -43,7 +45,15 @@ func _ready() -> void:
 	for action in LOOPING:
 		if _animations.has(action):
 			_animation_player.get_animation(_animations[action]).loop_mode = Animation.LOOP_LINEAR
+	if _skeleton:
+		_skeleton.add_child(pose)
 	_fit()
+
+
+## Makes a one-shot action (the victory, for a dance) play in a loop.
+func set_looping(action: StringName) -> void:
+	if _animations.has(action):
+		_animation_player.get_animation(_animations[action]).loop_mode = Animation.LOOP_LINEAR
 
 
 ## Plays an action unless it is already the current one. `restart` replays it

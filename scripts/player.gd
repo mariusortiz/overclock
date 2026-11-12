@@ -9,6 +9,17 @@ signal died
 signal perks_changed
 
 const WALK_ANIMATION_SPEED := 1.8
+## Landing: squash of the model and dust, harder after a long fall.
+const LAND_SQUASH := 0.18
+const HARD_LANDING_SPEED := 9.0
+const DUST_COLORS: Array[Color] = [Color(0.75, 0.72, 0.68), Color(0.55, 0.53, 0.5)]
+## How fast the jump and run poses blend in and out.
+const POSE_BLEND_SPEED := 10.0
+## Seconds for the camera to swing round to the front when a dance starts.
+const DANCE_CAMERA_SPEED := 4.0
+## Any of these, or moving, or being hit, stops a dance.
+const DANCE_BREAKERS: Array[StringName] = [&"fire", &"aim", &"melee", &"jump", &"reload", &"ultimate", &"inspect"]
+
 ## Camera shake: how hard a hit shakes the view, and how fast it settles.
 const HIT_SHAKE := 0.12
 const SHAKE_DECAY := 3.5
@@ -37,6 +48,11 @@ var _effects := {}  # PowerUp.Type -> seconds left
 var _regen_buffer := 0.0
 var _action_animation_left := 0.0
 var _shake := 0.0
+## Index in Dances.LIST of the dance being danced, or -1.
+var _dance := -1
+var _dance_time := 0.0
+var _was_on_floor := true
+var _pivot_tween: Tween
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var weapon: Weapon = $Weapon
@@ -114,6 +130,7 @@ func take_damage(amount: int) -> void:
 	health_changed.emit(health, max_health)
 	damaged.emit()
 	shake(HIT_SHAKE)
+	stop_dance()
 	if health == 0:
 		_die()
 
@@ -123,6 +140,37 @@ func heal(amount: int) -> void:
 		return
 	health = mini(health + amount, max_health)
 	health_changed.emit(health, max_health)
+
+
+## Starts one of Dances.LIST; the camera swings round to show the hero.
+func dance(index: int) -> void:
+	if health <= 0:
+		return
+	_dance = index
+	_dance_time = 0.0
+	var info: Dictionary = Dances.LIST[index]
+	if info.has("animation"):
+		_model.set_looping(info.animation)
+		_model.play(info.animation, true)
+	else:
+		_model.play(&"idle")
+	weapon.visible = false
+	melee.visible = false
+	inspection.cancel()
+
+
+func stop_dance() -> void:
+	if _dance == -1:
+		return
+	_dance = -1
+	weapon.visible = true
+	melee.visible = true
+	_model_pivot.position = Vector3.ZERO
+	_model_pivot.rotation.y = 0.0
+
+
+func is_dancing() -> bool:
+	return _dance != -1
 
 
 ## Shakes the view for a moment; `strength` is in meters of camera offset.
@@ -152,6 +200,45 @@ func _process(delta: float) -> void:
 	_shake = move_toward(_shake, 0.0, SHAKE_DECAY * _shake * delta + 0.02 * delta)
 	_camera.h_offset = randf_range(-_shake, _shake)
 	_camera.v_offset = randf_range(-_shake, _shake)
+	_update_pose(delta)
+
+
+## Bone turns on top of the animation: the dance, the jump, or the lean of a
+## run; and the camera's swing round to the front during a dance.
+func _update_pose(delta: float) -> void:
+	var pose := _model.pose
+	var camera_pivot := _spring_arm.get_parent() as Node3D
+	var front := 0.0
+	if _dance != -1:
+		_dance_time += delta
+		var info: Dictionary = Dances.LIST[_dance]
+		pose.targets = Dances.pose_at(info, _dance_time)
+		pose.weight = move_toward(pose.weight, 1.0, POSE_BLEND_SPEED * delta)
+		_model_pivot.position.y = Dances.bounce_at(info, _dance_time)
+		_model_pivot.rotation.y = _dance_time * info.spin
+		front = PI
+	elif not is_on_floor():
+		pose.targets = Dances.JUMP
+		pose.weight = move_toward(pose.weight, 1.0, POSE_BLEND_SPEED * delta)
+	else:
+		var speed := Vector2(velocity.x, velocity.z).length() / move_speed
+		pose.targets = Dances.RUN
+		pose.weight = move_toward(pose.weight, clampf(speed, 0.0, 1.0), POSE_BLEND_SPEED * delta)
+	camera_pivot.rotation.y = lerp_angle(camera_pivot.rotation.y, front, minf(DANCE_CAMERA_SPEED * delta, 1.0))
+
+
+func _dust(amount: int, speed: float) -> void:
+	Effects.spray(get_tree().current_scene, global_position + Vector3.UP * 0.15, DUST_COLORS, amount,
+			Vector3.ONE * 0.16, Vector2(speed * 0.4, speed), Vector3(0, -1.5, 0), 85.0, 0.6)
+
+
+## Squashes the model for a moment, as if it took the shock.
+func _squash(amount: float) -> void:
+	if _pivot_tween:
+		_pivot_tween.kill()
+	_model_pivot.scale = Vector3(1.0 + amount * 0.6, 1.0 - amount, 1.0 + amount * 0.6)
+	_pivot_tween = create_tween()
+	_pivot_tween.tween_property(_model_pivot, "scale", Vector3.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _on_melee_swung() -> void:
@@ -164,10 +251,17 @@ func _physics_process(delta: float) -> void:
 	_action_animation_left -= delta
 	_update_inspection()
 
+	if _dance != -1:
+		var moving := Input.get_vector("move_left", "move_right", "move_forward", "move_back") != Vector2.ZERO
+		if moving or DANCE_BREAKERS.any(func(action: StringName) -> bool: return Input.is_action_pressed(action)):
+			stop_dance()
+
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 	elif Input.is_action_just_pressed("jump"):
 		velocity.y = jump_velocity
+		_dust(8, 2.0)
+		_squash(LAND_SQUASH * 0.5)
 
 	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var target := transform.basis * Vector3(input.x, 0.0, input.y) * move_speed
@@ -177,12 +271,20 @@ func _physics_process(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, target.x, acceleration * delta)
 	velocity.z = move_toward(velocity.z, target.z, acceleration * delta)
 
+	var falling_speed := -velocity.y
 	move_and_slide()
+	if is_on_floor() and not _was_on_floor:
+		var hard := falling_speed >= HARD_LANDING_SPEED
+		_squash(LAND_SQUASH * (1.6 if hard else 1.0))
+		_dust(18 if hard else 10, 3.0 if hard else 2.0)
+		if hard:
+			shake(0.06)
+	_was_on_floor = is_on_floor()
 	_update_animation()
 
 
 func _update_animation() -> void:
-	if _action_animation_left > 0.0:
+	if _action_animation_left > 0.0 or _dance != -1:
 		return
 	# The walk cycle is sped up to match the running speed.
 	if is_on_floor() and Vector2(velocity.x, velocity.z).length() > 0.5:
@@ -204,6 +306,7 @@ func _update_inspection() -> void:
 
 func _die() -> void:
 	inspection.cancel()
+	stop_dance()
 	set_physics_process(false)
 	set_process_unhandled_input(false)
 	weapon.set_physics_process(false)

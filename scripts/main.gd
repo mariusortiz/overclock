@@ -63,6 +63,7 @@ func _ready() -> void:
 	hud.perk_chosen.connect(_on_perk_chosen)
 	hud.exit_chosen.connect(_on_exit_chosen)
 	hud.quit_pressed.connect(_on_quit_pressed)
+	hud.dance_chosen.connect(player.dance)
 
 	player.weapon.hit_confirmed.connect(hud.reticle.show_hit)
 	player.melee.hit_confirmed.connect(hud.reticle.show_hit)
@@ -103,6 +104,8 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	hud.set_status(player.get_effects(), player.perks)
+	if Input.is_action_just_pressed("emote") and player.health > 0:
+		hud.toggle_dance_wheel()
 
 
 func _unhandled_input(event: InputEvent) -> void:

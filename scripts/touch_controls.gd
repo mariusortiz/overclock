@@ -27,6 +27,7 @@ const BUTTONS := [
 	{"action": "aim", "label": "VISER", "radius": 52.0, "offset": Vector2(-265, -40), "toggle": true},
 	# Rarely needed in a fight: away from the others, under the pause button.
 	{"action": "inspect", "label": "INSPECTER", "radius": 38.0, "offset": Vector2(-85, 160), "toggle": false, "top": true},
+	{"action": "emote", "label": "DANSE", "radius": 38.0, "offset": Vector2(-85, 270), "toggle": false, "top": true},
 ]
 
 @export var joystick_radius := 110.0
@@ -260,6 +261,13 @@ func _draw_icon(action: String, center: Vector2, size_px: float, color: Color) -
 			draw_arc(center, r * 0.8, 0.0, TAU, 32, color, line)
 			draw_line(center + Vector2(-r * 0.8, 0), center + Vector2(r * 0.8, 0), color, line * 0.6)
 			draw_line(center + Vector2(0, -r * 0.8), center + Vector2(0, r * 0.8), color, line * 0.6)
+		"emote":  # a little dancing figure: head, body, one arm up, one down
+			draw_circle(center + Vector2(0, -r * 0.62), r * 0.2, color)
+			draw_line(center + Vector2(0, -r * 0.4), center + Vector2(0, r * 0.25), color, line)
+			draw_line(center + Vector2(0, -r * 0.25), center + Vector2(r * 0.55, -r * 0.75), color, line)
+			draw_line(center + Vector2(0, -r * 0.25), center + Vector2(-r * 0.55, r * 0.05), color, line)
+			draw_line(center + Vector2(0, r * 0.25), center + Vector2(r * 0.4, r * 0.85), color, line)
+			draw_line(center + Vector2(0, r * 0.25), center + Vector2(-r * 0.45, r * 0.7), color, line)
 		"inspect":  # magnifying glass
 			draw_arc(center + Vector2(-r * 0.15, -r * 0.15), r * 0.5, 0.0, TAU, 24, color, line)
 			draw_line(center + Vector2(r * 0.2, r * 0.2), center + Vector2(r * 0.75, r * 0.75), color, line * 1.4)
