@@ -13,9 +13,17 @@ const BUTTON_HEIGHT := 64
 const GOLD := Color(1.0, 0.85, 0.3)
 const DEAL := Color(0.3, 1.0, 0.5)
 
-const TABS := ["JOUR", "HÉROS", "ARMES", "SKINS", "GEMMES"]
-const KINDS := ["", "Personnage", "Arme", "Skin d'arme", ""]
-const GEMS_TAB := 4
+const TABS := ["JOUR", "HÉROS", "ARMES", "SKINS", "CARTES", "GEMMES"]
+const KINDS := ["", "Personnage", "Arme", "Skin d'arme", "", ""]
+const CARDS_TAB := 4
+const GEMS_TAB := 5
+## Booster packs of collectible cards (see Cards), bought again and again.
+const BOOSTERS: Array[Dictionary] = [
+	{"booster": "standard", "name": "BOOSTER", "credits": 400, "gems": 30,
+		"text": "3 cartes de toutes raretés."},
+	{"booster": "rare", "name": "BOOSTER RARE", "credits": 1200, "gems": 90,
+		"text": "3 cartes, dont une rare ou mieux."},
+]
 
 var _tab := 0
 ## The offer shown in the detail panel (see Shop.catalog) or a gem pack.
@@ -77,6 +85,8 @@ func _select_tab(index: int) -> void:
 func _offers() -> Array:
 	if _tab == 0:
 		return Shop.daily()
+	if _tab == CARDS_TAB:
+		return BOOSTERS
 	if _tab == GEMS_TAB:
 		return Shop.GEM_PACKS
 	return Shop.catalog().filter(func(offer: Dictionary) -> bool: return offer.kind == KINDS[_tab])
@@ -106,6 +116,8 @@ func _refresh() -> void:
 
 
 func _card_text(offer: Dictionary) -> String:
+	if offer.has("booster"):
+		return "%s\n%d CR" % [offer.name, offer.credits]
 	if offer.has("product"):
 		return "%d GEMMES\n%s" % [offer.gems, offer.label]
 	var item: Dictionary = offer.item
@@ -122,6 +134,8 @@ func _card_text(offer: Dictionary) -> String:
 
 
 func _same(a: Dictionary, b: Dictionary) -> bool:
+	if a.has("booster") or b.has("booster"):
+		return a.get("booster", "") == b.get("booster", "")
 	if a.has("product") or b.has("product"):
 		return a.get("product", "") == b.get("product", "")
 	return not b.is_empty() and a.item.id == b.item.id
@@ -136,7 +150,7 @@ func _on_card_pressed(offer: Dictionary) -> void:
 
 ## Shows the viewed item on the stage: the hero, or the gun with its finish.
 func _preview() -> void:
-	if _viewed.is_empty() or _viewed.has("product"):
+	if _viewed.is_empty() or _viewed.has("product") or _viewed.has("booster"):
 		_stage.focus(CharacterStage.Focus.CHARACTER)
 		_stage.show_loadout()
 		return
@@ -159,6 +173,17 @@ func _show_detail() -> void:
 	if _viewed.is_empty():
 		_name.text = ""
 		_info.text = ""
+		return
+	if _viewed.has("booster"):
+		_name.text = _viewed.name
+		var waiting: int = Cards.boosters().get(_viewed.booster, 0)
+		_info.text = "%s À ouvrir dans CARTES, depuis l'accueil.%s" % [_viewed.text, " (%d en attente)" % waiting if waiting > 0 else ""]
+		var by_credits := _add_button("%d CRÉDITS" % _viewed.credits, GOLD)
+		by_credits.disabled = Wallet.credits() < _viewed.credits
+		by_credits.pressed.connect(_buy_booster.bind(Wallet.CREDITS_KEY))
+		var by_gems := _add_button("%d GEMMES" % _viewed.gems, Color(0.5, 0.9, 1.0))
+		by_gems.disabled = Wallet.gems() < _viewed.gems
+		by_gems.pressed.connect(_buy_booster.bind(Wallet.GEMS_KEY))
 		return
 	if _viewed.has("product"):
 		_name.text = "%d GEMMES" % _viewed.gems
@@ -218,6 +243,13 @@ func _add_button(text: String, color: Color) -> Button:
 	button.add_theme_color_override("font_color", color)
 	_buttons.add_child(button)
 	return button
+
+
+func _buy_booster(currency: String) -> void:
+	var price: int = _viewed.credits if currency == Wallet.CREDITS_KEY else _viewed.gems
+	if Wallet.spend(price, currency):
+		Cards.give_booster(_viewed.booster)
+	_refresh.call_deferred()
 
 
 func _buy(currency: String, price: int) -> void:

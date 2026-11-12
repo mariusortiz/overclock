@@ -71,6 +71,17 @@ Huit vaisseaux pour la course, choisis dans l'onglet VAISSEAU de l'arsenal. Le D
 | Tempête | 98 % | 100 % | 4 | 100 % | Onde EMP : ralentit les vaisseaux à moins de 45 m |
 | Nova | 102 % | 100 % | 3 | 110 % | Mines : trois mines derrière soi |
 
+## Cartes à collectionner
+
+78 cartes, une par héros, ennemi, boss, vaisseau, arme, arme de mêlée, arène et épisode de l'anime, plus cinq mythiques. Elles ont cinq raretés, chacune avec sa couleur de cadre : commune (60 % des tirages), rare (25 %), épique (10 %), légendaire (4 %, cadre qui scintille) et mythique (1 %, cadre arc-en-ciel).
+
+Les cartes arrivent en boosters de 3, à ouvrir dans CARTES (accueil) en touchant chaque carte pour la retourner :
+- un booster à chaque fin de partie (tous les modes), un deuxième au-delà de 8000 points ;
+- un booster rare (sa troisième carte au moins rare) tous les 5 paliers du passe, et quand les trois défis du jour sont réussis ;
+- à la boutique, onglet CARTES : booster 400 crédits ou 30 gemmes, booster rare 1200 crédits ou 90 gemmes.
+
+Les doublons se recyclent en poussière (5 à 500 selon la rareté), qui sert à fabriquer une carte manquante (40 à 4000). Une série complète rapporte des crédits et des gemmes (bouton RÉCUPÉRER), l'album entier le skin Collectionneur. Les illustrations sont dans `assets/cards/` : les modèles sont rendus par `tools/make_card_art.gd` (scène `scenes/tools/card_art.tscn`, à lancer avec un affichage), les arènes et les épisodes sont des images des vidéos.
+
 ## Power-ups
 
 Un robot détruit laisse parfois un cube lumineux au sol. Marche dessus pour le ramasser.

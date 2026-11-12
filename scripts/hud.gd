@@ -489,8 +489,10 @@ func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: A
 
 
 ## Shop money earned by the game, under the XP.
-func show_rewards(credits: int, gems: int) -> void:
+func show_rewards(credits: int, gems: int, boosters := 0) -> void:
 	var text := "+%d crédits" % credits
 	if gems > 0:
 		text += "  ·  +%d gemmes" % gems
+	if boosters > 0:
+		text += "  ·  +%d booster%s de cartes" % [boosters, "s" if boosters > 1 else ""]
 	_xp_label.text = text + "\n" + _xp_label.text

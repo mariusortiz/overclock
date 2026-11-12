@@ -57,6 +57,8 @@ const SKINS := [
 	{"id": "skin_plasma", "kill": &"burn", "name": "Plasma", "pattern": true, "fx": 2, "colors": [Color(1.0, 0.45, 0.05), Color(0.9, 0.05, 0.6)], "glow": 0.0, "scope": false, "silencer": false, "shot": Color(1.0, 0.35, 0.6), "shop": true},
 	{"id": "skin_glitch", "kill": &"pixelate", "name": "Glitch", "pattern": true, "fx": 3, "colors": [Color(0.1, 1.0, 0.4), Color(1.0, 0.1, 0.5)], "glow": 0.0, "scope": false, "silencer": true, "shot": Color(0.3, 1.0, 0.5), "shop": true},
 	{"id": "skin_prism", "kill": &"confetti", "name": "Prisme", "pattern": true, "fx": 4, "colors": [Color.WHITE, Color.WHITE], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 1.0, 1.0), "shop": true},
+	# Not sold: earned by completing the card album (see Cards).
+	{"id": "skin_collector", "kill": &"ascend", "name": "Collectionneur", "pattern": true, "fx": 1, "colors": [Color(1.0, 0.85, 0.35), Color(0.2, 0.08, 0.02)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 0.85, 0.35)},
 ]
 ## How each skin's elimination looks, for the armory.
 const KILL_NAMES := {
@@ -247,6 +249,8 @@ const SHIP_KEY := "ship"
 
 
 static func is_unlocked(item: Dictionary) -> bool:
+	if item.id == Cards.COLLECTOR_SKIN_ID:
+		return Cards.album_complete()
 	if item.get("shop", false):
 		return Wallet.owns(item.id)
 	if item.id == CHAMPION_SKIN_ID:
@@ -394,6 +398,8 @@ static func _melee_material(part_name: String) -> StandardMaterial3D:
 
 ## Why a locked item is locked, for the menus.
 static func unlock_text(item: Dictionary) -> String:
+	if item.id == Cards.COLLECTOR_SKIN_ID:
+		return "Complète l'album de cartes"
 	if item.get("shop", false):
 		return "En vente à la boutique"
 	if item.id == CHAMPION_SKIN_ID:

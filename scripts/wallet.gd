@@ -47,6 +47,15 @@ static func buy(id: String, price: int, currency: String) -> bool:
 	return true
 
 
+## Pays `price` for something used up (a booster). False if too poor.
+static func spend(price: int, currency: String) -> bool:
+	var balance := credits() if currency == CREDITS_KEY else gems()
+	if balance < price:
+		return false
+	SaveData.save_progress(currency, balance - price)
+	return true
+
+
 static func credits_for_score(score: int) -> int:
 	return roundi(score * CREDITS_PER_SCORE_POINT)
 

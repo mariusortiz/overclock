@@ -336,12 +336,14 @@ func _finish(result: Hud.Result) -> void:
 		@warning_ignore("integer_division")
 		credits /= 2
 	var unlocked := []
+	var tier_before: int = BattlePass.progress().tier
 	for id in BattlePass.add_xp(xp):
 		unlocked.append(Loadout.find(id).item.name)
 	Wallet.add_credits(credits)
+	var boosters := Cards.reward_game(score, tier_before)
 	hud.show_game_over(score, score, false, xp, unlocked, result)
 	hud.set_result_line("Équipe %d  ·  Adverses %d  ·  %d éliminations" % [_points[&"ally"], _points[&"enemy"], _kills])
-	hud.show_rewards(credits, 0)
+	hud.show_rewards(credits, 0, boosters)
 
 
 # --- Controls (as in the waves) ------------------------------------------------

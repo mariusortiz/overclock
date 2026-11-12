@@ -670,14 +670,16 @@ func _show_results() -> void:
 	var xp := BattlePass.xp_for_score(score)
 	var credits := Wallet.credits_for_score(score)
 	var unlocked := []
+	var tier_before: int = BattlePass.progress().tier
 	for id in BattlePass.add_xp(xp):
 		unlocked.append(Loadout.find(id).item.name)
 	Wallet.add_credits(credits)
+	var boosters := Cards.reward_game(score, tier_before)
 	var lines := ["%s  ·  %s" % ["VICTOIRE !" if place == 0 else "%de PLACE" % (place + 1), _time_text(_player.finish_time)], ""]
 	for i in standings.size():
 		lines.append("%d. %s" % [i + 1, standings[i].display_name])
 	lines.append("")
-	lines.append("+%d XP  ·  +%d crédits" % [xp, credits])
+	lines.append("+%d XP  ·  +%d crédits  ·  +%d booster%s" % [xp, credits, boosters, "s" if boosters > 1 else ""])
 	if not unlocked.is_empty():
 		lines.append("Débloqué : " + ", ".join(unlocked))
 	_end_text.text = "\n".join(lines)

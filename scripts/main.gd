@@ -451,6 +451,7 @@ func _show_results(result: Hud.Result) -> void:
 	for challenge in completed:
 		challenge_xp += challenge.xp
 	var unlocked := []
+	var tier_before: int = BattlePass.progress().tier
 	for id in BattlePass.add_xp(xp + challenge_xp):
 		unlocked.append(Loadout.find(id).item.name)
 	if result == Hud.Result.VICTORY or _endless:
@@ -466,9 +467,10 @@ func _show_results(result: Hud.Result) -> void:
 	var gems: int = int(_stats.counts.get("bosses", 0)) * Wallet.GEMS_PER_BOSS
 	if not completed.is_empty() and Challenges.done_count() == Challenges.PER_DAY:
 		gems += Wallet.GEMS_FOR_ALL_CHALLENGES
+		Cards.give_booster("rare")
 	Wallet.add_credits(credits)
 	Wallet.add_gems(gems)
-	hud.show_rewards(credits, gems)
+	hud.show_rewards(credits, gems, Cards.reward_game(score, tier_before))
 
 
 func _on_touch_look(relative: Vector2) -> void:

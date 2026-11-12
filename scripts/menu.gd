@@ -5,6 +5,7 @@ const GAME_SCENE := "res://scenes/main.tscn"
 const CAPTURE_SCENE := "res://scenes/capture.tscn"
 const RACE_SCENE := "res://scenes/race.tscn"
 const LOBBY_SCENE := "res://scenes/lobby.tscn"
+const CARDS_SCENE := "res://scenes/cards.tscn"
 ## The game modes offered by JOUER: [title, description, scene].
 const MODES := [
 	["VAGUES", "Survis aux vagues et bats les 5 boss", GAME_SCENE],
@@ -47,7 +48,12 @@ func _ready() -> void:
 	$Right/Box/Play.pressed.connect(func() -> void: _mode_panel.visible = true)
 	$Right/Box/Gear/Armory.pressed.connect(get_tree().change_scene_to_file.bind(ARMORY_SCENE), CONNECT_DEFERRED)
 	$Right/Box/Gear/Shop.pressed.connect(get_tree().change_scene_to_file.bind(SHOP_SCENE), CONNECT_DEFERRED)
-	$Right/Box/Pass.pressed.connect(get_tree().change_scene_to_file.bind(PASS_SCENE), CONNECT_DEFERRED)
+	$Right/Box/PassRow/Pass.pressed.connect(get_tree().change_scene_to_file.bind(PASS_SCENE), CONNECT_DEFERRED)
+	$Right/Box/PassRow/Cards.pressed.connect(get_tree().change_scene_to_file.bind(CARDS_SCENE), CONNECT_DEFERRED)
+	var waiting: Dictionary = Cards.boosters()
+	var boosters: int = waiting.get("standard", 0) + waiting.get("rare", 0)
+	if boosters > 0:
+		$Right/Box/PassRow/Cards.text = "CARTES (%d)" % boosters
 	$Right/Box/Row/Settings.pressed.connect(func() -> void: _settings_panel.visible = true)
 	$Right/Box/Row/Profile.pressed.connect(_profile_panel.open)
 	$SettingsPanel/Center/Panel/Box/Close.pressed.connect(func() -> void: _settings_panel.visible = false)

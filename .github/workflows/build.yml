@@ -63,6 +63,8 @@ jobs:
           godot --headless --fixed-fps 60 --quit-after 60 res://scenes/armory.tscn 2>&1 | tee -a run.log
           godot --headless --fixed-fps 60 --quit-after 60 res://scenes/battle_pass.tscn 2>&1 | tee -a run.log
           godot --headless --fixed-fps 60 --quit-after 120 res://scenes/shop.tscn 2>&1 | tee -a run.log
+          godot --headless --fixed-fps 60 --quit-after 120 res://scenes/cards.tscn 2>&1 | tee -a run.log
+          godot --headless --fixed-fps 60 --quit-after 120 res://scenes/lobby.tscn 2>&1 | tee -a run.log
           godot --headless --fixed-fps 60 --quit-after 60 res://scenes/tools/poster.tscn 2>&1 | tee -a run.log
           godot --headless --fixed-fps 60 --quit-after 900 res://scenes/main.tscn 2>&1 | tee -a run.log
           # Flying enemies (from wave 3) and close-combat enemies (jungle).
