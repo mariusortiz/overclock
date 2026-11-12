@@ -82,6 +82,11 @@ var _floaters: Array[Node3D] = []
 var _spinners: Array[Node3D] = []
 var _inspection := Inspection.new()
 var _fov_tween: Tween
+## Camera shake, in meters of offset; it settles by itself.
+var _shake := 0.0
+## Light rays behind the trophy, turned to face the camera every frame.
+var _rays: Node3D
+var _end_sparks := CPUParticles2D.new()
 var _flock: Node3D
 
 var _shade := ColorRect.new()
@@ -176,7 +181,7 @@ func _run() -> void:
 	var last_blade := (Loadout.MELEE.size() - 1) * BLADE_SPACING
 	_dolly(Vector3(-1.2, 1.25, 3.4), Vector3(last_blade + 1.2, 1.25, 3.4),
 			Vector3(-1.2, 1.15, 0), Vector3(last_blade + 1.2, 1.15, 0), 7.0)
-	_show_caption("CORPS À CORPS", "%d LAMES · LES MÊMES SKINS" % Loadout.MELEE.size(), 6.0)
+	_show_caption("CORPS À CORPS", "%d LAMES · %d SKINS" % [Loadout.MELEE.size(), Loadout.SKINS.size()], 6.0)
 	await _until(99.0)
 	_build_showroom()
 	_blink()
@@ -204,18 +209,16 @@ func _run() -> void:
 	await _until(119.2)
 	_clear_actors()
 	_blink()
-	var trophy := Trophy.new()
-	_set.add_child(trophy)
-	trophy.position = BOSS_SPOT
-	_orbit(BOSS_SPOT + Vector3.UP * 1.6, 7.0, 2.2, 1.2, 0.5)
-	_show_caption("BATS-LE", "GAGNE LE SKIN CHAMPION", 2.4)
-	await _until(121.6)
+	_celebrate()
+	_show_caption("BATS-LE", "GAGNE LE SKIN CHAMPION", 3.8)
+	await _until(123.6)
 
 	# End card.
-	_fade_shade(1.0, 1.0)
-	await _until(122.9)
+	_fade_shade(1.0, 0.9)
+	await _until(124.7)
+	_end_sparks.emitting = true
 	_show_title("JOUEZ MAINTENANT\n%s\n\n5 ARÈNES · 5 BOSS · %d ARMES · %d LAMES · %d HÉROS" % [
-			URL, Loadout.WEAPONS.size(), Loadout.MELEE.size(), Loadout.CHARACTERS.size()], 6.6)
+			URL, Loadout.WEAPONS.size(), Loadout.MELEE.size(), Loadout.CHARACTERS.size()], 5.1)
 	await _until(DURATION)
 	get_tree().quit()
 
@@ -414,6 +417,159 @@ func _strike_later(boss: CharacterModel, delay: float) -> void:
 	await get_tree().create_timer(delay).timeout
 	if is_instance_valid(boss) and not boss.is_queued_for_deletion():
 		boss.play(&"shoot", true)
+		# The blow lands: the ground shakes and dust flies.
+		await get_tree().create_timer(0.25).timeout
+		_shake = 0.22
+		_blink()
+		Effects.burst(_set, BOSS_SPOT + Vector3.UP * 0.3, Color(0.85, 0.75, 0.6), 40)
+
+
+## The trophy rises with everything a victory deserves: a flash, a ring
+## sweeping the ground, golden rays turning behind it, confetti, sparkles,
+## and the Champion skin on a rifle and a katana floating beside it.
+func _celebrate() -> void:
+	var trophy := Trophy.new()
+	_set.add_child(trophy)
+	trophy.position = BOSS_SPOT
+	var top := BOSS_SPOT + Vector3.UP * 2.6
+	_dolly(BOSS_SPOT + Vector3(-1.5, 1.2, 8.5), BOSS_SPOT + Vector3(1.2, 2.2, 5.6), top, top + Vector3.DOWN * 0.3, 4.4)
+	_shake = 0.18
+	_blink()
+
+	var gold := Color(1.0, 0.8, 0.25)
+	_rays = Node3D.new()
+	_rays.position = top
+	_set.add_child(_rays)
+	# Turning, and growing in; _rays itself only faces the camera.
+	var fan := Node3D.new()
+	fan.position = Vector3.BACK * 0.6  # behind the trophy
+	_rays.add_child(fan)
+	create_tween().set_loops().tween_property(fan, "rotation:z", TAU, 10.0).from(0.0)
+	var ray_material := StandardMaterial3D.new()
+	ray_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ray_material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	ray_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ray_material.albedo_color = Color(gold, 0.22)
+	for index in 10:
+		var ray := MeshInstance3D.new()
+		var mesh := BoxMesh.new()
+		mesh.size = Vector3(0.35 + 0.25 * (index % 3), 9.0, 0.01)
+		mesh.material = ray_material
+		ray.mesh = mesh
+		var holder := Node3D.new()
+		holder.rotation.z = TAU * index / 10.0
+		ray.position = Vector3.UP * 4.5
+		holder.add_child(ray)
+		fan.add_child(holder)
+	create_tween().tween_property(fan, "scale", Vector3.ONE, 0.8).from(Vector3.ONE * 0.01) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	var light := OmniLight3D.new()
+	light.light_color = gold
+	light.light_energy = 6.0
+	light.omni_range = 12.0
+	light.position = top
+	_set.add_child(light)
+
+	# A golden ring that sweeps the ground.
+	var ring_material := StandardMaterial3D.new()
+	ring_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ring_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ring_material.albedo_color = gold
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.9
+	torus.outer_radius = 1.0
+	torus.material = ring_material
+	var ring := MeshInstance3D.new()
+	ring.mesh = torus
+	ring.position = BOSS_SPOT + Vector3.UP * 0.1
+	_set.add_child(ring)
+	var sweep := create_tween()
+	sweep.tween_property(ring, "scale", Vector3(9, 1, 9), 0.9).from(Vector3(0.3, 1, 0.3)).set_ease(Tween.EASE_OUT)
+	sweep.parallel().tween_property(ring_material, "albedo_color:a", 0.0, 0.9)
+
+	_add_confetti(top + Vector3.UP * 2.5)
+	_add_sparkles(BOSS_SPOT)
+
+	# The Champion skin, on a rifle and a katana.
+	var skin: Dictionary = Loadout.find(Loadout.CHAMPION_SKIN_ID).item
+	var rifle := Loadout.instantiate_weapon(Loadout.find("heavy").item, skin)
+	rifle.scale = Vector3.ONE * 1.6
+	rifle.position.z = 0.6
+	var katana := Loadout.instantiate_melee(Loadout.find("katana").item, skin)
+	katana.position.y = -0.7
+	for pair: Array in [[rifle, -2.4], [katana, 2.4]]:
+		var holder := Node3D.new()
+		holder.position = BOSS_SPOT + Vector3(pair[1], 2.0, 0.3)
+		holder.add_child(pair[0])
+		_set.add_child(holder)
+		_spinners.append(holder)
+
+
+## Paper squares in the game's colors, raining down for a few seconds.
+func _add_confetti(at: Vector3) -> void:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.vertex_color_use_as_albedo = true
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var mesh := QuadMesh.new()
+	mesh.size = Vector2(0.12, 0.07)
+	mesh.material = material
+	var colors := Gradient.new()
+	colors.interpolation_mode = Gradient.GRADIENT_INTERPOLATE_CONSTANT
+	colors.offsets = PackedFloat32Array([0.0, 0.25, 0.5, 0.75])
+	colors.colors = PackedColorArray([TEXT_COLOR, ACCENT, Color(1.0, 0.85, 0.3), Color.WHITE])
+	var confetti := CPUParticles3D.new()
+	confetti.mesh = mesh
+	confetti.amount = 260
+	confetti.lifetime = 4.0
+	confetti.explosiveness = 0.6
+	confetti.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	confetti.emission_sphere_radius = 0.4
+	confetti.direction = Vector3.UP
+	confetti.spread = 70.0
+	confetti.initial_velocity_min = 4.0
+	confetti.initial_velocity_max = 8.0
+	confetti.gravity = Vector3(0, -3.0, 0)
+	confetti.damping_min = 1.5
+	confetti.damping_max = 3.0
+	confetti.angle_max = 360.0
+	confetti.angular_velocity_min = -400.0
+	confetti.angular_velocity_max = 400.0
+	confetti.particle_flag_rotate_y = true
+	confetti.color_initial_ramp = colors
+	confetti.position = at
+	_set.add_child(confetti)
+	confetti.emitting = true
+
+
+## Golden sparkles rising around the trophy.
+func _add_sparkles(at: Vector3) -> void:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = Color(1.0, 0.9, 0.5)
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	var mesh := QuadMesh.new()
+	mesh.size = Vector2.ONE * 0.06
+	mesh.material = material
+	var sparkles := CPUParticles3D.new()
+	sparkles.mesh = mesh
+	sparkles.amount = 120
+	sparkles.lifetime = 2.5
+	sparkles.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
+	sparkles.emission_ring_axis = Vector3.UP
+	sparkles.emission_ring_radius = 1.8
+	sparkles.emission_ring_inner_radius = 0.6
+	sparkles.emission_ring_height = 0.2
+	sparkles.direction = Vector3.UP
+	sparkles.spread = 10.0
+	sparkles.gravity = Vector3.ZERO
+	sparkles.initial_velocity_min = 0.8
+	sparkles.initial_velocity_max = 1.8
+	sparkles.scale_amount_min = 0.5
+	sparkles.scale_amount_max = 1.5
+	sparkles.position = at
+	_set.add_child(sparkles)
 
 
 ## A ring of bats turning in the sky.
@@ -544,6 +700,7 @@ func _place_camera() -> void:
 		look = _look_from.lerp(_look_to, progress)
 		if _guarded:
 			at = look + _clear_of_walls(look, at - look)
+	at += Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)) * _shake
 	_camera.look_at_from_position(at, look)
 
 
@@ -562,6 +719,10 @@ func _clear_of_walls(subject: Vector3, offset: Vector3) -> Vector3:
 
 func _process(delta: float) -> void:
 	_clock += delta
+	_shake = move_toward(_shake, 0.0, (_shake * 3.0 + 0.05) * delta)
+	if is_instance_valid(_rays):
+		# +Z toward the camera, so that the fan behind it stays flat to the view.
+		_rays.look_at(_camera.global_position, Vector3.UP, true)
 	for pivot in _walkers:
 		if is_instance_valid(pivot):
 			pivot.position.z += WALK_SPEED * delta
@@ -628,6 +789,24 @@ func _build_overlay() -> void:
 	_shade.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(_shade)
+	var ramp := Gradient.new()
+	ramp.set_color(0, TEXT_COLOR)
+	ramp.set_color(1, ACCENT)
+	_end_sparks.color_initial_ramp = ramp
+	_end_sparks.emitting = false
+	_end_sparks.amount = 140
+	_end_sparks.lifetime = 4.5
+	_end_sparks.position = Vector2(640, 760)
+	_end_sparks.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	_end_sparks.emission_rect_extents = Vector2(700, 10)
+	_end_sparks.direction = Vector2.UP
+	_end_sparks.spread = 15.0
+	_end_sparks.gravity = Vector2(0, -15)
+	_end_sparks.initial_velocity_min = 60.0
+	_end_sparks.initial_velocity_max = 170.0
+	_end_sparks.scale_amount_min = 2.0
+	_end_sparks.scale_amount_max = 5.0
+	layer.add_child(_end_sparks)
 	_logo.anchor_left = 0.5
 	_logo.anchor_right = 0.5
 	_logo.anchor_top = 0.34
@@ -682,6 +861,9 @@ func _show_title(subtitle: String, seconds: float) -> void:
 	var tween := create_tween()
 	tween.tween_property(_logo, "modulate:a", 1.0, 0.35)
 	tween.parallel().tween_property(_logo, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	# It lands with a flash and a jolt.
+	tween.parallel().tween_callback(_blink).set_delay(0.3)
+	tween.parallel().tween_callback(func() -> void: _shake = 0.12).set_delay(0.3)
 	tween.parallel().tween_property(_subtitle, "modulate:a", 1.0, 0.6).set_delay(0.5)
 	# It keeps growing a little while it stays.
 	tween.tween_property(_logo, "scale", Vector2.ONE * 1.06, seconds - 1.7)
