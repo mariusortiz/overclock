@@ -18,8 +18,8 @@ const FLOAT_MELEE_MAX_SCALE := 3.4
 ## It leans a little, so that a blade is never seen exactly edge-on.
 const FLOAT_MELEE_TILT := 0.3
 ## A race ship shown alone is scaled down to this, and tilted to show its top.
-const FLOAT_SHIP_SCALE := 0.5
-const FLOAT_SHIP_TILT := 0.35
+const FLOAT_SHIP_SCALE := 0.3
+const FLOAT_SHIP_TILT := 0.75
 
 var _time := 0.0
 var _character: CharacterModel

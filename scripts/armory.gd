@@ -17,8 +17,8 @@ var _tabs := [
 		"stats": [["CADENCE", "fire_rate", 14.0], ["DÉGÂTS", "damage", 10.0], ["CHARGEUR", "magazine", 40.0]]},
 	{"label": "MÊLÉE", "key": Loadout.MELEE_KEY, "items": Loadout.MELEE,
 		"stats": [["DÉGÂTS", "damage", 10.0], ["PORTÉE", "range", 4.5], ["VITESSE", "speed", 3.4]]},
-	{"label": "SKIN ARME", "key": Loadout.SKIN_KEY, "items": Loadout.SKINS, "stats": []},
-	{"label": "SKIN MÊLÉE", "key": Loadout.MELEE_SKIN_KEY, "items": Loadout.SKINS, "stats": []},
+	{"label": "SKIN A.", "key": Loadout.SKIN_KEY, "items": Loadout.SKINS, "stats": []},
+	{"label": "SKIN M.", "key": Loadout.MELEE_SKIN_KEY, "items": Loadout.SKINS, "stats": []},
 	{"label": "VAISSEAU", "key": Loadout.SHIP_KEY, "items": Loadout.SHIPS,
 		"stats": [["VITESSE", "velocity", 1.1], ["MANIABILITÉ", "handling", 1.4], ["BOUCLIER", "shield", 5.0], ["CADENCE", "fire", 1.7]]},
 ]
