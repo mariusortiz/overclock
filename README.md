@@ -65,6 +65,8 @@ Toutes les 5 vagues, un monstre arrive avec trois ennemis. Sa barre de vie s'aff
 
 La toute première partie affiche quelques conseils, un à la fois : se déplacer, tirer, frapper au corps à corps, puis lancer l'ulti quand sa jauge est pleine. Chacun disparaît dès qu'il est fait, et ils ne reviennent plus ensuite.
 
+Chaque jour, trois défis (abattre 60 ennemis, toucher 25 fois à la tête, battre un boss…) sont tirés au sort, les mêmes pour tout le monde. Leur progression s'additionne sur les parties de la journée, et chaque défi réussi rapporte son XP, même si la partie se termine par une mort. Le bouton DÉFIS · STATS de l'accueil les montre, à côté des statistiques de carrière : parties, temps de jeu, ennemis, boss, meilleure vague, précision, tirs à la tête, arme favorite.
+
 Battre le Titan termine la partie : un trophée apparaît, tu gagnes le skin Champion et tu reviens au menu.
 
 ## Arènes

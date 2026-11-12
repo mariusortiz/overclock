@@ -37,6 +37,7 @@ var _arena_change_pending := false
 var _bonus_xp := 0
 var _won := false
 var _boss: Boss
+var _stats := GameStats.new()
 
 @onready var player: Player = $Player
 @onready var hud: Hud = $HUD
@@ -83,6 +84,9 @@ func _ready() -> void:
 	hud.set_score(score)
 
 	Settings.changed.connect(_apply_quality)
+
+	add_child(_stats)
+	_stats.setup(player, waves)
 
 	if Tutorial.is_needed():
 		var tutorial := Tutorial.new()
@@ -199,6 +203,7 @@ func _drop_crate() -> void:
 	var crate := SupplyCrate.new()
 	crate.position = Vector3(clampf(at.x, -CRATE_AREA, CRATE_AREA), 0, clampf(at.z, -CRATE_AREA, CRATE_AREA))
 	crate.collected.connect(player.weapon.equip_temporary)
+	crate.collected.connect(func(_weapon: Dictionary) -> void: _stats.add("crates"))
 	add_child(crate)
 	hud.show_banner("CAISSE D'ARME EN APPROCHE")
 
@@ -347,12 +352,17 @@ func _show_results(result: Hud.Result) -> void:
 	if result == Hud.Result.DEATH:
 		@warning_ignore("integer_division")
 		xp /= 2
+	# Challenges pay in full, even after a death.
+	var completed := _stats.finish()
+	var challenge_xp := 0
+	for challenge in completed:
+		challenge_xp += challenge.xp
 	var unlocked := []
-	for id in BattlePass.add_xp(xp):
+	for id in BattlePass.add_xp(xp + challenge_xp):
 		unlocked.append(Loadout.find(id).item.name)
 	if result == Hud.Result.VICTORY:
 		unlocked.append("skin Champion")
-	hud.show_game_over(score, maxi(score, best), is_record, xp, unlocked, result)
+	hud.show_game_over(score, maxi(score, best), is_record, xp, unlocked, result, completed)
 
 
 func _on_touch_look(relative: Vector2) -> void:

@@ -9,6 +9,8 @@ signal hit_confirmed(headshot: bool)
 signal ammo_changed(current: int, magazine: int, reloading: bool)
 ## A gun was taken in hand (the player's own, or one found in a crate).
 signal equipped(weapon_name: String)
+## A shot left the gun (once per trigger pull, whatever the pellets).
+signal fired
 
 ## Camera shake when one of the player's rockets goes off.
 const ROCKET_SHAKE := 0.18
@@ -172,6 +174,7 @@ func _fire() -> void:
 		_fire_ray(origin, scattered)
 
 	_show_flash()
+	fired.emit()
 	_shot_sound.pitch_scale = randf_range(0.94, 1.06)
 	_shot_sound.play()
 

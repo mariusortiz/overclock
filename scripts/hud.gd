@@ -250,7 +250,8 @@ func show_death_title() -> void:
 
 ## `unlocked` lists the names of the rewards just earned. A victory
 ## celebrates and only offers to go back to the menu; a death halves the XP.
-func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: Array, result := Result.DEATH) -> void:
+func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: Array, result := Result.DEATH,
+		challenges: Array[Dictionary] = []) -> void:
 	_death_title.visible = false
 	_game_over = true
 	pause_menu.enabled = false
@@ -263,6 +264,8 @@ func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: A
 	_xp_label.text = "+%d XP" % xp
 	if result == Result.DEATH:
 		_xp_label.text += "  (moitié : tu es mort)"
+	for challenge in challenges:
+		_xp_label.text += "\nDéfi réussi : %s  +%d XP" % [challenge.text, challenge.xp]
 	if not unlocked.is_empty():
 		_xp_label.text += "\nDébloqué : " + ", ".join(unlocked)
 	if result != Result.DEATH:
