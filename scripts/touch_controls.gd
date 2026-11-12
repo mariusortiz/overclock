@@ -32,6 +32,9 @@ var _look_finger := -1
 var _button_fingers: Array[int] = []
 var _joy_origin := Vector2.ZERO
 var _joy_vector := Vector2.ZERO
+## Action of a button that pulses to draw attention (tutorial), or &"".
+var _highlighted := &""
+var _time := 0.0
 
 @onready var _jump_button: TouchScreenButton = $JumpButton
 
@@ -148,11 +151,27 @@ func _apply_axis(negative: StringName, positive: StringName, value: float) -> vo
 		Input.action_release(positive)
 
 
+## Makes one button pulse (by its action), or none with &"".
+func highlight(action: StringName) -> void:
+	_highlighted = action
+	queue_redraw()
+
+
+func _process(delta: float) -> void:
+	if _highlighted != &"":
+		_time += delta
+		queue_redraw()
+
+
 func _draw() -> void:
 	for i in BUTTONS.size():
 		var button: Dictionary = BUTTONS[i]
 		var active: bool = Input.is_action_pressed(button.action) if button.toggle else _button_fingers[i] != -1
 		_draw_button(_button_center(i), button.radius, button.label, button.font_size, active)
+		if button.action == _highlighted:
+			var pulse := 0.5 + 0.5 * sin(_time * 6.0)
+			draw_arc(_button_center(i), button.radius + 8.0 + pulse * 10.0, 0.0, TAU, 48,
+					Color(1.0, 0.85, 0.2, 1.0 - pulse * 0.6), 5.0)
 	if _move_finger != -1:
 		draw_circle(_joy_origin, joystick_radius, Color(1, 1, 1, 0.08))
 		draw_arc(_joy_origin, joystick_radius, 0.0, TAU, 48, Color(ACCENT, 0.5), 3.0)

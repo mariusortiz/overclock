@@ -84,6 +84,11 @@ func _ready() -> void:
 
 	Settings.changed.connect(_apply_quality)
 
+	if Tutorial.is_needed():
+		var tutorial := Tutorial.new()
+		add_child(tutorial)
+		tutorial.setup(player, hud, waves)
+
 
 func _process(_delta: float) -> void:
 	hud.set_status(player.get_effects(), player.perks)

@@ -63,6 +63,8 @@ Toutes les 5 vagues, un monstre arrive avec trois ennemis. Sa barre de vie s'aff
 
 | 25 | Titan (boss final, dans la ville) | Robot géant en trois phases : tirs en éventail, bombardement, invocations, puis une onde de choc au sol à esquiver en sautant ou depuis une passerelle |
 
+La toute première partie affiche quelques conseils, un à la fois : se déplacer, tirer, frapper au corps à corps, puis lancer l'ulti quand sa jauge est pleine. Chacun disparaît dès qu'il est fait, et ils ne reviennent plus ensuite.
+
 Battre le Titan termine la partie : un trophée apparaît, tu gagnes le skin Champion et tu reviens au menu.
 
 ## Arènes
