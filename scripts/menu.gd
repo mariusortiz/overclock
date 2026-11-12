@@ -3,10 +3,12 @@ extends Control
 
 const GAME_SCENE := "res://scenes/main.tscn"
 const CAPTURE_SCENE := "res://scenes/capture.tscn"
+const RACE_SCENE := "res://scenes/race.tscn"
 ## The game modes offered by JOUER: [title, description, scene].
 const MODES := [
 	["VAGUES", "Survis aux vagues et bats les 5 boss", GAME_SCENE],
 	["CAPTURE DE ZONE", "4 contre 4 avec des bots · tiens les zones A, B et C", CAPTURE_SCENE],
+	["COURSE DE VAISSEAUX", "3 tours contre 5 pilotes · boost et lasers", RACE_SCENE],
 ]
 const ARMORY_SCENE := "res://scenes/armory.tscn"
 const PASS_SCENE := "res://scenes/battle_pass.tscn"

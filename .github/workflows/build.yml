@@ -81,6 +81,8 @@ jobs:
           for arena in 0 3; do
             godot --headless --fixed-fps 60 --quit-after 3600 res://scenes/capture.tscn -- --arena=$arena 2>&1 | tee -a run.log
           done
+          # The ship race: a whole race (3 laps, about 95 s), the player idle.
+          godot --headless --fixed-fps 60 --quit-after 6600 res://scenes/race.tscn 2>&1 | tee -a run.log
           # Shop content: each exotic gun, animated skin and boosted ultimate,
           # trigger held down, ultimate fired after 5 s.
           save_dir="$HOME/.local/share/godot/app_userdata/Overclock"

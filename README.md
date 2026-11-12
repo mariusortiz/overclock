@@ -54,6 +54,7 @@ JOUER propose le mode à lancer :
 
 - **Vagues** : le mode d'origine, des vagues d'ennemis et un boss toutes les cinq vagues, jusqu'au Titan.
 - **Capture de zone** : ton équipe (toi et 3 bots alliés) contre 4 bots adverses, dans une arène tirée au hasard. Trois zones, A, B et C : seul dans une zone, ton équipe la prend en 5 s (plus vite à plusieurs) ; à plusieurs camps dedans, elle est disputée et ne bouge plus. Chaque zone tenue rapporte un point par seconde ; la première équipe à 150 gagne. On réapparaît à sa base 5 s après être tombé. Le score vient des éliminations (100), des zones prises en étant dedans (250) et de la victoire (1500) ; une défaite ne rapporte que la moitié de l'XP et des crédits. Les alliés ont un losange cyan au-dessus de la tête, les adversaires un rouge ; la mini-carte montre les zones et les alliés.
+- **Course de vaisseaux** : 3 tours d'un circuit dans l'espace (sa forme change à chaque course) contre 5 pilotes. Le vaisseau avance tout seul ; on le dirige dans le tube du circuit (joystick ou ZQSD). Les plaques cyan donnent un boost ; chaque anneau traversé remplit la jauge de boost, à lancer avec BOOST (touche E). TIR (clic ou espace) envoie un laser droit devant : le vaisseau touché ralentit, et explose au troisième tir avant de repartir. L'XP et les crédits dépendent de la place (3000 points pour la 1re, 600 pour la 6e). Les vaisseaux sont faits de formes simples en attendant un modèle 3D : un fichier .glb, .gltf ou .fbx déposé dans `assets/models/ships/` (nez vers -Z) le remplace automatiquement.
 
 ## Power-ups
 

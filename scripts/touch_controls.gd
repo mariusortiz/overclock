@@ -30,13 +30,17 @@ const BUTTONS := [
 	{"action": "emote", "label": "DANSE", "radius": 38.0, "offset": Vector2(-85, 270), "toggle": false, "top": true},
 ]
 
+## The buttons shown (entries like those of BUTTONS). Another mode (the
+## race) sets its own before the controls enter the tree.
+var buttons: Array = BUTTONS
+
 @export var joystick_radius := 110.0
 @export var knob_radius := 42.0
 @export var dead_zone := 0.15
 
 var _move_finger := -1
 var _look_finger := -1
-## Finger index holding each button (same order as BUTTONS), -1 when free.
+## Finger index holding each button (same order as buttons), -1 when free.
 var _button_fingers: Array[int] = []
 var _joy_origin := Vector2.ZERO
 var _joy_vector := Vector2.ZERO
@@ -46,11 +50,12 @@ var _time := 0.0
 ## Charge of the ultimate, 0 to 1, drawn around its button.
 var _ultimate_charge := 0.0
 
-@onready var _jump_button: TouchScreenButton = $JumpButton
+## Absent when the controls are made by code (the race): no jump there.
+@onready var _jump_button: TouchScreenButton = get_node_or_null("JumpButton")
 
 
 func _ready() -> void:
-	_button_fingers.resize(BUTTONS.size())
+	_button_fingers.resize(buttons.size())
 	_button_fingers.fill(-1)
 	resized.connect(_on_resized)
 	_on_resized()
@@ -71,7 +76,7 @@ func _release_all() -> void:
 	_look_finger = -1
 	_button_fingers.fill(-1)
 	_set_joystick(Vector2.ZERO)
-	for button: Dictionary in BUTTONS:
+	for button: Dictionary in buttons:
 		Input.action_release(button.action)
 
 
@@ -113,23 +118,23 @@ func _on_touch_end(event: InputEventScreenTouch) -> void:
 		var button_index := _button_fingers.find(event.index)
 		if button_index != -1:
 			_button_fingers[button_index] = -1
-			if not BUTTONS[button_index].toggle:
-				Input.action_release(BUTTONS[button_index].action)
+			if not buttons[button_index].toggle:
+				Input.action_release(buttons[button_index].action)
 			queue_redraw()
 
 
 ## Index of the free button under `point`, or -1.
 func _button_at(point: Vector2) -> int:
-	for i in BUTTONS.size():
-		if _button_fingers[i] == -1 and point.distance_to(_button_center(i)) <= BUTTONS[i].radius:
+	for i in buttons.size():
+		if _button_fingers[i] == -1 and point.distance_to(_button_center(i)) <= buttons[i].radius:
 			return i
 	return -1
 
 
 func _press_button(index: int, finger: int) -> void:
-	var action: String = BUTTONS[index].action
+	var action: String = buttons[index].action
 	_button_fingers[index] = finger
-	if BUTTONS[index].toggle and Input.is_action_pressed(action):
+	if buttons[index].toggle and Input.is_action_pressed(action):
 		Input.action_release(action)
 	else:
 		Input.action_press(action)
@@ -180,8 +185,8 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	for i in BUTTONS.size():
-		var button: Dictionary = BUTTONS[i]
+	for i in buttons.size():
+		var button: Dictionary = buttons[i]
 		var active: bool = Input.is_action_pressed(button.action) if button.toggle else _button_fingers[i] != -1
 		_draw_button(_button_center(i), button, active)
 		if button.action == _highlighted:
@@ -278,17 +283,22 @@ func _fire_center() -> Vector2:
 
 
 func _button_center(index: int) -> Vector2:
-	var button: Dictionary = BUTTONS[index]
+	var button: Dictionary = buttons[index]
 	if button.get("top", false):
 		return Vector2(size.x, 0) + button.offset
 	return _fire_center() + button.offset
 
 
 func _jump_rect() -> Rect2:
+	if _jump_button == null:
+		return Rect2()
 	return Rect2(_jump_button.position, _jump_button.texture_normal.get_size())
 
 
 func _on_resized() -> void:
+	queue_redraw()
+	if _jump_button == null:
+		return
 	# Jump sits right above the fire button.
 	var jump_size := _jump_button.texture_normal.get_size()
 	var fire_center := _fire_center()
