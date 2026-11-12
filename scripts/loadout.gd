@@ -146,6 +146,11 @@ const SKIN_DIR := "res://assets/textures/skins/"
 const SCOPE_MODEL := "Scope_2"
 const SILENCER_MODEL := "Silencer_Short"
 const SILENCER_LENGTH := 0.78  # in model units
+## The scope and the silencer are drawn for the Quaternius guns. On an exotic
+## gun (another kit, at another scale) they get the size they have on an
+## assault rifle, a little smaller on a short gun.
+const ACCESSORY_SCALE := 0.19
+const RIFLE_LENGTH := 0.95
 ## Parts of a gun that a skin leaves alone (material names of the models).
 const UNPAINTED_PARTS: Array[String] = ["Black", "Black2", "Glass", "DarkMetal"]
 const PATTERN_SCALE := 0.6
@@ -266,15 +271,12 @@ static func weapon_layout(item: Dictionary, skin: Dictionary) -> Dictionary:
 		"muzzle": Vector3(0, data.barrel_y, -high.x) * s,
 		"scope": Vector3(0, data.top_y, -(low.x + high.x) / 2.0) * s,
 	}
-	if skin.silencer and has_accessories(item):
+	var a := s if not item.get("shop", false) else ACCESSORY_SCALE * clampf(item.length / RIFLE_LENGTH, 0.65, 1.0)
+	layout.accessory_basis = Basis(Vector3(0, 0, -a), Vector3(0, a, 0), Vector3(a, 0, 0))
+	if skin.silencer:
 		layout.silencer = layout.muzzle
-		layout.muzzle += Vector3(0, 0, -SILENCER_LENGTH * s)
+		layout.muzzle += Vector3(0, 0, -SILENCER_LENGTH * a)
 	return layout
-
-
-## The exotic guns (another kit, at another scale) take no scope or silencer.
-static func has_accessories(item: Dictionary) -> bool:
-	return not item.get("shop", false)
 
 
 ## Creates a gun as held in the hand: grip at the origin, pointing toward -Z,
@@ -285,10 +287,10 @@ static func instantiate_weapon(item: Dictionary, skin := {}) -> Node3D:
 	var layout := weapon_layout(item, skin)
 	var gun := Node3D.new()
 	_add_part(gun, item.model, layout.basis, Vector3.ZERO)
-	if skin.scope and not item.get("has_scope", false) and has_accessories(item):
-		_add_part(gun, SCOPE_MODEL, layout.basis, layout.scope)
-	if skin.silencer and has_accessories(item):
-		_add_part(gun, SILENCER_MODEL, layout.basis, layout.silencer)
+	if skin.scope and not item.get("has_scope", false):
+		_add_part(gun, SCOPE_MODEL, layout.accessory_basis, layout.scope)
+	if skin.silencer:
+		_add_part(gun, SILENCER_MODEL, layout.accessory_basis, layout.silencer)
 	_apply_skin(gun, skin)
 	return gun
 
