@@ -269,7 +269,7 @@ func _run() -> void:
 	var last_exotic := (exotic.size() - 1) * GUN_SPACING
 	_dolly(Vector3(-1.2, 1.25, 3.0), Vector3(last_exotic + 1.2, 1.25, 3.0),
 			Vector3(-1.2, 1.1, 0), Vector3(last_exotic + 1.2, 1.1, 0), 5.0)
-	_show_caption("NOUVEAU · BOUTIQUE", "%%d ARMES EXOTIQUES · %d SKINS ANIMÉS" % animated.size(), 4.6, exotic.size())
+	_show_caption("NOUVEAU · BOUTIQUE", "%%d ARMES · %d SKINS ANIMÉS" % animated.size(), 4.6, exotic.size())
 	await _until(130.6)
 	_build_showroom()
 	_blink()
