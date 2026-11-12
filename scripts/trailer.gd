@@ -9,7 +9,7 @@ extends Node
 ## The music is laid over the picture afterwards, by the same workflow.
 
 const URL := "mariusortiz.github.io/overclock-builds"
-const DURATION := 130.0
+const DURATION := 141.0
 const TEXT_COLOR := Color(0.16, 0.9, 1.0)
 const ACCENT := Color(1.0, 0.24, 0.95)
 const FONT := preload("res://assets/ui/fonts/kenney_mini_square_mono.ttf")
@@ -43,6 +43,12 @@ const GUN_LENGTH := 1.3
 const GUN_HEIGHT := 1.3
 const HERO_SPACING := 2.1
 const BLADE_SPACING := 2.3
+const ENEMY_SCENE := "res://scenes/enemy.tscn"
+## The kill montage: where its row of enemies starts, their spacing, and the
+## time between two falls.
+const MONTAGE_START := Vector3(-12, 0.1, 12)
+const MONTAGE_SPACING := 2.0
+const MONTAGE_STEP := 0.72
 const BLADE_HEIGHT := 1.35
 ## Size of the logo on the title cards, in the units of the 1280 x 720 screen.
 const LOGO_SIZE := Vector2(860, 180)
@@ -62,16 +68,21 @@ void fragment() {
 	ALPHA = band;
 }
 """
+const GRAIN_SHADER := """
+shader_type canvas_item;
+float noise(vec2 point) {
+	return fract(sin(dot(point, vec2(12.9898, 78.233))) * 43758.5453);
+}
+void fragment() {
+	float grain = noise(floor(FRAGCOORD.xy / 2.0) + fract(TIME * 7.0) * 100.0);
+	COLOR = vec4(vec3(grain), 0.05);
+}
+"""
 ## The glint crosses this many meters of the hall, around the camera, per pass.
 const GLINT_SPAN := 7.0
 const GLINT_SPEED := 4.5
 const EMBER_COLOR := Color(1.0, 0.55, 0.15)
 const COUNT_TIME := 0.8
-## The gun each hero holds in the line-up, in the order of Loadout.CHARACTERS.
-const HERO_GUNS: Array[String] = [
-	"heavy", "revolver_3", "smg", "pistol_4", "shotgun_5", "rifle_6", "sniper_2",
-	"shotgun_2", "sniper_5", "revolver_1", "smg_3", "bullpup_1", "bazooka",
-]
 
 enum Shot { ORBIT, DOLLY }
 
@@ -101,6 +112,8 @@ var _walkers: Array[Node3D] = []
 var _floaters: Array[Node3D] = []
 ## Blades on show: they turn on themselves.
 var _spinners: Array[Node3D] = []
+## [model, dance, time offset]: heroes dancing in the line-up.
+var _dancers: Array[Array] = []
 var _inspection := Inspection.new()
 var _fov_tween: Tween
 ## Camera shake, in meters of offset; it settles by itself.
@@ -202,7 +215,10 @@ func _run() -> void:
 	_show_caption("DANS LES AIRS AUSSI", "CHAUVES-SOURIS", 4.0)
 	await _until(77.0)
 
-	# 77 s: the armory.
+	# 77 s: thirteen skins, thirteen ways to fall.
+	await _kill_montage(77.0)
+
+	# 88 s: the armory.
 	_build_showroom()
 	_flash()
 	_line_up_guns()
@@ -210,9 +226,9 @@ func _run() -> void:
 	_dolly(Vector3(-1.5, 1.2, 3.3), Vector3(last_gun + 1.5, 1.2, 3.3),
 			Vector3(-1.5, 1.05, 0), Vector3(last_gun + 1.5, 1.05, 0), 15.0)
 	_show_caption("ARSENAL", "%%d ARMES · %d SKINS" % Loadout.SKINS.size(), 13.5, Loadout.WEAPONS.size())
-	await _until(92.0)
+	await _until(103.0)
 
-	# 92 s: the blades, then the butterfly knife flipping in the hand.
+	# 103 s: the blades, then the butterfly knife flipping in the hand.
 	_build_showroom()
 	_flash()
 	_line_up_blades()
@@ -220,42 +236,42 @@ func _run() -> void:
 	_dolly(Vector3(-1.2, 1.25, 3.4), Vector3(last_blade + 1.2, 1.25, 3.4),
 			Vector3(-1.2, 1.15, 0), Vector3(last_blade + 1.2, 1.15, 0), 7.0)
 	_show_caption("CORPS À CORPS", "%%d LAMES · %d SKINS" % Loadout.SKINS.size(), 6.0, Loadout.MELEE.size())
-	await _until(99.0)
+	await _until(110.0)
 	_build_showroom()
 	_blink()
 	_dolly(Vector3(0, 1.3, 3.0), Vector3(0, 1.3, 2.6), Vector3(0, 1.3, 0), Vector3(0, 1.3, 0), 3.6)
 	_inspection.start_melee(Loadout.find("butterfly").item, Loadout.find("skin_neon").item)
 	_show_caption("NOUVEAU", "INSPECTE TES ARMES", 3.0)
-	await _until(102.6)
+	await _until(113.6)
 	_inspection.cancel()
 
-	# 102.6 s: the heroes.
+	# 113.6 s: the heroes, dancing.
 	_build_showroom()
 	_flash()
 	_line_up_heroes()
 	var last_hero := (Loadout.CHARACTERS.size() - 1) * HERO_SPACING
 	_dolly(Vector3(-1.0, 1.5, 4.9), Vector3(last_hero + 1.0, 1.5, 4.9),
 			Vector3(-1.0, 1.45, 0), Vector3(last_hero + 1.0, 1.45, 0), 12.0)
-	_show_caption("CHACUN SON ULTI", "%d HÉROS", 10.5, Loadout.CHARACTERS.size())
-	await _until(114.6)
+	_show_caption("CHACUN SON ULTI · ET SES DANSES", "%d HÉROS", 10.5, Loadout.CHARACTERS.size())
+	await _until(125.6)
 
-	# 114.6 s: the last boss, and what beating it earns.
+	# 125.6 s: the last boss, and what beating it earns.
 	_load_arena(CITY)
 	_flash()
 	_present_boss(Boss.Kind.TITAN, 4.6)
 	_show_caption("AU BOUT DE LA VILLE", "LE TITAN", 3.8)
-	await _until(119.2)
+	await _until(130.2)
 	_clear_actors()
 	_blink()
 	_celebrate()
 	_show_caption("BATS-LE", "GAGNE LE SKIN CHAMPION", 3.8)
-	await _until(123.6)
+	await _until(134.6)
 
 	# End card.
 	_fade_shade(1.0, 0.9)
-	await _until(124.7)
+	await _until(135.7)
 	_end_sparks.emitting = true
-	_show_title("%s\n\n5 ARÈNES · 5 BOSS · %d ARMES · %d LAMES · %d HÉROS" % [
+	_show_title("%s\nSUR ANDROID ET DANS LE NAVIGATEUR\n\n5 ARÈNES · 5 BOSS · %d ARMES · %d LAMES · %d HÉROS" % [
 			URL, Loadout.WEAPONS.size(), Loadout.MELEE.size(), Loadout.CHARACTERS.size()], 5.1, true)
 	await _until(DURATION)
 	get_tree().quit()
@@ -282,6 +298,7 @@ func _clear_actors() -> void:
 		if is_instance_valid(node):
 			node.queue_free()
 	_actors.clear()
+	_dancers.clear()
 	_twins.clear()
 	_floaters.clear()
 	_spinners.clear()
@@ -661,6 +678,39 @@ func _add_sparkles(at: Vector3) -> void:
 	_set.add_child(sparkles)
 
 
+## A row of enemies falling one after the other, each the way one skin
+## kills; its name comes up as it falls. `start` is the time it begins.
+func _kill_montage(start: float) -> void:
+	_load_arena(0)
+	_flash()
+	var enemy_scene: PackedScene = load(ENEMY_SCENE)
+	var arena := _arena()
+	var count := Loadout.SKINS.size()
+	var enemies: Array[Enemy] = []
+	for index in count:
+		var enemy: Enemy = enemy_scene.instantiate()
+		enemy.model_scene = arena.enemy_model
+		enemy.weapon_id = ""
+		enemy.drop_chance = 0.0
+		enemy.position = MONTAGE_START + Vector3(index * MONTAGE_SPACING, 0, 0)
+		enemy.rotation.y = PI
+		_set.add_child(enemy)
+		enemies.append(enemy)
+	var last := (count - 1) * MONTAGE_SPACING
+	var aim := MONTAGE_START + Vector3.UP * 1.1
+	_dolly(MONTAGE_START + Vector3(-2.0, 1.6, 5.5), MONTAGE_START + Vector3(last + 2.0, 1.6, 5.5),
+			aim + Vector3(-1.0, 0, 0), aim + Vector3(last + 1.0, 0, 0), MONTAGE_STEP * count + 0.8)
+	for index in count:
+		await _until(start + 0.6 + MONTAGE_STEP * index)
+		var skin: Dictionary = Loadout.SKINS[index]
+		var enemy := enemies[index]
+		if is_instance_valid(enemy):
+			enemy.set_kill_effect(skin.kill, skin.shot)
+			enemy.take_damage(9999)
+		_show_caption("%d SKINS · %d ÉLIMINATIONS" % [count, count], str(skin.name).to_upper(), MONTAGE_STEP + 0.2)
+	await _until(start + 0.6 + MONTAGE_STEP * count + 0.6)
+
+
 ## A ring of bats turning in the sky.
 func _release_bats() -> void:
 	_flock = Node3D.new()
@@ -742,14 +792,15 @@ func _line_up_heroes() -> void:
 		var item: Dictionary = Loadout.CHARACTERS[index]
 		var at := Vector3(index * HERO_SPACING, 0, 0)
 		var scene: PackedScene = load(Loadout.CHARACTER_DIR + str(item.model))
-		var gun: Dictionary = Loadout.find(HERO_GUNS[index % HERO_GUNS.size()]).item
-		var skin: Dictionary = Loadout.SKINS[(index + 1) % Loadout.SKINS.size()]
+		# Each hero dances one of the dances; the reflection dances along.
+		var dance: Dictionary = Dances.LIST[index % Dances.LIST.size()]
 		for parent: Node3D in [_set, _mirror]:
-			var hero := _actor(scene, 1.75, 0.0, at, PI, &"aim", parent)
-			var held := Loadout.instantiate_weapon(gun, skin)
-			if parent == _set:
-				_shine(held)
-			_hold(hero, held, false)
+			var hero := _actor(scene, 1.75, 0.0, at, PI, dance.get("animation", &"idle"), parent)
+			if dance.has("animation"):
+				hero.set_looping(dance.animation)
+				hero.play(dance.animation, true)
+			hero.pose.weight = 1.0
+			_dancers.append([hero, dance, index * 0.37])
 		var ultimate: Dictionary = Ultimate.INFO[item.ulti]
 		_label(str(item.name).to_upper(), at + Vector3(0, 2.85, 0), Color.WHITE, 40)
 		_label(str(ultimate.name).to_upper(), at + Vector3(0, 2.62, 0), ACCENT, 30)
@@ -854,6 +905,13 @@ func _process(delta: float) -> void:
 			spinner.rotation = Vector3(0.25, _clock * 1.5 + index * 0.9, 0)
 	if is_instance_valid(_flock):
 		_flock.rotation.y += 0.45 * delta
+	for entry: Array in _dancers:
+		var dancer := entry[0] as CharacterModel
+		if is_instance_valid(dancer):
+			var time: float = _clock + entry[2]
+			dancer.pose.targets = Dances.pose_at(entry[1], time)
+			var pivot := dancer.get_parent() as Node3D
+			pivot.position.y = Dances.bounce_at(entry[1], time)
 	for item: Node3D in _twins:
 		var twin: Node3D = _twins[item]
 		if is_instance_valid(item) and is_instance_valid(twin):
@@ -875,15 +933,29 @@ func _build_overlay() -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 100
 	add_child(layer)
-	# Cinema bars.
+	# Cinema bars: they start closed, meeting in the middle, and open up.
 	for top: bool in [true, false]:
 		var bar := ColorRect.new()
 		bar.color = Color.BLACK
 		bar.anchor_right = 1.0
-		bar.anchor_top = 0.0 if top else 1.0 - BAR_HEIGHT
-		bar.anchor_bottom = BAR_HEIGHT if top else 1.0
+		bar.anchor_top = 0.0 if top else 0.5
+		bar.anchor_bottom = 0.5 if top else 1.0
 		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		layer.add_child(bar)
+		var opening := create_tween()
+		opening.tween_interval(0.4)
+		opening.tween_property(bar, "anchor_bottom" if top else "anchor_top", BAR_HEIGHT if top else 1.0 - BAR_HEIGHT, 1.3) \
+				.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	# A light film grain over everything.
+	var grain_shader := Shader.new()
+	grain_shader.code = GRAIN_SHADER
+	var grain_material := ShaderMaterial.new()
+	grain_material.shader = grain_shader
+	var grain := ColorRect.new()
+	grain.material = grain_material
+	grain.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	grain.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(grain)
 	# Darker corners, to pull the eye to the middle of the picture.
 	var falloff := Gradient.new()
 	falloff.set_color(0, Color(0, 0, 0, 0))
