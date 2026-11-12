@@ -1,8 +1,8 @@
 class_name Inspection
 extends Node3D
 ## Weapon inspection: brings a copy of the weapon up close in front of the
-## camera and plays with it. A gun is turned over and its magazine comes out,
-## spins and goes back in; a butterfly knife flips open and shut; any other
+## camera and plays with it. A gun is shown side-on, tilted one way then the
+## other, and turned over; a butterfly knife flips open and shut; any other
 ## melee weapon is turned around. Add it as a child of the camera.
 ##
 ## The copy moves on its own: the characters have no animation for this.
@@ -16,10 +16,6 @@ const HIDDEN := Vector3(0.14, -0.8, -0.85)
 const GUN_LENGTH := 0.5
 const MELEE_HEIGHT := 0.46
 const DURATION := {Kind.GUN: 3.7, Kind.BUTTERFLY: 3.5, Kind.MELEE: 2.6}
-## Guns loaded some other way than with a magazine: they roll over instead.
-const NO_MAGAZINE: Array[String] = ["revolver", "shotgun", "bazooka"]
-## Guns whose magazine is in the grip rather than ahead of it.
-const MAGAZINE_IN_GRIP: Array[String] = ["blaster", "pistol"]
 const BUTTERFLY_ID := "butterfly"
 ## Height of the butterfly knife's pivot above the hand: the 0.07 pivot of
 ## tools/make_melee_models.py at its scale of 1.85.
@@ -33,16 +29,6 @@ const GUN_TURN := [
 	[1.2, Vector3(-25, 90, 12)], [2.2, Vector3(-25, 90, 12)], [2.5, Vector3(0, 90, 0)],
 	[2.9, Vector3(0, 270, 0)], [3.3, Vector3(10, 270, -6)], [3.7, Vector3(0, 300, -30)],
 ]
-const GUN_ROLL := [
-	[0.0, Vector3(0, 40, -30)], [0.35, Vector3(0, 90, 0)], [1.0, Vector3(0, 90, 8)],
-	[2.2, Vector3(360, 90, 8)], [2.5, Vector3(360, 90, 0)],
-	[2.9, Vector3(360, 270, 0)], [3.3, Vector3(370, 270, -6)], [3.7, Vector3(360, 300, -30)],
-]
-## How far the magazine is out of the gun, in magazine heights, and its spin.
-const MAGAZINE_OUT := [[1.0, 0.0], [1.3, 1.2], [1.6, 1.8], [1.9, 1.8], [2.1, 1.2], [2.3, 0.0]]
-const MAGAZINE_SPIN := [[1.3, 0.0], [1.95, 360.0]]
-## The gun jumps a little when the magazine clicks back in.
-const GUN_KICK := [[2.25, 0.0], [2.32, 0.02], [2.5, 0.0]]
 
 const KNIFE_PLACE := [[0.0, HIDDEN], [0.3, SHOWN], [3.1, SHOWN], [3.5, HIDDEN]]
 ## Angle of each handle around the pivot: 0 is open, 180 folded over the blade.
@@ -59,10 +45,6 @@ var _kind := Kind.NONE
 var _time := 0.0
 var _item: Node3D
 var _item_scale := 1.0
-var _no_magazine := false
-var _magazine: MeshInstance3D
-var _magazine_seat := Vector3.ZERO
-var _magazine_height := 0.0
 var _handle_a: Node3D
 var _handle_b: Node3D
 
@@ -124,26 +106,6 @@ func _show_gun(gun: Dictionary, skin: Dictionary) -> void:
 	model.position.z = GUN_LENGTH * 0.4
 	_item.add_child(model)
 
-	var id: String = gun.id
-	_no_magazine = NO_MAGAZINE.any(func(prefix: String) -> bool: return id.begins_with(prefix))
-	if _no_magazine:
-		return
-	var in_grip: bool = MAGAZINE_IN_GRIP.any(func(prefix: String) -> bool: return id.begins_with(prefix))
-	var box := BoxMesh.new()
-	box.size = Vector3(0.03, 0.12, 0.055) if in_grip else Vector3(0.032, 0.15, 0.07)
-	box.material = Loadout.magazine_material(skin)
-	_magazine = MeshInstance3D.new()
-	_magazine.mesh = box
-	_magazine_height = box.size.y
-	# Seated, it is flush with the underside of the gun; the model's lowest
-	# point tells where that is.
-	var measures: Dictionary = WeaponModels.DATA[gun.model]
-	var low: Vector3 = measures.min
-	var high: Vector3 = measures.max
-	var bottom := low.y * GUN_LENGTH / (high.x - low.x)
-	_magazine_seat = model.position + Vector3(0, bottom + _magazine_height / 2.0, 0.0 if in_grip else -GUN_LENGTH * 0.2)
-	_item.add_child(_magazine)
-
 
 func _show_butterfly(skin: Dictionary) -> void:
 	_kind = Kind.BUTTERFLY
@@ -177,16 +139,10 @@ func _show_melee(melee: Dictionary, skin: Dictionary) -> void:
 func _pose() -> void:
 	match _kind:
 		Kind.GUN:
-			var attitude: Vector3 = _at(GUN_ROLL if _no_magazine else GUN_TURN)
-			var kick: float = _at(GUN_KICK)
-			_item.position = (_at(GUN_PLACE) as Vector3) + Vector3.UP * kick
+			var attitude: Vector3 = _at(GUN_TURN)
+			_item.position = _at(GUN_PLACE)
 			_item.basis = Basis(Vector3.BACK, deg_to_rad(attitude.z)) * Basis(Vector3.UP, deg_to_rad(attitude.y)) \
 					* Basis(Vector3.FORWARD, deg_to_rad(attitude.x))
-			if not _no_magazine:
-				var out: float = _at(MAGAZINE_OUT)
-				var spin: float = _at(MAGAZINE_SPIN)
-				_magazine.position = _magazine_seat + Vector3.DOWN * out * _magazine_height
-				_magazine.rotation.y = deg_to_rad(spin)
 		Kind.BUTTERFLY:
 			var spin: float = _at(KNIFE_SPIN)
 			var lean: float = _at(KNIFE_LEAN)

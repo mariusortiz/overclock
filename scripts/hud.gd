@@ -5,12 +5,14 @@ extends CanvasLayer
 
 signal replay_pressed
 signal menu_pressed
+## The player gave up the game from the pause menu.
+signal quit_pressed
 signal perk_chosen(type: Perk.Type)
 ## Answer to the choice offered after a boss: go on, or go home with the XP.
 signal exit_chosen(leave: bool)
 
 ## How a game ended.
-enum Result { DEATH, VICTORY, LEFT }
+enum Result { DEATH, VICTORY, LEFT, QUIT }
 
 const BANNER_TIME := 2.5
 const FADE_TIME := 0.4
@@ -68,7 +70,7 @@ func _ready() -> void:
 	_replay_button.pressed.connect(replay_pressed.emit)
 	_menu_button.pressed.connect(menu_pressed.emit)
 	_pause_button.pressed.connect(pause_menu.open)
-	pause_menu.menu_pressed.connect(menu_pressed.emit)
+	pause_menu.menu_pressed.connect(quit_pressed.emit)
 	for i in _perk_buttons.size():
 		_perk_buttons[i].pressed.connect(_on_perk_button_pressed.bind(i))
 	_continue_button.pressed.connect(_on_exit_button_pressed.bind(false))
@@ -292,11 +294,15 @@ func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: A
 		_best_score.text += "  ·  %de du classement" % rank if rank > 1 else "  ·  1er du classement"
 	if result == Result.DEATH:
 		_xp_label.text += "  (moitié : tu es mort)"
+	elif result == Result.QUIT:
+		_xp_label.text += "  (moitié : partie quittée)"
 	for challenge in challenges:
 		_xp_label.text += "\nDéfi réussi : %s  +%d XP" % [challenge.text, challenge.xp]
 	if not unlocked.is_empty():
 		_xp_label.text += "\nDébloqué : " + ", ".join(unlocked)
-	if result != Result.DEATH:
+	if result == Result.QUIT:
+		_end_title.text = "PARTIE QUITTÉE"
+	elif result != Result.DEATH:
 		_end_title.text = "VICTOIRE" if result == Result.VICTORY else "XP ENCAISSÉE"
 		_end_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 		_replay_button.visible = result == Result.LEFT

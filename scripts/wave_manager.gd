@@ -184,6 +184,8 @@ func _spawn() -> void:
 		enemy = enemy_scene.instantiate()
 		_configure(enemy)
 	enemy.position = point.global_position
+	if enemy is Boss:
+		enemy.position = _arena_center()
 	if enemy.flying:
 		enemy.position.y += FLYING_SPAWN_HEIGHT
 	enemy.died.connect(_on_enemy_died)
@@ -196,6 +198,14 @@ func _spawn() -> void:
 	_alive += 1
 	if enemy is Boss:
 		boss_spawned.emit(enemy)
+
+
+## The middle of the arena, or the nearest walkable point to it when some
+## scenery stands there.
+func _arena_center() -> Vector3:
+	var map := get_parent().get_world_3d().navigation_map
+	var center := NavigationServer3D.map_get_closest_point(map, Vector3.ZERO)
+	return center if center != Vector3.ZERO else Vector3(0, 0.1, 0)
 
 
 ## The bosses take turns, one per arena, and get tougher each time they come

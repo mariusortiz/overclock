@@ -62,6 +62,7 @@ func _ready() -> void:
 	hud.menu_pressed.connect(get_tree().change_scene_to_file.bind(MENU_SCENE), CONNECT_DEFERRED)
 	hud.perk_chosen.connect(_on_perk_chosen)
 	hud.exit_chosen.connect(_on_exit_chosen)
+	hud.quit_pressed.connect(_on_quit_pressed)
 
 	player.weapon.hit_confirmed.connect(hud.reticle.show_hit)
 	player.melee.hit_confirmed.connect(hud.reticle.show_hit)
@@ -331,6 +332,16 @@ func _slow_motion() -> void:
 		Engine.time_scale = 1.0
 
 
+## Giving up from the pause menu ends the game like a death: half the XP,
+## the challenges and stats counted, then the end screen.
+func _on_quit_pressed() -> void:
+	waves.stop()
+	player.process_mode = Node.PROCESS_MODE_DISABLED
+	Input.action_release("fire")
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_show_results(Hud.Result.QUIT)
+
+
 ## The game goes on past the Titan, from the first arena.
 func _start_endless() -> void:
 	_won = false
@@ -381,7 +392,7 @@ func _show_results(result: Hud.Result) -> void:
 	if is_record:
 		SaveData.save_high_score(score)
 	var xp := _earned_xp()
-	if result == Hud.Result.DEATH:
+	if result == Hud.Result.DEATH or result == Hud.Result.QUIT:
 		@warning_ignore("integer_division")
 		xp /= 2
 	# Challenges pay in full, even after a death.

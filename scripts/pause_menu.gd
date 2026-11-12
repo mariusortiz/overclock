@@ -1,6 +1,7 @@
 class_name PauseMenu
 extends Control
-## Pause screen; the settings come from SettingsControls. Keeps running while the game is paused.
+## Pause screen; the settings come from SettingsControls. Its last button
+## gives up the game (see Main._on_quit_pressed). Keeps running while the game is paused.
 ## Opens with the pause button, Escape, or the Android back button.
 
 signal menu_pressed
@@ -58,5 +59,6 @@ func close() -> void:
 
 
 func _on_menu_pressed() -> void:
+	visible = false
 	get_tree().paused = false
 	menu_pressed.emit()
