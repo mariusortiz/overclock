@@ -266,10 +266,15 @@ static func weapon_layout(item: Dictionary, skin: Dictionary) -> Dictionary:
 		"muzzle": Vector3(0, data.barrel_y, -high.x) * s,
 		"scope": Vector3(0, data.top_y, -(low.x + high.x) / 2.0) * s,
 	}
-	if skin.silencer:
+	if skin.silencer and has_accessories(item):
 		layout.silencer = layout.muzzle
 		layout.muzzle += Vector3(0, 0, -SILENCER_LENGTH * s)
 	return layout
+
+
+## The exotic guns (another kit, at another scale) take no scope or silencer.
+static func has_accessories(item: Dictionary) -> bool:
+	return not item.get("shop", false)
 
 
 ## Creates a gun as held in the hand: grip at the origin, pointing toward -Z,
@@ -280,9 +285,9 @@ static func instantiate_weapon(item: Dictionary, skin := {}) -> Node3D:
 	var layout := weapon_layout(item, skin)
 	var gun := Node3D.new()
 	_add_part(gun, item.model, layout.basis, Vector3.ZERO)
-	if skin.scope and not item.get("has_scope", false):
+	if skin.scope and not item.get("has_scope", false) and has_accessories(item):
 		_add_part(gun, SCOPE_MODEL, layout.basis, layout.scope)
-	if skin.silencer:
+	if skin.silencer and has_accessories(item):
 		_add_part(gun, SILENCER_MODEL, layout.basis, layout.silencer)
 	_apply_skin(gun, skin)
 	return gun

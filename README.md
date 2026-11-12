@@ -18,6 +18,13 @@ https://github.com/mariusortiz/overclock-builds/releases/download/latest-debug/o
 
 Ouvre-le sur le téléphone, puis installe l'APK (il faut autoriser le navigateur à installer des applications inconnues). Les mises à jour s'installent par-dessus l'ancienne version, car elles sont toutes signées avec la même clé de debug. L'APK utilise le moteur de rendu complet (Vulkan) : le rendu et les FPS y sont meilleurs que dans le navigateur.
 
+### Vidéos
+
+- Trailer (2 min 30) : https://mariusortiz.github.io/overclock-builds/trailer.html
+- Anime, épisode 1 « L'escouade » (2 min) : https://mariusortiz.github.io/overclock-builds/anime.html
+
+Les deux sont jouées par le moteur avec les modèles du jeu (`scripts/trailer.gd`, `scripts/anime.gd`) et rendues par leur propre workflow GitHub Actions quand ces fichiers changent. L'anime ajoute un rendu en cel-shading (aplats de lumière et contours à l'encre), des bulles façon manga, des lignes de vitesse et des images d'impact.
+
 ## Contrôles
 
 | Action | Téléphone | Clavier / souris |
