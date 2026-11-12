@@ -9,6 +9,9 @@ signal died
 signal perks_changed
 
 const WALK_ANIMATION_SPEED := 1.8
+## Camera shake: how hard a hit shakes the view, and how fast it settles.
+const HIT_SHAKE := 0.12
+const SHAKE_DECAY := 3.5
 
 @export var max_health := 100
 @export var regen_per_second := 5.0
@@ -33,6 +36,7 @@ var perks := {}
 var _effects := {}  # PowerUp.Type -> seconds left
 var _regen_buffer := 0.0
 var _action_animation_left := 0.0
+var _shake := 0.0
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var weapon: Weapon = $Weapon
@@ -109,6 +113,7 @@ func take_damage(amount: int) -> void:
 	health = maxi(health - amount, 0)
 	health_changed.emit(health, max_health)
 	damaged.emit()
+	shake(HIT_SHAKE)
 	if health == 0:
 		_die()
 
@@ -118,6 +123,12 @@ func heal(amount: int) -> void:
 		return
 	health = mini(health + amount, max_health)
 	health_changed.emit(health, max_health)
+
+
+## Shakes the view for a moment; `strength` is in meters of camera offset.
+func shake(strength: float) -> void:
+	if Settings.camera_shake:
+		_shake = maxf(_shake, strength)
 
 
 ## Rotates the view. `relative` is a screen-space drag in pixels.
@@ -138,6 +149,9 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	var target_fov := weapon.zoom_fov if Input.is_action_pressed("aim") and health > 0 else default_fov
 	_camera.fov = lerpf(_camera.fov, target_fov, minf(zoom_speed * delta, 1.0))
+	_shake = move_toward(_shake, 0.0, SHAKE_DECAY * _shake * delta + 0.02 * delta)
+	_camera.h_offset = randf_range(-_shake, _shake)
+	_camera.v_offset = randf_range(-_shake, _shake)
 
 
 func _on_melee_swung() -> void:

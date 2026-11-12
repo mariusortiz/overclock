@@ -1,6 +1,38 @@
 class_name Effects
 ## Small one-shot visual effects shared by several scripts.
 
+const FONT := preload("res://assets/ui/fonts/kenney_mini_square_mono.ttf")
+const DAMAGE_COLOR := Color(1, 1, 1)
+const HEADSHOT_COLOR := Color(1.0, 0.85, 0.2)
+const DAMAGE_OVER_TIME_COLOR := Color(1.0, 0.55, 0.2)
+
+
+## A number that pops up at `at`, drifts up and fades. It keeps the same size
+## on screen whatever its distance.
+static func damage_number(parent: Node, at: Vector3, amount: int, color: Color, big := false) -> void:
+	var label := Label3D.new()
+	label.text = str(amount)
+	label.font = FONT
+	label.font_size = 64 if big else 44
+	label.outline_size = 14
+	label.outline_modulate = Color(0, 0, 0, 0.85)
+	label.modulate = color
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.fixed_size = true
+	label.pixel_size = 0.0011
+	label.no_depth_test = true
+	label.render_priority = 10
+	label.outline_render_priority = 9
+	# A little sideways jitter so that quick hits do not stack on one spot.
+	label.position = at + Vector3(randf_range(-0.3, 0.3), 0.2, randf_range(-0.3, 0.3))
+	label.add_to_group("transient")
+	parent.add_child(label)
+	var tween := label.create_tween()
+	tween.tween_property(label, "position:y", label.position.y + 1.1, 0.7).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.parallel().tween_property(label, "scale", Vector3.ONE * 1.35, 0.08).from(Vector3.ONE * 0.6)
+	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.3).set_delay(0.4)
+	tween.tween_callback(label.queue_free)
+
 
 ## A burst of small colored cubes at `at`. With `rise`, they float upward
 ## (embers, bubbles) instead of flying out and falling.

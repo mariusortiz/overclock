@@ -28,6 +28,7 @@ func _ready() -> void:
 
 	_add_toggle("Musique", &"music_enabled")
 	_add_toggle("Vibrations", &"vibration_enabled")
+	_add_toggle("Tremblement de l'écran", &"camera_shake")
 	_add_toggle("Graphismes élevés", &"high_quality")
 
 

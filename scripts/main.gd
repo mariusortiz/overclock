@@ -10,6 +10,9 @@ const DAMAGE_VIBRATION_MS := 40
 const PERK_CHOICE_DELAY := 2.0
 const DEATH_SLOW_MOTION := 0.3
 const DEATH_TITLE_TIME := 3.0
+## The last enemy of a wave falls in slow motion, for this long (real time).
+const WAVE_END_SLOW_MOTION := 0.35
+const WAVE_END_SLOW_TIME := 0.7
 const VICTORY_TIME := 5.0
 ## Seconds into a wave before its weapon crate is dropped.
 const CRATE_DELAY := 8.0
@@ -239,6 +242,7 @@ func _win() -> void:
 func _on_wave_cleared(number: int) -> void:
 	if player.health <= 0 or _won:
 		return
+	_slow_motion()
 	var bonus := WAVE_BONUS * number
 	_add_score(bonus)
 	player.heal(WAVE_HEAL)
@@ -288,6 +292,14 @@ func _on_exit_chosen(leave: bool) -> void:
 	_load_arena(_arena_index + 1)
 	hud.show_banner(_arena.display_name)
 	hud.fade_from_black()
+
+
+func _slow_motion() -> void:
+	Engine.time_scale = WAVE_END_SLOW_MOTION
+	await get_tree().create_timer(WAVE_END_SLOW_TIME, true, false, true).timeout
+	# Dying meanwhile starts its own slow motion: leave it alone.
+	if player.health > 0:
+		Engine.time_scale = 1.0
 
 
 ## XP this game is worth so far, if it ends without dying.

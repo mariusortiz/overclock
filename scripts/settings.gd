@@ -9,12 +9,14 @@ const LOW_QUALITY_SCALE := 0.7
 var sensitivity := 1.0
 var music_enabled := true
 var vibration_enabled := true
+## The view shakes when the player is hit or a rocket goes off.
+var camera_shake := true
 ## Off: no shadows, no glow and a lower 3D resolution, for slower phones.
 var high_quality := true
 
 
 func _ready() -> void:
-	for property: StringName in [&"sensitivity", &"music_enabled", &"vibration_enabled", &"high_quality"]:
+	for property: StringName in [&"sensitivity", &"music_enabled", &"vibration_enabled", &"camera_shake", &"high_quality"]:
 		set(property, SaveData.load_setting(property, get(property)))
 	_apply()
 

@@ -72,6 +72,8 @@ var _stun_left := 0.0
 var _freeze_left := 0.0
 var _kill_style := &""
 var _kill_color := Color.WHITE
+## Set by the weapon just before a headshot lands, for the damage number.
+var _headshot_pending := false
 var _tween: Tween
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -115,6 +117,11 @@ func set_kill_effect(style: StringName, color: Color) -> void:
 	_kill_color = color
 
 
+## The next damage comes from a headshot (it is shown in another color).
+func mark_headshot() -> void:
+	_headshot_pending = true
+
+
 ## True when a shot landing at `point` (world space) hits the head.
 func is_head_hit(point: Vector3) -> bool:
 	var head_base := (model_hover + model_height * HEAD_START) * _base_scale.y
@@ -126,6 +133,11 @@ func take_damage(amount: int) -> void:
 		return
 	_health -= amount
 	health_changed.emit(maxi(_health, 0), max_health)
+	var color := Effects.HEADSHOT_COLOR if _headshot_pending else Effects.DAMAGE_COLOR
+	if _burn_tick_left == BURN_TICK:
+		color = Effects.DAMAGE_OVER_TIME_COLOR
+	Effects.damage_number(get_tree().current_scene, get_aim_position() + Vector3.UP * 0.6, amount, color, _headshot_pending)
+	_headshot_pending = false
 	if _health <= 0:
 		_die()
 	else:

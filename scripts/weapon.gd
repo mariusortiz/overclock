@@ -10,6 +10,8 @@ signal ammo_changed(current: int, magazine: int, reloading: bool)
 ## A gun was taken in hand (the player's own, or one found in a crate).
 signal equipped(weapon_name: String)
 
+## Camera shake when one of the player's rockets goes off.
+const ROCKET_SHAKE := 0.18
 const TRACER_COLOR := Color(0, 0.9, 1)
 const FLASH_TIME := 0.04
 const HEADSHOT_MULTIPLIER := 2
@@ -219,6 +221,9 @@ func _launch_rocket(toward: Vector3) -> void:
 
 func _on_rocket_exploded(at: Vector3) -> void:
 	var blast := _spawn_fx(_explosion_mesh, at, 0.25)
+	var shooter := get_parent() as Player
+	if shooter:
+		shooter.shake(ROCKET_SHAKE)
 	blast.scale = Vector3.ONE * (blast_radius / Perk.EXPLOSION_RADIUS)
 	var hit_any := false
 	for target: Node3D in get_tree().get_nodes_in_group("targets"):
@@ -250,6 +255,8 @@ func _damage_with_elements(enemy: Node3D, multiplier := 1) -> void:
 ## perks. Returns true for a headshot.
 func _apply_hit(enemy: Node3D, point: Vector3) -> bool:
 	var headshot: bool = enemy.has_method("is_head_hit") and enemy.is_head_hit(point)
+	if headshot:
+		enemy.mark_headshot()
 	_damage_with_elements(enemy, HEADSHOT_MULTIPLIER if headshot else 1)
 	if _level(Perk.Type.LIGHTNING) > 0:
 		_chain_lightning(enemy)
