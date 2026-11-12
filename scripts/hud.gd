@@ -94,7 +94,7 @@ func _build_health_number() -> void:
 	_health_number.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_health_number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_health_number.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_health_number.add_theme_font_size_override("font_size", 16)
+	_health_number.add_theme_font_size_override("font_size", 22)
 	_health_number.add_theme_color_override("font_outline_color", Color.BLACK)
 	_health_number.add_theme_constant_override("outline_size", 6)
 	_health_number.mouse_filter = Control.MOUSE_FILTER_IGNORE

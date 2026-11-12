@@ -26,7 +26,7 @@ const BUTTONS := [
 	{"action": "ultimate", "label": "ULTI", "radius": 52.0, "offset": Vector2(-275, 75), "toggle": false},
 	{"action": "aim", "label": "VISER", "radius": 52.0, "offset": Vector2(-265, -40), "toggle": true},
 	# Rarely needed in a fight: away from the others, under the pause button.
-	{"action": "inspect", "label": "INSPECTER", "radius": 38.0, "offset": Vector2(-80, 165), "toggle": false, "top": true},
+	{"action": "inspect", "label": "INSPECTER", "radius": 38.0, "offset": Vector2(-85, 160), "toggle": false, "top": true},
 ]
 
 @export var joystick_radius := 110.0
@@ -196,7 +196,7 @@ func _draw() -> void:
 		var rest := Vector2(JOYSTICK_REST.x, size.y + JOYSTICK_REST.y)
 		draw_arc(rest, joystick_radius, 0.0, TAU, 48, Color(ACCENT, 0.22), 3.0)
 		draw_circle(rest, knob_radius, Color(ACCENT, 0.12))
-		_draw_label(rest + Vector2(0, joystick_radius + 26), "BOUGER", 16, Color(1, 1, 1, 0.35))
+		_draw_label(rest + Vector2(0, joystick_radius + 26), "BOUGER", 20, Color(1, 1, 1, 0.4))
 
 
 func _draw_button(center: Vector2, button: Dictionary, active: bool) -> void:
@@ -213,10 +213,14 @@ func _draw_button(center: Vector2, button: Dictionary, active: bool) -> void:
 		# Its gauge fills around the edge.
 		draw_arc(center, radius - 6.0, -PI / 2.0, -PI / 2.0 + TAU * _ultimate_charge, 48, GOLD, 6.0)
 	var big := radius >= FIRE_RADIUS
-	var icon_size := radius * (0.55 if big else 0.62)
-	var label_size := 22 if big else (12 if radius < 45.0 else 14)
-	_draw_icon(action, center - Vector2(0, radius * 0.16), icon_size, Color.WHITE)
-	_draw_label(center + Vector2(0, radius * 0.62), button.label, label_size, Color(1, 1, 1, 0.9))
+	var icon_size := radius * (0.62 if big else 0.8)
+	var label_size := 26 if big else 17
+	_draw_icon(action, center - Vector2(0, radius * 0.14), icon_size, Color.WHITE)
+	# A small button has its word under it rather than inside.
+	var label_at := center + Vector2(0, radius * 0.62)
+	if radius < 45.0:
+		label_at = center + Vector2(0, radius + label_size * 0.8)
+	_draw_label(label_at, button.label, label_size, Color(1, 1, 1, 0.9))
 
 
 func _draw_label(at: Vector2, text: String, font_size: int, color: Color) -> void:
