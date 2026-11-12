@@ -145,7 +145,7 @@ def knife():
     m.box("Guard", (0.004, 0.078, 0), (0.075, 0.014, 0.03))
     m.blade([((-0.02, 0.085), (0.022, 0.085)), ((-0.02, 0.27), (0.024, 0.27)), ((-0.014, 0.31), (0.02, 0.33)),
              ((-0.002, 0.375), (0.006, 0.378)), ((0.003, 0.395), (0.003, 0.395))], 0.009)
-    m.save("knife", 1.6)
+    m.save("knife", 1.85)
 
 
 def kunai():
@@ -153,7 +153,7 @@ def kunai():
     m.tube("Guard", circle((0, -0.094), 0.022, 10), 0.006, 0.006, 6, closed=True)
     m.tube("Wrap", [(0, -0.07), (0, 0.05)], 0.009, 0.009)
     m.dagger([(0.05, 0.009), (0.1, 0.034), (0.16, 0.03), (0.3, 0.0)], 0.014)
-    m.save("kunai", 1.6)
+    m.save("kunai", 1.85)
 
 
 def butterfly():
@@ -167,7 +167,7 @@ def butterfly():
     m.box("Brass", (0, -0.078, 0), (0.03, 0.007, 0.012))
     m.blade([((-0.012, 0.076), (0.013, 0.076)), ((-0.012, 0.16), (0.014, 0.17)), ((-0.006, 0.2), (0.008, 0.205)),
              ((0.002, 0.222), (0.002, 0.222))], 0.007)
-    m.save("butterfly", 1.6)
+    m.save("butterfly", 1.85)
 
 
 def karambit():
@@ -184,24 +184,24 @@ def karambit():
         stations.append(((center[0] + outer * math.cos(angle), center[1] + outer * math.sin(angle)),
                          (center[0] + inner * math.cos(angle), center[1] + inner * math.sin(angle))))
     m.blade(stations, 0.009, ridge=0.5)
-    m.save("karambit", 1.6)
+    m.save("karambit", 1.85)
 
 
 def katana():
     m = Model()
-    m.tube("Wrap", [(0, -0.14), (0, 0.0), (0, 0.14)], [0.015, 0.016, 0.015], 0.012)
-    m.tube("Brass", [(0, -0.155), (0, -0.14)], 0.016, 0.013)
-    m.tube("Brass", [(0, 0.14), (0, 0.15)], 0.045, 0.04, 10)
-    m.tube("Brass", [(0, 0.15), (0, 0.18)], 0.017, 0.008)
+    m.tube("Wrap", [(0, -0.14), (0, 0.0), (0, 0.14)], [0.019, 0.021, 0.019], 0.015)
+    m.tube("Brass", [(0, -0.155), (0, -0.14)], 0.021, 0.017)
+    m.tube("Brass", [(0, 0.14), (0, 0.152)], 0.055, 0.048, 10)
+    m.tube("Brass", [(0, 0.152), (0, 0.18)], 0.024, 0.011)
     # A long blade that curves back, away from its edge.
     stations = []
     for i in range(9):
         u = i / 8
         y = 0.18 + 0.72 * u
         back = -0.055 * u * u
-        stations.append(((back - 0.012, y), (back + 0.02 - 0.004 * u, y)))
+        stations.append(((back - 0.019, y), (back + 0.028 - 0.006 * u, y)))
     stations.append(((stations[-1][0][0], 0.94), (stations[-1][0][0], 0.94)))
-    m.blade(stations, 0.008, ridge=0.4)
+    m.blade(stations, 0.013, ridge=0.4)
     m.save("katana", 1.25)
 
 
@@ -245,11 +245,11 @@ def mace():
 
 def spear():
     m = Model()
-    m.tube("Wood", [(0, -0.55), (0, 1.0)], 0.012, 0.012)
-    m.tube("Wrap", [(0, -0.1), (0, 0.1)], 0.014, 0.014)
-    m.tube("Brass", [(0, 0.98), (0, 1.03)], 0.017, 0.017)
-    m.tube("Accent", [(0, 0.93), (0, 0.98)], 0.015, 0.015)
-    m.dagger([(1.03, 0.012), (1.1, 0.04), (1.18, 0.034), (1.36, 0.0)], 0.016)
+    m.tube("Wood", [(0, -0.55), (0, 1.0)], 0.017, 0.017)
+    m.tube("Wrap", [(0, -0.1), (0, 0.1)], 0.02, 0.02)
+    m.tube("Brass", [(0, 0.98), (0, 1.03)], 0.023, 0.023)
+    m.tube("Accent", [(0, 0.93), (0, 0.98)], 0.021, 0.021)
+    m.dagger([(1.03, 0.016), (1.1, 0.055), (1.18, 0.046), (1.36, 0.0)], 0.024)
     m.save("spear", 1.2)
 
 

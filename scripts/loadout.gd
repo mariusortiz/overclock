@@ -165,7 +165,7 @@ const MELEE_TEXTURE_SCALE := 9.0
 ## A blade is small: the skin's pattern is drawn finer on it than on a gun.
 const MELEE_PATTERN_SCALE := 4.0
 ## Length above the hand, in meters, from which a weapon counts as long.
-const MELEE_LONG := 0.7
+const MELEE_LONG := 0.78
 
 ## Materials already built, by melee part name or by skin and scale. Kept for the
 ## whole session: a weapon must never outlive the material it is drawn with.
