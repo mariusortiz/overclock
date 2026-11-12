@@ -11,6 +11,7 @@ const CARD_SIZE := Vector2(150, 210)
 
 var _series := 0
 var _top := HBoxContainer.new()
+var _actions := HBoxContainer.new()
 var _tabs := HBoxContainer.new()
 var _grid := GridContainer.new()
 var _footer := HBoxContainer.new()
@@ -33,6 +34,8 @@ func _ready() -> void:
 	margin.add_child(box)
 	_top.add_theme_constant_override("separation", 10)
 	box.add_child(_top)
+	_actions.add_theme_constant_override("separation", 10)
+	box.add_child(_actions)
 	var tab_scroll := ScrollContainer.new()
 	tab_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	tab_scroll.custom_minimum_size.y = 62
@@ -77,7 +80,7 @@ func _fit_columns() -> void:
 
 
 func _refresh() -> void:
-	for container: Node in [_top, _tabs, _grid, _footer]:
+	for container: Node in [_top, _actions, _tabs, _grid, _footer]:
 		for child in container.get_children():
 			child.queue_free()
 	_button(_top, "< RETOUR", func() -> void: get_tree().change_scene_to_file.call_deferred(MENU_SCENE))
@@ -89,11 +92,11 @@ func _refresh() -> void:
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_top.add_child(title)
 	var pending := Cards.boosters()
-	var open_standard := _button(_top, "BOOSTER (%d)" % pending.get("standard", 0), _open.bind("standard"), CYAN)
+	var open_standard := _button(_actions, "OUVRIR UN BOOSTER (%d)" % pending.get("standard", 0), _open.bind("standard"), CYAN)
 	open_standard.disabled = pending.get("standard", 0) <= 0
-	var open_rare := _button(_top, "BOOSTER RARE (%d)" % pending.get("rare", 0), _open.bind("rare"), GOLD)
+	var open_rare := _button(_actions, "BOOSTER RARE (%d)" % pending.get("rare", 0), _open.bind("rare"), GOLD)
 	open_rare.disabled = pending.get("rare", 0) <= 0
-	_button(_top, "RECYCLER LES DOUBLONS", _recycle)
+	_button(_actions, "RECYCLER LES DOUBLONS", _recycle)
 
 	for index in Cards.SERIES.size():
 		var series: String = Cards.SERIES[index][0]
@@ -228,9 +231,13 @@ func _open(kind: String) -> void:
 	var done := _button(box, "CONTINUER", _close_overlay)
 	done.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	done.custom_minimum_size.x = 300
+	var seen := {}
 	for card: Dictionary in drawn:
-		# "New" when this is the only copy: it was not there before.
-		var is_new := Cards.count(card.id) == 1
+		# "New" for the first copy of a card the player did not have before
+		# this booster.
+		var in_booster := drawn.filter(func(other: Dictionary) -> bool: return other.id == card.id).size()
+		var is_new: bool = Cards.count(card.id) == in_booster and not seen.has(card.id)
+		seen[card.id] = true
 		var holder := Control.new()
 		holder.custom_minimum_size = Vector2(200, 280)
 		row.add_child(holder)
@@ -278,7 +285,7 @@ func _turn(view: CardView, holder: Control, is_new: bool) -> void:
 		badge.add_theme_color_override("font_color", MAGENTA)
 		badge.add_theme_color_override("font_outline_color", Color.BLACK)
 		badge.add_theme_constant_override("outline_size", 8)
-		badge.position = Vector2(40, -34)
+		badge.position = Vector2(16, 12)
 		holder.add_child(badge)
 
 
