@@ -83,7 +83,19 @@ Battre le Titan fait apparaître un trophée et donne le skin Champion. Tu chois
 
 ## Arènes
 
-Les arènes font 60 m de côté. La partie commence dans la station, et chaque boss battu t'emmène dans la suivante. Chacune a ses ennemis :
+Les arènes font 60 m de côté, sur plusieurs niveaux : ponts, passerelles, étages et toits accessibles, avec des passages dessous. La partie commence dans la station, et chaque boss battu t'emmène dans la suivante.
+
+| Arène | Ce qu'on y trouve |
+|---|---|
+| Station | tour de contrôle à deux étages, reliée par des passerelles aux plateformes le long des murs ; quai de chargement, conteneurs, machines |
+| Désert | temple à gradins, plateau rocheux relié par un pont de pierre, tour en ruine, murs écroulés, oasis |
+| Jungle | cabanes dans les arbres reliées par des ponts de corde, rivière avec passerelle et gué, ruines de temple |
+| Volcan | rivière de lave franchie par deux ponts de pierre, plateaux sur deux hauteurs, cratère |
+| Ville | carrefour sous un pont routier, immeubles au toit accessible par un escalier extérieur, voitures, feux et lampadaires |
+
+Les boss apparaissent au sol, dans un espace dégagé. La CI vérifie que chaque étage de chaque arène est accessible à pied aux ennemis.
+
+Chaque arène a ses ennemis :
 
 | Arène | Ennemis | Arme |
 |---|---|---|
