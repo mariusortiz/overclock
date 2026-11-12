@@ -97,8 +97,10 @@ jobs:
           rm "$save_dir/save.cfg"
           # The trailer's whole timeline, without drawing it.
           godot --headless --fixed-fps 30 --quit-after 4700 res://scenes/tools/trailer.tscn 2>&1 | tee -a run.log
-          # The same for the anime episode.
-          godot --headless --fixed-fps 30 --quit-after 3800 res://scenes/tools/anime.tscn 2>&1 | tee -a run.log
+          # The same for each anime episode.
+          for scene in scenes/tools/anime/ep*.tscn; do
+            godot --headless --fixed-fps 30 --quit-after 3800 "res://$scene" 2>&1 | tee -a run.log
+          done
           # "still in use at exit" only reports the music playing when --quit-after stops the game.
           # Enemies must be able to walk up to every deck.
           # The check quits by itself; the time limit only guards against a hang.
@@ -178,7 +180,7 @@ jobs:
           if git fetch -q --depth 1 "$url" gh-pages; then
             git checkout -q FETCH_HEAD -- trailer.mp4 trailer.html 2>/dev/null || true
             git checkout -q FETCH_HEAD -- trailer.jpg 2>/dev/null || true
-            git checkout -q FETCH_HEAD -- anime.mp4 anime.jpg anime.html 2>/dev/null || true
+            git checkout -q FETCH_HEAD -- ':(glob)anime*' 2>/dev/null || true
           fi
           git add -A
           git -c user.name="github-actions" -c user.email="github-actions@users.noreply.github.com" \

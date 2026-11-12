@@ -1,15 +1,20 @@
 name: Anime
 
-# Renders the anime episode with Godot's movie mode and publishes it next to
-# the web build, like the trailer. Runs only when the episode changes, or by hand.
+# Renders the anime episodes (scenes/tools/anime/epNN.tscn) with Godot's movie
+# mode and publishes them next to the web build. A push renders only the
+# episodes it changed (all of them when the shared toolkit changes); a manual
+# run renders them all. Episodes are listed in tools/anime_episodes.tsv.
 on:
   push:
     branches: [main]
     paths:
-      - scripts/anime.gd
-      - tools/anime_music.mp3
-      - scenes/tools/anime.tscn
+      - scripts/anime_director.gd
+      - scripts/anime/**
+      - scenes/tools/anime/**
+      - tools/anime_episodes.tsv
+      - tools/anime_episode.html
       - tools/anime.html
+      - tools/anime_music.mp3
       - .github/workflows/anime.yml
   workflow_dispatch:
 
@@ -18,11 +23,50 @@ env:
   GODOT_RELEASE: "stable"
 
 jobs:
-  anime:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      episodes: ${{ steps.pick.outputs.episodes }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: pick
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          listed=$(grep -v '^#' tools/anime_episodes.tsv | cut -f1)
+          changed=""
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && git cat-file -e "$BEFORE" 2>/dev/null; then
+            changed=$(git diff --name-only "$BEFORE" "$GITHUB_SHA")
+          fi
+          if [ -z "$changed" ] || echo "$changed" | grep -qE 'anime_director|anime_episodes|anime_episode.html|workflows/anime.yml|scripts/race_|scripts/loadout'; then
+            picked="$listed"
+          else
+            picked=""
+            for n in $listed; do
+              nn=$(printf '%02d' "$n")
+              if echo "$changed" | grep -qE "ep${nn}\.(gd|tscn)" || { [ "$n" = 1 ] && echo "$changed" | grep -qE 'anime_music|tools/anime.html'; }; then
+                picked="$picked $n"
+              fi
+            done
+          fi
+          json=$(printf '%s\n' $picked | grep -v '^$' | jq -R 'tonumber' | jq -cs '.')
+          echo "Episodes: $json"
+          echo "episodes=$json" >> "$GITHUB_OUTPUT"
+
+  render:
+    needs: plan
+    if: needs.plan.outputs.episodes != '[]'
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        episode: ${{ fromJson(needs.plan.outputs.episodes) }}
     steps:
       - uses: actions/checkout@v5
 
@@ -55,30 +99,47 @@ jobs:
       # one frame at a time, so the film is smooth however long it takes.
       - name: Render
         run: |
-          # --quit-after: the film is 3660 frames; stop anyway if the script stalls.
+          nn=$(printf '%02d' ${{ matrix.episode }})
           xvfb-run -a -s "-screen 0 1920x1080x24" godot --rendering-driver opengl3 --audio-driver Dummy \
-            --resolution 1920x1080 --fixed-fps 30 --quit-after 3800 --write-movie "$RUNNER_TEMP/anime.avi" \
-            res://scenes/tools/anime.tscn 2>&1 | tee render.log
+            --resolution 1920x1080 --fixed-fps 30 --quit-after 4200 --write-movie "$RUNNER_TEMP/ep.avi" \
+            res://scenes/tools/anime/ep${nn}.tscn 2>&1 | tee render.log
           if grep -E "SCRIPT ERROR|Parse Error" render.log; then exit 1; fi
-          ls -lh "$RUNNER_TEMP/anime.avi"
+          ls -lh "$RUNNER_TEMP/ep.avi"
 
-      # "The Rush" from its start; it fades out with the end card.
+      # The episode's music (looped if short), faded out with the end card.
+      # Episode 1 keeps its first names (anime.mp4), the others are animeNN.
       - name: Encode
         run: |
-          ffmpeg -y -loglevel error -i "$RUNNER_TEMP/anime.avi" -i tools/anime_music.mp3 \
-            -map 0:v -map 1:a -t 122 \
-            -af "afade=t=in:d=0.5,afade=t=out:st=117:d=5,loudnorm=I=-14:TP=-1.5" \
+          n=${{ matrix.episode }}
+          nn=$(printf '%02d' $n)
+          name=$([ "$n" = 1 ] && echo anime || echo "anime${nn}")
+          line=$(grep -P "^${n}\t" tools/anime_episodes.tsv)
+          title=$(echo "$line" | cut -f2)
+          music=$(echo "$line" | cut -f3)
+          start=$(echo "$line" | cut -f4)
+          length=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$RUNNER_TEMP/ep.avi")
+          fade=$(echo "$length - 5" | bc)
+          ffmpeg -y -loglevel error -i "$RUNNER_TEMP/ep.avi" -stream_loop -1 -ss "$start" -i "$music" \
+            -map 0:v -map 1:a -t "$length" \
+            -af "afade=t=in:d=0.5,afade=t=out:st=${fade}:d=5,loudnorm=I=-14:TP=-1.5" \
             -c:v libx264 -preset medium -crf 22 -maxrate 3M -bufsize 6M -pix_fmt yuv420p \
-            -c:a aac -b:a 192k -movflags +faststart anime.mp4
-          ffmpeg -y -loglevel error -ss 23 -i anime.mp4 -frames:v 1 -q:v 3 anime.jpg
-          ffprobe -v error -show_entries format=duration,size -of default=nw=1 anime.mp4
+            -c:a aac -b:a 192k -movflags +faststart "$name.mp4"
+          ffmpeg -y -loglevel error -ss 20 -i "$name.mp4" -frames:v 1 -q:v 3 "$name.jpg"
+          if [ "$n" = 1 ]; then
+            cp tools/anime.html anime.html
+          else
+            sed -e "s|@N@|$n|g" -e "s|@TITLE@|$title|g" -e "s|@VIDEO@|$name.mp4|g" -e "s|@POSTER@|$name.jpg|g" \
+              tools/anime_episode.html > "$name.html"
+          fi
+          echo "NAME=$name" >> "$GITHUB_ENV"
+          ffprobe -v error -show_entries format=duration,size -of default=nw=1 "$name.mp4"
 
       - uses: actions/upload-artifact@v5
         with:
-          name: overclock-anime
+          name: overclock-anime-ep${{ matrix.episode }}
           path: |
-            anime.mp4
-            anime.jpg
+            ${{ env.NAME }}.mp4
+            ${{ env.NAME }}.jpg
 
       - name: Publish to overclock-builds gh-pages
         env:
@@ -86,19 +147,20 @@ jobs:
           BUILDS_REPO: mariusortiz/overclock-builds
         run: |
           if [ -z "$GH_TOKEN" ]; then
-            echo "::warning::BUILDS_TOKEN secret missing, anime not published"
+            echo "::warning::BUILDS_TOKEN secret missing, episode not published"
             exit 0
           fi
           url="https://x-access-token:${GH_TOKEN}@github.com/${BUILDS_REPO}.git"
-          # The web build may replace the branch meanwhile: try again on top of it.
-          for attempt in 1 2 3; do
+          # Several episodes and the web build may push at the same time: try
+          # again on top of whatever got there first.
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
             rm -rf "$RUNNER_TEMP/site"
             git clone -q --depth 1 --branch gh-pages "$url" "$RUNNER_TEMP/site"
-            cp anime.mp4 anime.jpg tools/anime.html "$RUNNER_TEMP/site/"
-            git -C "$RUNNER_TEMP/site" add anime.mp4 anime.jpg anime.html
+            cp "$NAME.mp4" "$NAME.jpg" "$NAME.html" "$RUNNER_TEMP/site/"
+            git -C "$RUNNER_TEMP/site" add "$NAME.mp4" "$NAME.jpg" "$NAME.html"
             git -C "$RUNNER_TEMP/site" -c user.name="github-actions" -c user.email="github-actions@users.noreply.github.com" \
-              commit -q -m "Anime from ${GITHUB_SHA::7}"
+              commit -q -m "Anime episode ${{ matrix.episode }} from ${GITHUB_SHA::7}"
             if git -C "$RUNNER_TEMP/site" push -q "$url" gh-pages; then exit 0; fi
-            sleep 20
+            sleep $((10 + RANDOM % 30))
           done
           exit 1

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overclock — Épisode @N@ : @TITLE@</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+         gap: 20px; background: #060b2a; color: #fff; font-family: system-ui, sans-serif; padding: 16px; box-sizing: border-box; }
+  h1 { margin: 0; font-size: clamp(1.2rem, 4vw, 2rem); letter-spacing: 0.06em; color: #29d4ff; text-align: center; }
+  video { width: 100%; max-width: 1280px; aspect-ratio: 16 / 9; background: #000; }
+  nav { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  a { color: #060b2a; background: #29d4ff; padding: 12px 22px; text-decoration: none; font-weight: 700; letter-spacing: 0.06em; }
+  a.alt { background: #ff3df2; }
+</style>
+</head>
+<body>
+  <h1>ÉPISODE @N@ · @TITLE@</h1>
+  <video src="@VIDEO@" poster="@POSTER@" controls playsinline preload="metadata"></video>
+  <nav>
+    <a href="site/#anime">TOUS LES ÉPISODES</a>
+    <a class="alt" href="./">JOUER</a>
+  </nav>
+</body>
+</html>
