@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overclock — Shooter d'arène 3D</title>
+<meta name="description" content="Overclock : shooter d'arène 3D low-poly gratuit. Joue dans le navigateur ou installe l'APK Android.">
+<meta property="og:title" content="Overclock">
+<meta property="og:description" content="Shooter d'arène 3D low-poly gratuit, sur Android et dans le navigateur.">
+<meta property="og:image" content="img/hero-large.jpg">
+<link rel="icon" href="../index.icon.png">
+<style>
+  @font-face {
+    font-family: "Kenney Mini Square Mono";
+    src: url("kenney_mini_square_mono.ttf") format("truetype");
+    font-display: swap;
+  }
+  :root {
+    --bg: #060b2a;
+    --panel: #0c1440;
+    --line: #1d2a6b;
+    --text: #e8ecff;
+    --muted: #9aa6d8;
+    --cyan: #29d4ff;
+    --magenta: #ff3df2;
+    --gold: #ffd84d;
+    --title: "Kenney Mini Square Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  img, video { display: block; max-width: 100%; }
+  a { color: var(--cyan); }
+  h1, h2, h3, .button, .tag { font-family: var(--title); font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; }
+  .wrap { width: min(1120px, 100% - 32px); margin-inline: auto; }
+
+  /* Hero */
+  .hero { position: relative; min-height: min(92vh, 760px); display: grid; align-items: end; overflow: hidden; }
+  .hero > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .hero::after { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(6, 11, 42, 0.7) 0%, rgba(6, 11, 42, 0) 65%),
+      linear-gradient(180deg, rgba(6, 11, 42, 0.15) 0%, rgba(6, 11, 42, 0.55) 55%, var(--bg) 100%); }
+  .hero .wrap { position: relative; z-index: 1; padding-block: 48px 56px; }
+  .logo { width: min(520px, 100%); height: auto; }
+  .hero p { max-width: 560px; margin: 18px 0 28px; font-size: 1.15rem; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
+  .actions { display: flex; flex-wrap: wrap; gap: 14px; }
+  .button { display: inline-flex; align-items: center; justify-content: center; min-height: 56px; padding: 14px 28px;
+    font-size: 1.15rem; text-decoration: none; color: var(--bg); background: var(--cyan);
+    clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%); transition: transform 0.15s, filter 0.15s; }
+  .button:hover, .button:focus-visible { transform: translateY(-2px); filter: brightness(1.12); }
+  .button.alt { background: var(--magenta); }
+  .button.ghost { background: transparent; color: var(--cyan); outline: 2px solid var(--cyan); outline-offset: -2px; clip-path: none; }
+  .note { margin-top: 14px; font-size: 0.9rem; color: var(--muted); }
+
+  section { padding-block: 64px; }
+  h2 { font-size: clamp(1.6rem, 4vw, 2.3rem); margin: 0 0 8px; color: var(--cyan); }
+  .lead { margin: 0 0 32px; color: var(--muted); max-width: 640px; }
+  .tag { display: inline-block; font-size: 0.8rem; padding: 3px 10px; background: var(--magenta); color: var(--bg); margin-bottom: 10px; }
+
+  /* Videos */
+  .videos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; }
+  .video { background: var(--panel); border: 1px solid var(--line); }
+  .video video { width: 100%; aspect-ratio: 16 / 9; background: #000; }
+  .video div { padding: 16px 20px 20px; }
+  .video h3 { margin: 0 0 4px; font-size: 1.2rem; }
+  .video p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+  /* Features */
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+  .feature { background: var(--panel); border: 1px solid var(--line); }
+  .feature img { width: 100%; aspect-ratio: 16 / 8; object-fit: cover; }
+  .feature div { padding: 16px 20px 20px; }
+  .feature h3 { margin: 0 0 6px; font-size: 1.1rem; color: var(--text); }
+  .feature h3 b { color: var(--magenta); font-weight: 400; }
+  .feature p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  .feature.shop { border-color: var(--gold); }
+  .feature.shop h3 b { color: var(--gold); }
+
+  /* Install */
+  .install { background: linear-gradient(135deg, #0d1a5c, #2a0b4a); }
+  .steps { list-style: none; counter-reset: step; padding: 0; margin: 0 0 32px; display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .steps li { counter-increment: step; background: rgba(6, 11, 42, 0.55); border: 1px solid var(--line); padding: 20px; }
+  .steps li::before { content: counter(step); display: block; font-family: var(--title); font-size: 2rem; color: var(--magenta); line-height: 1; margin-bottom: 8px; }
+
+  footer { padding-block: 32px 48px; color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--line); }
+  footer p { margin: 4px 0; }
+
+  @media (max-width: 520px) {
+    body { font-size: 16px; }
+    .button { width: 100%; }
+    section { padding-block: 48px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .button { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <img src="img/hero-large.jpg" alt="Les quatre héros de l'escouade face au Titan, dans la ville">
+  <div class="wrap">
+    <svg class="logo" viewBox="0 0 860 180" role="img" aria-label="Overclock">
+      <polygon points="40,4 856,4 820,176 4,176" fill="#081236" stroke="#29d4ff" stroke-width="8"/>
+      <polygon points="190,140 760,140 756,154 186,154" fill="#ff3df2"/>
+      <polygon points="122,22 76,96 108,96 92,158 156,72 122,72" fill="#ff3df2"/>
+      <text x="200" y="118" fill="#e8ecff" font-family="Kenney Mini Square Mono, monospace" font-size="84" letter-spacing="4">OVERCLOCK</text>
+    </svg>
+    <p>Shooter d'arène en 3D low-poly. Choisis ton héros, survis aux vagues, abats les boss et va jusqu'au Titan.</p>
+    <div class="actions">
+      <a class="button" href="../">Jouer dans le navigateur</a>
+      <a class="button alt" href="https://github.com/mariusortiz/overclock-builds/releases/download/latest-debug/overclock-debug.apk">Télécharger l'APK</a>
+    </div>
+    <p class="note">Gratuit · Android et navigateur · aucune donnée collectée</p>
+  </div>
+</header>
+
+<main>
+  <section id="videos">
+    <div class="wrap">
+      <h2>Regarde</h2>
+      <p class="lead">Le trailer fait le tour du jeu ; l'anime raconte comment l'escouade s'est formée. Les deux sont joués par le moteur du jeu.</p>
+      <div class="videos">
+        <article class="video">
+          <video src="../trailer.mp4" poster="../trailer.jpg" controls playsinline preload="none"></video>
+          <div>
+            <h3>Trailer</h3>
+            <p>Les arènes, les ennemis, les boss, l'arsenal, les héros et la boutique. 2 min 30.</p>
+          </div>
+        </article>
+        <article class="video">
+          <video src="../anime.mp4" poster="../anime.jpg" controls playsinline preload="none"></video>
+          <div>
+            <span class="tag">Nouveau</span>
+            <h3>Épisode 1 : L'escouade</h3>
+            <p>Le Soldat, la Kunoichi, la Capitaine et le Ronin contre le Titan, façon anime. 2 min.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="jeu">
+    <div class="wrap">
+      <h2>Le jeu</h2>
+      <p class="lead">Vue à la troisième personne, contrôles tactiles ou clavier et souris, parties courtes. Tout se débloque en jouant.</p>
+      <div class="features">
+        <article class="feature">
+          <img src="img/arenas.jpg" alt="Le Soldat et la Kunoichi face au squelette géant dans le désert" loading="lazy">
+          <div><h3><b>5</b> arènes</h3><p>Station, désert, jungle, volcan et ville : ponts, étages, bâtiments et rivières de lave. Les ennemis montent jusqu'à toi.</p></div>
+        </article>
+        <article class="feature">
+          <img src="img/boss.jpg" alt="Le Titan dans la ville" loading="lazy">
+          <div><h3><b>5</b> boss</h3><p>Un boss toutes les cinq vagues, jusqu'au Titan. Bats-le pour gagner le skin Champion.</p></div>
+        </article>
+        <article class="feature">
+          <img src="img/ultis.jpg" alt="La Kunoichi et ses clones" loading="lazy">
+          <div><h3><b>19</b> héros</h3><p>Chacun son ulti : frappe aérienne, clones, arrêt du temps, tourbillon… et six danses en pleine partie.</p></div>
+        </article>
+        <article class="feature">
+          <img src="img/armes.jpg" alt="Les fusils d'assaut de l'arsenal" loading="lazy">
+          <div><h3><b>46</b> armes</h3><p>Pistolets, revolvers, fusils, fusils à pompe, précision, 9 armes de corps à corps et 18 skins, chacun avec sa façon d'éliminer.</p></div>
+        </article>
+        <article class="feature">
+          <img src="img/heros.jpg" alt="Les héros qui dansent dans l'arsenal" loading="lazy">
+          <div><h3><b>70</b> paliers</h3><p>Le passe de combat est gratuit : chaque partie rapporte de l'XP, des défis du jour, un classement et des statistiques.</p></div>
+        </article>
+        <article class="feature shop">
+          <img src="img/boutique.jpg" alt="Les héros exclusifs de la boutique" loading="lazy">
+          <div><h3><b>Boutique</b></h3><p>Armes exotiques (laser, fusil à rail, lance-flammes…), skins animés et héros à l'ulti boostée, avec les crédits gagnés en jouant.</p></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="android" class="install">
+    <div class="wrap">
+      <h2>Installer sur Android</h2>
+      <p class="lead">L'APK utilise le rendu complet du moteur : plus beau et plus fluide que dans le navigateur.</p>
+      <ol class="steps">
+        <li>Ouvre le lien de téléchargement sur ton téléphone.</li>
+        <li>Autorise ton navigateur à installer des applications inconnues, si Android le demande.</li>
+        <li>Ouvre le fichier et installe. Les nouvelles versions s'installent par-dessus l'ancienne, sans perdre ta progression.</li>
+      </ol>
+      <div class="actions">
+        <a class="button alt" href="https://github.com/mariusortiz/overclock-builds/releases/download/latest-debug/overclock-debug.apk">Télécharger l'APK</a>
+        <a class="button ghost" href="../">Ou jouer dans le navigateur</a>
+      </div>
+      <p class="note">Version de test, mise à jour à chaque nouveauté.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Overclock · fait avec Godot Engine.</p>
+    <p>Modèles, sons et musiques sous licence CC0 : Quaternius, Kenney et les auteurs d'OpenGameArt.</p>
+  </div>
+</footer>
+
+</body>
+</html>

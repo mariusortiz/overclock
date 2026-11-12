@@ -162,6 +162,9 @@ jobs:
           # Earlier builds installed a caching service worker: this file takes its
           # place and removes it (see tools/remove_service_worker.js).
           cp tools/remove_service_worker.js "$site/index.service.worker.js"
+          # The one-page website (site/), next to the game: .../overclock-builds/site/
+          mkdir -p "$site/site"
+          cp -r site/index.html site/img site/kenney_mini_square_mono.ttf "$site/site/"
           cd "$site"
           git init -q -b gh-pages
           # The trailer and the anime are published by their own workflows: carry them over.

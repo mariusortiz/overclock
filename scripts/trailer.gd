@@ -41,6 +41,7 @@ const WALK_SPEED := 1.0
 const GUN_SPACING := 2.3
 const GUN_LENGTH := 1.3
 const GUN_HEIGHT := 1.3
+const GUN_MAX_HEIGHT := 0.5
 const HERO_SPACING := 2.1
 const BLADE_SPACING := 2.3
 const ENEMY_SCENE := "res://scenes/enemy.tscn"
@@ -785,9 +786,16 @@ func _line_up_guns(guns: Array, skins: Array) -> void:
 func _gun_on_show(item: Dictionary, skin: Dictionary, index: int, parent: Node3D) -> Node3D:
 	var gun := Loadout.instantiate_weapon(item, skin)
 	var length: float = item.length
-	gun.scale = Vector3.ONE * (GUN_LENGTH / length)
+	# Every gun as long as the others. The exotic guns are stockier (the
+	# flamethrower): they stay no taller than GUN_MAX_HEIGHT.
+	var size := GUN_LENGTH / length
+	if item.get("shop", false):
+		var data: Dictionary = WeaponModels.DATA[item.model]
+		var model_size: Vector3 = data.max - data.min
+		size = minf(size, GUN_MAX_HEIGHT / (length * model_size.y / model_size.x))
+	gun.scale = Vector3.ONE * size
 	# The grip is at the gun's origin: slide it back to turn around its middle.
-	gun.position.z = GUN_LENGTH * 0.4
+	gun.position.z = length * size * 0.4
 	var holder := Node3D.new()
 	holder.position = Vector3(index * GUN_SPACING, GUN_HEIGHT, 0)
 	holder.add_child(gun)

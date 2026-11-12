@@ -18,6 +18,12 @@ https://github.com/mariusortiz/overclock-builds/releases/download/latest-debug/o
 
 Ouvre-le sur le téléphone, puis installe l'APK (il faut autoriser le navigateur à installer des applications inconnues). Les mises à jour s'installent par-dessus l'ancienne version, car elles sont toutes signées avec la même clé de debug. L'APK utilise le moteur de rendu complet (Vulkan) : le rendu et les FPS y sont meilleurs que dans le navigateur.
 
+### Site
+
+Page de présentation (trailer, anime, liens pour jouer et pour l'APK) : https://mariusortiz.github.io/overclock-builds/site/
+
+Sa source est dans `site/`, publiée avec chaque build web. Godot l'ignore (`site/.gdignore`).
+
 ### Vidéos
 
 - Trailer (2 min 30) : https://mariusortiz.github.io/overclock-builds/trailer.html
