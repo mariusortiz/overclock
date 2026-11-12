@@ -65,6 +65,67 @@ static func burst(parent: Node, at: Vector3, color: Color, amount := 24, rise :=
 	parent.get_tree().create_timer(2.5).timeout.connect(particles.queue_free)
 
 
+## A one-shot spray of small pieces at `at`. `colors` are picked at random,
+## one per piece. `size` is a piece's size (a flat square when z is small).
+## With `glow`, the pieces are unshaded and add light.
+static func spray(parent: Node, at: Vector3, colors: Array, amount: int, size: Vector3, speed: Vector2,
+		gravity: Vector3, spread := 180.0, lifetime := 1.2, glow := false) -> void:
+	var material := StandardMaterial3D.new()
+	material.vertex_color_use_as_albedo = true
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	if glow:
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	var piece := BoxMesh.new()
+	piece.size = size
+	piece.material = material
+	var ramp := Gradient.new()
+	ramp.interpolation_mode = Gradient.GRADIENT_INTERPOLATE_CONSTANT
+	var offsets := PackedFloat32Array()
+	for index in colors.size():
+		offsets.append(float(index) / colors.size())
+	ramp.offsets = offsets
+	ramp.colors = PackedColorArray(colors)
+	var particles := CPUParticles3D.new()
+	particles.mesh = piece
+	particles.amount = amount
+	particles.lifetime = lifetime
+	particles.one_shot = true
+	particles.explosiveness = 0.9
+	particles.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	particles.emission_sphere_radius = 0.4
+	particles.direction = Vector3.UP
+	particles.spread = spread
+	particles.gravity = gravity
+	particles.initial_velocity_min = speed.x
+	particles.initial_velocity_max = speed.y
+	particles.damping_min = 0.5
+	particles.damping_max = 1.5
+	particles.angle_max = 360.0
+	particles.scale_amount_min = 0.6
+	particles.scale_amount_max = 1.3
+	particles.color_initial_ramp = ramp
+	particles.position = at
+	particles.add_to_group("transient")
+	parent.add_child(particles)
+	particles.emitting = true
+	parent.get_tree().create_timer(lifetime + 1.5).timeout.connect(particles.queue_free)
+
+
+## A short burst of light at `at`.
+static func flash(parent: Node, at: Vector3, color: Color, energy := 8.0, seconds := 0.4) -> void:
+	var light := OmniLight3D.new()
+	light.light_color = color
+	light.light_energy = energy
+	light.omni_range = 8.0
+	light.position = at
+	light.add_to_group("transient")
+	parent.add_child(light)
+	var tween := light.create_tween()
+	tween.tween_property(light, "light_energy", 0.0, seconds)
+	tween.tween_callback(light.queue_free)
+
+
 ## A thin unshaded line from `from` to `to`, shown for a moment.
 static func tracer(parent: Node, from: Vector3, to: Vector3, color: Color) -> void:
 	if from.is_equal_approx(to):

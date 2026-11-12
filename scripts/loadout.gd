@@ -25,22 +25,23 @@ const CHARACTERS := [
 ## (assets/textures/skins/<id>.png, see tools/make_skin_textures.py) repaints
 ## the gun's body; "glow" makes it emit light; "scope" and "silencer" mount
 ## accessories; "shot" colors the tracer, the impact and the muzzle flash;
-## "kill" is the way enemies die when shot with it (see Enemy._die).
+## "kill" is the way enemies die when shot with it, one per skin (see
+## Enemy._play_death).
 const SKINS := [
-	{"id": "skin_standard", "kill": &"", "name": "Standard", "pattern": false, "glow": 0.0, "scope": false, "silencer": false, "shot": Color(1.0, 0.85, 0.4)},
+	{"id": "skin_standard", "kill": &"knockback", "name": "Standard", "pattern": false, "glow": 0.0, "scope": false, "silencer": false, "shot": Color(1.0, 0.85, 0.4)},
 	{"id": "skin_neon", "kill": &"vanish", "name": "Néon", "pattern": true, "glow": 0.5, "scope": false, "silencer": false, "shot": Color(0.0, 0.9, 1.0)},
 	{"id": "skin_ice", "kill": &"shatter", "name": "Glace", "pattern": true, "glow": 0.15, "scope": true, "silencer": false, "shot": Color(0.65, 0.9, 1.0)},
 	{"id": "skin_lava", "kill": &"burn", "name": "Lave", "pattern": true, "glow": 0.5, "scope": false, "silencer": false, "shot": Color(1.0, 0.4, 0.1)},
-	{"id": "skin_camo", "kill": &"", "name": "Camouflage", "pattern": true, "glow": 0.0, "scope": false, "silencer": true, "shot": Color(0.7, 0.9, 0.3)},
+	{"id": "skin_camo", "kill": &"leaves", "name": "Camouflage", "pattern": true, "glow": 0.0, "scope": false, "silencer": true, "shot": Color(0.7, 0.9, 0.3)},
 	{"id": "skin_toxic", "kill": &"melt", "name": "Toxique", "pattern": true, "glow": 0.4, "scope": true, "silencer": false, "shot": Color(0.6, 1.0, 0.1)},
-	{"id": "skin_royal", "kill": &"vanish", "name": "Royal", "pattern": true, "glow": 0.1, "scope": true, "silencer": false, "shot": Color(0.7, 0.4, 1.0)},
-	{"id": "skin_carbon", "kill": &"", "name": "Carbone", "pattern": true, "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1, 1, 1)},
-	{"id": "skin_sakura", "kill": &"burst", "name": "Sakura", "pattern": true, "glow": 0.1, "scope": false, "silencer": false, "shot": Color(1.0, 0.5, 0.8)},
-	{"id": "skin_ocean", "kill": &"melt", "name": "Océan", "pattern": true, "glow": 0.15, "scope": false, "silencer": true, "shot": Color(0.2, 0.6, 1.0)},
-	{"id": "skin_solar", "kill": &"burn", "name": "Solaire", "pattern": true, "glow": 0.3, "scope": false, "silencer": true, "shot": Color(1.0, 0.9, 0.3)},
-	{"id": "skin_gold", "kill": &"shatter", "name": "Or", "pattern": true, "glow": 0.2, "scope": true, "silencer": true, "shot": Color(1.0, 0.85, 0.3)},
+	{"id": "skin_royal", "kill": &"ascend", "name": "Royal", "pattern": true, "glow": 0.1, "scope": true, "silencer": false, "shot": Color(0.7, 0.4, 1.0)},
+	{"id": "skin_carbon", "kill": &"pixelate", "name": "Carbone", "pattern": true, "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1, 1, 1)},
+	{"id": "skin_sakura", "kill": &"petals", "name": "Sakura", "pattern": true, "glow": 0.1, "scope": false, "silencer": false, "shot": Color(1.0, 0.5, 0.8)},
+	{"id": "skin_ocean", "kill": &"splash", "name": "Océan", "pattern": true, "glow": 0.15, "scope": false, "silencer": true, "shot": Color(0.2, 0.6, 1.0)},
+	{"id": "skin_solar", "kill": &"flare", "name": "Solaire", "pattern": true, "glow": 0.3, "scope": false, "silencer": true, "shot": Color(1.0, 0.9, 0.3)},
+	{"id": "skin_gold", "kill": &"statue", "name": "Or", "pattern": true, "glow": 0.2, "scope": true, "silencer": true, "shot": Color(1.0, 0.85, 0.3)},
 	# Not in the battle pass: earned by beating the final boss.
-	{"id": "skin_champion", "kill": &"burst", "name": "Champion", "pattern": true, "glow": 0.6, "scope": true, "silencer": true, "shot": Color(1.0, 0.3, 0.9)},
+	{"id": "skin_champion", "kill": &"confetti", "name": "Champion", "pattern": true, "glow": 0.6, "scope": true, "silencer": true, "shot": Color(1.0, 0.3, 0.9)},
 ]
 const CHAMPION_SKIN_ID := "skin_champion"
 const CHAMPION_KEY := "champion"

@@ -466,39 +466,102 @@ func _die() -> void:
 
 
 ## Animates the death on `_tween`. The style comes from the skin of the gun
-## that made the kill.
+## that made the kill: each skin has its own (see Loadout.SKINS).
 func _play_death(style: StringName) -> void:
 	var scene := get_tree().current_scene
 	var chest := get_aim_position()
 	match style:
-		&"melt":  # sinks into a puddle, bubbling
+		&"knockback":  # thrown back, spinning, and gone in a puff of smoke
 			_model.play(&"die")
-			_model.tint(_kill_color, 0.6)
-			Effects.burst(scene, chest, _kill_color, 20, true)
-			_tween.tween_property(_visual, "scale", _base_scale * Vector3(1.5, 0.04, 1.5), 1.0)
-			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.3)
-		&"shatter":  # freezes solid, then breaks apart
+			var away := Vector3.BACK.rotated(Vector3.UP, rotation.y) * 2.5
+			if _player:
+				away = (global_position - _player.global_position).normalized() * 2.5
+			_tween.tween_property(self, "global_position", global_position + away + Vector3.UP * 0.6, 0.45) \
+					.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+			_tween.parallel().tween_property(_visual, "rotation:x", -TAU * 0.75, 0.45)
+			_tween.tween_callback(Effects.spray.bind(scene, chest + away, [Color(0.8, 0.8, 0.8), Color(0.55, 0.55, 0.6)], 18,
+					Vector3.ONE * 0.3, Vector2(0.5, 1.5), Vector3(0, 0.8, 0), 180.0, 1.0))
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.15)
+		&"vanish":  # Néon: stretches into a beam of light
+			_model.stop()
+			_model.tint(_kill_color, 2.5)
+			_tween.tween_property(_visual, "scale", _base_scale * Vector3(0.05, 2.6, 0.05), 0.4)
+			_tween.tween_callback(Effects.burst.bind(scene, chest + Vector3.UP, _kill_color, 14, true))
+		&"shatter":  # Glace: freezes solid, then breaks apart
 			_model.stop()
 			_model.tint(_kill_color.lerp(Color.WHITE, 0.4), 0.3)
 			_tween.tween_interval(0.45)
 			_tween.tween_callback(Effects.burst.bind(scene, chest, _kill_color, 36))
 			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.05)
-		&"burn":  # chars, glowing, with rising embers
+		&"burn":  # Lave: chars, glowing, with rising embers
 			_model.play(&"die")
 			_model.tint(Color(0.12, 0.08, 0.06).lerp(_kill_color, 0.35), 1.2)
 			Effects.burst(scene, chest, _kill_color, 28, true)
 			_tween.tween_property(_visual, "scale", _base_scale * Vector3(0.6, 0.15, 0.6), 1.0)
 			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.2)
-		&"vanish":  # stretches into a beam of light
+		&"leaves":  # Camouflage: crumbles into leaves that drift down
 			_model.stop()
-			_model.tint(_kill_color, 2.5)
-			_tween.tween_property(_visual, "scale", _base_scale * Vector3(0.05, 2.6, 0.05), 0.4)
-			_tween.tween_callback(Effects.burst.bind(scene, chest + Vector3.UP, _kill_color, 14, true))
-		&"burst":  # explodes into a shower of pieces
+			_model.tint(Color(0.25, 0.35, 0.15))
+			Effects.spray(scene, chest + Vector3.UP * 0.4, [Color(0.3, 0.5, 0.15), Color(0.45, 0.6, 0.2), Color(0.5, 0.35, 0.15)], 40,
+					Vector3(0.18, 0.18, 0.01), Vector2(0.5, 2.0), Vector3(0, -1.2, 0), 120.0, 2.2)
+			_tween.tween_property(_visual, "scale", _base_scale * Vector3(1, 0.01, 1), 0.5)
+		&"melt":  # Toxique: sinks into a puddle, bubbling
+			_model.play(&"die")
+			_model.tint(_kill_color, 0.6)
+			Effects.burst(scene, chest, _kill_color, 20, true)
+			_tween.tween_property(_visual, "scale", _base_scale * Vector3(1.5, 0.04, 1.5), 1.0)
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.3)
+		&"ascend":  # Royal: lifted up, crowned with purple sparks, then fades
+			_model.stop()
+			_model.tint(_kill_color, 1.2)
+			Effects.spray(scene, chest + Vector3.UP * 0.8, [_kill_color, Color(1.0, 0.85, 0.3)], 30,
+					Vector3.ONE * 0.08, Vector2(1.0, 2.5), Vector3(0, 1.0, 0), 40.0, 1.4, true)
+			_tween.tween_property(_visual, "position:y", 2.2, 0.9).set_ease(Tween.EASE_IN)
+			_tween.parallel().tween_property(_visual, "rotation:y", TAU, 0.9)
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.2)
+		&"pixelate":  # Carbone: breaks up into black cubes that tumble down
+			_model.stop()
+			_model.tint(Color(0.08, 0.08, 0.1))
+			_tween.tween_interval(0.15)
+			_tween.tween_callback(Effects.spray.bind(scene, chest, [Color(0.06, 0.06, 0.08), Color(0.25, 0.25, 0.28), Color.WHITE], 48,
+					Vector3.ONE * 0.2, Vector2(1.0, 3.0), Vector3(0, -9.0, 0), 160.0, 1.3))
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.06)
+		&"petals":  # Sakura: bursts into pink petals that float away
+			Effects.spray(scene, chest, [_kill_color, Color(1.0, 0.75, 0.88), Color.WHITE], 60,
+					Vector3(0.14, 0.1, 0.01), Vector2(2.0, 4.5), Vector3(0.6, -0.8, 0), 180.0, 2.4)
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.08)
+		&"splash":  # Océan: bursts into a splash of water and slumps
+			_model.play(&"die")
+			_model.tint(_kill_color, 0.4)
+			Effects.spray(scene, chest, [_kill_color, Color(0.6, 0.85, 1.0), Color.WHITE], 50,
+					Vector3.ONE * 0.1, Vector2(3.0, 6.0), Vector3(0, -12.0, 0), 50.0, 1.0)
+			_tween.tween_property(_visual, "scale", _base_scale * Vector3(1.3, 0.05, 1.3), 0.35)
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.25)
+		&"flare":  # Solaire: a blinding flash and sun rays
+			_model.stop()
+			_model.tint(Color.WHITE, 4.0)
+			Effects.flash(scene, chest, _kill_color, 10.0, 0.5)
+			Effects.spray(scene, chest, [_kill_color, Color.WHITE], 36,
+					Vector3(0.05, 0.05, 0.6), Vector2(6.0, 9.0), Vector3.ZERO, 180.0, 0.35, true)
+			_tween.tween_property(_visual, "scale", _base_scale * 1.3, 0.1)
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.12)
+		&"statue":  # Or: turns into a golden statue, which then crumbles
+			_model.stop()
+			_model.tint(Color(1.0, 0.8, 0.25), 0.35)
+			_tween.tween_interval(0.7)
+			_tween.tween_callback(Effects.spray.bind(scene, chest, [Color(1.0, 0.8, 0.25), Color(0.8, 0.6, 0.15)], 40,
+					Vector3.ONE * 0.16, Vector2(0.5, 2.0), Vector3(0, -9.0, 0), 120.0, 1.2))
+			_tween.tween_property(_visual, "scale", _base_scale * Vector3(1, 0.01, 1), 0.25)
+		&"confetti":  # Champion: a burst of confetti and a flash
+			Effects.flash(scene, chest, _kill_color, 6.0, 0.4)
+			Effects.spray(scene, chest, [_kill_color, Color(1.0, 0.85, 0.3), Color(0.16, 0.9, 1.0), Color.WHITE], 70,
+					Vector3(0.12, 0.08, 0.01), Vector2(3.0, 6.0), Vector3(0, -3.0, 0), 70.0, 2.0)
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.08)
+		&"burst":  # a kamikaze's blast: explodes into a shower of pieces
 			Effects.burst(scene, chest, _kill_color, 48)
 			Effects.burst(scene, chest, Color.WHITE, 16)
 			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.08)
-		_:  # falls over, then shrinks away
+		_:  # falls over, then shrinks away (bosses, melee kills)
 			_model.play(&"die")
 			_tween.tween_interval(DEATH_ANIMATION_TIME)
 			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.2)

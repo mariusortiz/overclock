@@ -154,7 +154,25 @@ L'inspection montre l'arme en gros plan devant la caméra, le temps de la regard
 
 Les modèles des armes de corps à corps sont dessinés par code (`tools/make_melee_models.py`) : lame en acier brossé, manche en bois, en caoutchouc ou tressé. Les 13 skins servent aussi à ces armes, avec un choix séparé de celui de l'arme à feu : la finition repeint la lame et garde le manche. Elle ne change que l'apparence.
 
-Les skins d'armes sont des finitions : ils gardent la forme de l'arme et la repeignent d'un motif (néon, camouflage, fibre de carbone, lave…), certains la font briller ou lui ajoutent une lunette ou un silencieux, et chacun change la couleur du tir. Les statistiques ne changent pas. Le skin décide aussi de la façon dont meurent les ennemis abattus : ils fondent en flaque (Toxique, Océan), gèlent puis éclatent (Glace, Or), se consument (Lave, Solaire), se dissipent en rayon de lumière (Néon, Royal) ou explosent en morceaux (Sakura, Champion). Le skin Champion ne s'obtient qu'en battant le boss final. Il y a 13 personnages : ils ne diffèrent que par leur apparence et leur ulti.
+Les skins d'armes sont des finitions : ils gardent la forme de l'arme et la repeignent d'un motif (néon, camouflage, fibre de carbone, lave…), certains la font briller ou lui ajoutent une lunette ou un silencieux, et chacun change la couleur du tir. Les statistiques ne changent pas. Chaque skin a aussi sa propre façon d'éliminer les ennemis :
+
+| Skin | Élimination |
+|---|---|
+| Standard | projeté en arrière en tournoyant, disparaît dans un nuage de fumée |
+| Néon | s'étire en rayon de lumière |
+| Glace | gèle puis éclate |
+| Lave | se consume en braises |
+| Camouflage | se défait en feuilles qui tombent |
+| Toxique | fond en flaque verte |
+| Royal | s'élève en tournant, couronné d'étincelles violettes |
+| Carbone | se pixelise en cubes noirs |
+| Sakura | éclate en pétales roses |
+| Océan | éclate en gerbe d'eau et s'affaisse |
+| Solaire | flash aveuglant et rayons de soleil |
+| Or | se change en statue dorée qui s'effondre |
+| Champion | explosion de confettis et éclair de lumière |
+
+Les boss gardent leur propre chute. Le skin Champion ne s'obtient qu'en battant le boss final. Il y a 13 personnages : ils ne diffèrent que par leur apparence et leur ulti.
 
 ## Développer en local (optionnel)
 
