@@ -121,7 +121,8 @@ func _start(game_mode: String, game_seed: int) -> void:
 
 func _my_info() -> Dictionary:
 	var hero := Loadout.selected_character()
-	return {"name": str(hero.name).to_upper(), "hero": hero.id, "color": Color.from_hsv(randf(), 0.75, 1.0).to_html(false)}
+	return {"name": str(hero.name).to_upper(), "hero": hero.id, "color": Color.from_hsv(randf(), 0.75, 1.0).to_html(false),
+			"ship": Loadout.selected_ship().id}
 
 
 func _on_connected() -> void:

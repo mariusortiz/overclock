@@ -4,7 +4,7 @@ extends SubViewportContainer
 ## weapons, on a transparent background so the 2D backdrop shows through.
 ## It can also show one weapon alone, floating and spinning (see `focus`).
 
-enum Focus { CHARACTER, WEAPON, MELEE }
+enum Focus { CHARACTER, WEAPON, MELEE, SHIP }
 
 const TURN_SPEED := 0.35
 const TURN_RANGE := 0.5  # radians each side of facing the camera
@@ -17,6 +17,9 @@ const FLOAT_MELEE_HEIGHT := 1.7
 const FLOAT_MELEE_MAX_SCALE := 3.4
 ## It leans a little, so that a blade is never seen exactly edge-on.
 const FLOAT_MELEE_TILT := 0.3
+## A race ship shown alone is scaled down to this, and tilted to show its top.
+const FLOAT_SHIP_SCALE := 0.5
+const FLOAT_SHIP_TILT := 0.35
 
 var _time := 0.0
 var _character: CharacterModel
@@ -33,11 +36,18 @@ var preview_pose := -1
 @onready var _pivot: Node3D = $SubViewport/World/Pivot
 @onready var _weapon_holder: Node3D = $SubViewport/World/Pivot/WeaponHolder
 @onready var _melee_holder: Node3D = $SubViewport/World/Pivot/MeleeHolder
+var _ship_holder := Node3D.new()
 
 
 func _process(delta: float) -> void:
 	# Sway around the pose facing the camera.
 	_time += delta
+	if _focus == Focus.SHIP:
+		_pivot.rotation.y = PI
+		_ship_holder.position = Vector3(0, FLOAT_HEIGHT + sin(_time * 1.6) * 0.05, 0)
+		_ship_holder.rotation = Vector3(FLOAT_SHIP_TILT, _time * SPIN_SPEED, 0)
+		_ship_holder.scale = Vector3.ONE * FLOAT_SHIP_SCALE
+		return
 	if _focus != Focus.CHARACTER:
 		# One weapon alone: it floats and turns on itself.
 		_pivot.rotation.y = PI
@@ -66,10 +76,13 @@ func _process(delta: float) -> void:
 ## weapon alone.
 func focus(what: Focus) -> void:
 	_focus = what
+	if _ship_holder.get_parent() == null:
+		_pivot.add_child(_ship_holder)
 	if _character:
 		_character.visible = what == Focus.CHARACTER
-	_weapon_holder.visible = what != Focus.MELEE
-	_melee_holder.visible = what != Focus.WEAPON
+	_weapon_holder.visible = what != Focus.MELEE and what != Focus.SHIP
+	_melee_holder.visible = what != Focus.WEAPON and what != Focus.SHIP
+	_ship_holder.visible = what == Focus.SHIP
 	for holder: Node3D in [_weapon_holder, _melee_holder]:
 		holder.transform = Transform3D.IDENTITY
 
@@ -99,6 +112,15 @@ func show_melee(item: Dictionary, skin := {}) -> void:
 	_melee_middle = bounds.get_center().y
 	_melee_tip_up = Loadout.is_carried_tip_up(item)
 	_replace(_melee_holder, Loadout.instantiate_melee(item, skin))
+
+
+## A race ship of Loadout.SHIPS, alone.
+func show_ship(item: Dictionary) -> void:
+	for old in _ship_holder.get_children():
+		old.queue_free()
+	var ship := RaceShip.new()
+	ship.configure(item)
+	_ship_holder.add_child(ship)
 
 
 ## Shows the player's current selection.

@@ -54,7 +54,22 @@ JOUER propose le mode à lancer :
 
 - **Vagues** : le mode d'origine, des vagues d'ennemis et un boss toutes les cinq vagues, jusqu'au Titan.
 - **Capture de zone** : ton équipe (toi et 3 bots alliés) contre 4 bots adverses, dans une arène tirée au hasard. Trois zones, A, B et C : seul dans une zone, ton équipe la prend en 5 s (plus vite à plusieurs) ; à plusieurs camps dedans, elle est disputée et ne bouge plus. Chaque zone tenue rapporte un point par seconde ; la première équipe à 150 gagne. On réapparaît à sa base 5 s après être tombé. Le score vient des éliminations (100), des zones prises en étant dedans (250) et de la victoire (1500) ; une défaite ne rapporte que la moitié de l'XP et des crédits. Les alliés ont un losange cyan au-dessus de la tête, les adversaires un rouge ; la mini-carte montre les zones et les alliés.
-- **Course de vaisseaux** : 3 tours d'un circuit dans l'espace (sa forme change à chaque course) contre 5 pilotes. Le vaisseau avance tout seul ; on le dirige dans le tube du circuit (joystick ou ZQSD). Les plaques cyan donnent un boost ; chaque anneau traversé remplit la jauge de boost, à lancer avec BOOST (touche E). TIR (clic ou espace) envoie un laser droit devant : le vaisseau touché ralentit, et explose au troisième tir avant de repartir. L'XP et les crédits dépendent de la place (3000 points pour la 1re, 600 pour la 6e). Les vaisseaux sont faits de formes simples en attendant un modèle 3D : un fichier .glb, .gltf ou .fbx déposé dans `assets/models/ships/` (nez vers -Z) le remplace automatiquement.
+- **Course de vaisseaux** : 3 tours d'un circuit dans l'espace (sa forme change à chaque course) contre 5 pilotes. Le vaisseau avance tout seul ; on le dirige dans le tube du circuit (joystick ou ZQSD). Les plaques cyan donnent un boost ; chaque anneau traversé remplit la jauge de la capacité spéciale du vaisseau, à lancer avec CAPACITÉ (touche E). TIR (clic ou espace) envoie un laser droit devant : le vaisseau touché ralentit, et explose au troisième tir avant de repartir. L'XP et les crédits dépendent de la place (3000 points pour la 1re, 600 pour la 6e). Les vaisseaux sont faits de formes simples en attendant un modèle 3D : un fichier .glb, .gltf ou .fbx déposé dans `assets/models/ships/` (nez vers -Z) le remplace automatiquement.
+
+### Vaisseaux
+
+Huit vaisseaux pour la course, choisis dans l'onglet VAISSEAU de l'arsenal. Le Dard est disponible dès le départ, les sept autres se débloquent aux paliers 71 à 77 du passe. Chacun a sa silhouette, ses attributs et une capacité spéciale, déclenchée quand la jauge des anneaux est pleine (bouton CAPACITÉ, touche E). En course, les pilotes de l'ordinateur prennent les autres vaisseaux.
+
+| Vaisseau | Vitesse | Maniabilité | Bouclier | Cadence | Capacité |
+|---|---|---|---|---|---|
+| Dard | 100 % | 100 % | 3 | 100 % | Surboost : 4 s de vitesse maximale |
+| Faucon | 106 % | 110 % | 2 | 100 % | Rafale : touche tous les vaisseaux devant |
+| Bélier | 95 % | 80 % | 5 | 80 % | Rempart : intouchable 4 s, renverse ceux qu'il percute |
+| Spectre | 100 % | 130 % | 2 | 100 % | Camouflage : invisible et intouchable 4 s |
+| Comète | 104 % | 90 % | 3 | 90 % | Hyperpropulsion : bond de 70 m |
+| Frelon | 100 % | 110 % | 3 | 160 % | Missile guidé : deux touches sur le vaisseau devant |
+| Tempête | 98 % | 100 % | 4 | 100 % | Onde EMP : ralentit les vaisseaux à moins de 45 m |
+| Nova | 102 % | 100 % | 3 | 110 % | Mines : trois mines derrière soi |
 
 ## Power-ups
 
@@ -156,7 +171,7 @@ Chaque personnage a une capacité ultime. Sa jauge, affichée au-dessus des muni
 
 ## Passe de combat
 
-Chaque partie rapporte de l'XP (un dixième du score, divisé par deux si tu meurs). Le passe compte 70 paliers, permanents et gratuits : les 30 premiers coûtent de plus en plus cher, les 40 suivants (le reste des armes à feu, puis cinq lames) 1000 XP chacun. Chaque palier débloque un personnage, une arme, une arme de corps à corps ou un skin d'arme. Le Soldat, le Blaster, le Couteau et le skin Standard sont disponibles dès le départ. L'ordre des récompenses est dans `scripts/battle_pass.gd`.
+Chaque partie rapporte de l'XP (un dixième du score, divisé par deux si tu meurs). Le passe compte 77 paliers, permanents et gratuits : les 30 premiers coûtent de plus en plus cher, les 47 suivants (le reste des armes à feu, cinq lames, puis sept vaisseaux) 1000 XP chacun. Chaque palier débloque un personnage, une arme, une arme de corps à corps ou un skin d'arme. Le Soldat, le Blaster, le Couteau et le skin Standard sont disponibles dès le départ. L'ordre des récompenses est dans `scripts/battle_pass.gd`.
 
 ## Arsenal
 

@@ -7,7 +7,7 @@ const CARD_SIZE := Vector2(214, 108)
 ## Characters that fit on one line of a card.
 const CARD_LINE_LENGTH := 12
 ## Five tabs share the width of the panel.
-const TAB_FONT_SIZE := 17
+const TAB_FONT_SIZE := 15
 
 ## One tab per kind of item. "stats" lists what the detail panel shows:
 ## [label, key in the item, value that fills the bar].
@@ -19,6 +19,8 @@ var _tabs := [
 		"stats": [["DÉGÂTS", "damage", 10.0], ["PORTÉE", "range", 4.5], ["VITESSE", "speed", 3.4]]},
 	{"label": "SKIN ARME", "key": Loadout.SKIN_KEY, "items": Loadout.SKINS, "stats": []},
 	{"label": "SKIN MÊLÉE", "key": Loadout.MELEE_SKIN_KEY, "items": Loadout.SKINS, "stats": []},
+	{"label": "VAISSEAU", "key": Loadout.SHIP_KEY, "items": Loadout.SHIPS,
+		"stats": [["VITESSE", "velocity", 1.1], ["MANIABILITÉ", "handling", 1.4], ["BOUCLIER", "shield", 5.0], ["CADENCE", "fire", 1.7]]},
 ]
 var _tab_index := 0
 var _viewed: Dictionary
@@ -62,6 +64,9 @@ func _select_tab(index: int) -> void:
 			_stage.focus(CharacterStage.Focus.CHARACTER)
 		Loadout.MELEE_KEY, Loadout.MELEE_SKIN_KEY:
 			_stage.focus(CharacterStage.Focus.MELEE)
+		Loadout.SHIP_KEY:
+			_stage.focus(CharacterStage.Focus.SHIP)
+			_stage.show_ship(Loadout.selected_ship())
 		_:
 			_stage.focus(CharacterStage.Focus.WEAPON)
 	_stage.show_loadout()
@@ -78,6 +83,8 @@ func _equipped() -> Dictionary:
 			return Loadout.selected_skin()
 		Loadout.MELEE_SKIN_KEY:
 			return Loadout.selected_melee_skin()
+		Loadout.SHIP_KEY:
+			return Loadout.selected_ship()
 	return Loadout.selected_character()
 
 
@@ -116,6 +123,9 @@ func _refresh() -> void:
 		_detail_status.text = "Équipé"
 	if _viewed.has("kill") and Loadout.KILL_NAMES.has(_viewed.kill) and _tabs[_tab_index].key == Loadout.SKIN_KEY:
 		_detail_status.text += "\nÉlimination : %s" % Loadout.KILL_NAMES[_viewed.kill]
+	if _viewed.has("special"):
+		var special: Array = Loadout.SHIP_SPECIALS[_viewed.special]
+		_detail_status.text += "\nCAPACITÉ · %s : %s" % [special[0], special[1]]
 	if _viewed.has("pellets"):
 		_detail_status.text += "\n%d plombs par tir" % _viewed.pellets
 	if _viewed.has("ulti"):
@@ -149,6 +159,8 @@ func _on_card_pressed(item: Dictionary) -> void:
 			_stage.show_weapon(Loadout.selected_weapon(), item)
 		Loadout.MELEE_SKIN_KEY:
 			_stage.show_melee(Loadout.selected_melee(), item)
+		Loadout.SHIP_KEY:
+			_stage.show_ship(item)
 	# Deferred: the cards are rebuilt, and one of them is handling this click.
 	_refresh.call_deferred()
 

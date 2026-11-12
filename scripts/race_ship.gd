@@ -31,6 +31,16 @@ var speed := 0.0
 ## Fraction of the computer's top speed (difficulty).
 var skill := 1.0
 var shield := SHIELD
+## The ship's own attributes and special (Loadout.SHIPS), see configure().
+var ship_id := ""
+var max_shield := SHIELD
+var velocity := 1.0
+var handling := 1.0
+var fire_rate := 1.0
+var special := &"surboost"
+## Special effects running: untouchable, invisible.
+var shielded_left := 0.0
+var cloak_left := 0.0
 var boost_left := 0.0
 var stun_left := 0.0
 var respawn_left := 0.0
@@ -77,6 +87,25 @@ func _ready() -> void:
 		_flames.append(flame)
 
 
+## Takes a ship of Loadout.SHIPS: its hull, color, attributes and special.
+## Call before the ship enters the tree.
+func configure(item: Dictionary) -> void:
+	ship_id = item.id
+	design = item.design
+	color = item.color
+	velocity = item.velocity
+	handling = item.handling
+	max_shield = item.shield
+	shield = max_shield
+	fire_rate = item.fire
+	special = item.special
+
+
+## Laser hits pass through it (rampart, cloak).
+func is_untouchable() -> bool:
+	return shielded_left > 0.0 or cloak_left > 0.0
+
+
 func is_flying() -> bool:
 	return respawn_left <= 0.0
 
@@ -85,7 +114,7 @@ func is_flying() -> bool:
 func top_speed() -> float:
 	if stun_left > 0.0:
 		return STUN_SPEED
-	return BASE_SPEED * skill + (BOOST_SPEED if boost_left > 0.0 else 0.0)
+	return BASE_SPEED * skill * velocity + (BOOST_SPEED if boost_left > 0.0 else 0.0)
 
 
 ## Advances the ship by `delta` seconds, steering by `steer` (-1 to 1 on
@@ -93,16 +122,17 @@ func top_speed() -> float:
 func fly(delta: float, steer: Vector2, track: RaceTrack) -> void:
 	boost_left = maxf(boost_left - delta, 0.0)
 	stun_left = maxf(stun_left - delta, 0.0)
+	_update_specials(delta)
 	if respawn_left > 0.0:
 		respawn_left -= delta
 		_body.visible = int(respawn_left * 10.0) % 2 == 0
 		if respawn_left <= 0.0:
 			_body.visible = true
-			shield = SHIELD
+			shield = max_shield
 		speed = STUN_SPEED
 	speed = move_toward(speed, top_speed(), ACCELERATION * delta)
 	distance += speed * delta
-	offset = RaceTrack.clamp_offset(offset + steer * STEER_SPEED * delta)
+	offset = RaceTrack.clamp_offset(offset + steer * STEER_SPEED * handling * delta)
 	var frame := track.frame_at(distance, offset)
 	# Bank into the turn a little.
 	frame.basis = frame.basis * Basis(Vector3.FORWARD, -steer.x * 0.35) * Basis(Vector3.RIGHT, steer.y * 0.15)
@@ -115,6 +145,7 @@ func fly(delta: float, steer: Vector2, track: RaceTrack) -> void:
 ## pulled toward the last position received.
 func follow_state(delta: float, track: RaceTrack) -> void:
 	boost_left = maxf(boost_left - delta, 0.0)
+	_update_specials(delta)
 	if respawn_left > 0.0:
 		respawn_left -= delta
 		_body.visible = int(respawn_left * 10.0) % 2 == 0
@@ -138,10 +169,44 @@ func apply_state(state: Array) -> void:
 	respawn_left = state[5]
 	finished = state[6]
 	finish_time = state[7]
+	shielded_left = state[8]
+	cloak_left = state[9]
 
 
 func get_state() -> Array:
-	return [distance, offset, speed, shield, boost_left, respawn_left, finished, finish_time]
+	return [distance, offset, speed, shield, boost_left, respawn_left, finished, finish_time, shielded_left, cloak_left]
+
+
+## The rampart's glow and the cloak's fading, while they last.
+func _update_specials(delta: float) -> void:
+	var was_cloaked := cloak_left > 0.0
+	shielded_left = maxf(shielded_left - delta, 0.0)
+	cloak_left = maxf(cloak_left - delta, 0.0)
+	if was_cloaked != (cloak_left > 0.0) or cloak_left > 0.0:
+		for mesh: MeshInstance3D in _body.find_children("*", "MeshInstance3D", true, false):
+			mesh.transparency = 0.8 if cloak_left > 0.0 else 0.0
+	if _bubble:
+		_bubble.visible = shielded_left > 0.0
+
+
+var _bubble: MeshInstance3D
+
+
+## Rampart: a golden bubble around the ship for `seconds`.
+func raise_shield(seconds: float) -> void:
+	shielded_left = seconds
+	if _bubble == null:
+		var material := StandardMaterial3D.new()
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.albedo_color = Color(1.0, 0.8, 0.25, 0.3)
+		var sphere := SphereMesh.new()
+		sphere.radius = LENGTH * 0.75
+		sphere.height = LENGTH * 1.2
+		sphere.material = material
+		_bubble = MeshInstance3D.new()
+		_bubble.mesh = sphere
+		add_child(_bubble)
 
 
 func boost(seconds := BOOST_TIME) -> void:
@@ -150,7 +215,7 @@ func boost(seconds := BOOST_TIME) -> void:
 
 ## Hit by a laser: slowed down, and destroyed when its shield runs out.
 func hit() -> void:
-	if not is_flying():
+	if not is_flying() or is_untouchable():
 		return
 	stun_left = STUN_TIME
 	shield -= 1
@@ -211,6 +276,57 @@ func _build_model() -> void:
 			_part(_sphere(0.3, 0.55), Vector3(0, 0.38, -0.3), Vector3.ZERO, glass)
 			_engine(Vector3(-0.25, 0.1, LENGTH * 0.48), 0.2, dark, glow)
 			_engine(Vector3(0.25, 0.1, LENGTH * 0.48), 0.2, dark, glow)
+		3:  # Ram: a heavy armoured wedge with plates.
+			_part(_prism(Vector3(1.8, LENGTH * 0.9, 0.9)), Vector3(0, 0.1, -0.1), Vector3(-90, 0, 0), dark)
+			_part(_box(Vector3(2.0, 0.7, 1.2)), Vector3(0, 0.15, 1.0), Vector3.ZERO, hull)
+			for side: float in [-1.0, 1.0]:
+				_part(_box(Vector3(0.25, 0.8, 2.2)), Vector3(side * 1.05, 0.1, 0.4), Vector3(0, side * 8.0, 0), accent)
+			_part(_box(Vector3(1.9, 0.12, 0.3)), Vector3(0, 0.55, -0.2), Vector3.ZERO, accent)
+			_part(_sphere(0.32, 0.5), Vector3(0, 0.6, 0.6), Vector3.ZERO, glass)
+			_engine(Vector3(-0.55, 0.15, LENGTH * 0.5 + 0.1), 0.3, dark, glow)
+			_engine(Vector3(0.55, 0.15, LENGTH * 0.5 + 0.1), 0.3, dark, glow)
+		4:  # Specter: a thin flying wing, swept back, almost flat.
+			for side: float in [-1.0, 1.0]:
+				_part(_box(Vector3(2.4, 0.06, 0.9)), Vector3(side * 1.0, 0, 0.5), Vector3(0, side * -35.0, 0), dark)
+				_part(_box(Vector3(2.2, 0.08, 0.12)), Vector3(side * 1.0, 0.04, 0.05), Vector3(0, side * -35.0, 0), accent)
+			_part(_prism(Vector3(0.7, LENGTH * 0.8, 0.3)), Vector3(0, 0.05, -0.4), Vector3(-90, 0, 0), hull)
+			_part(_sphere(0.24, 0.5), Vector3(0, 0.2, -0.5), Vector3.ZERO, glass)
+			_engine(Vector3(0, 0.05, LENGTH * 0.42), 0.18, dark, glow)
+		5:  # Comet: a capsule inside a glowing ring.
+			_part(_capsule(0.45, LENGTH * 0.85), Vector3(0, 0, 0), Vector3(-90, 0, 0), hull)
+			var ring := TorusMesh.new()
+			ring.inner_radius = 1.0
+			ring.outer_radius = 1.2
+			_part(ring, Vector3(0, 0, 0.5), Vector3(90, 0, 0), accent)
+			for angle in [0.0, 120.0, 240.0]:
+				_part(_box(Vector3(0.08, 1.0, 0.2)), Vector3(cos(deg_to_rad(angle + 90.0)) * 0.6, sin(deg_to_rad(angle + 90.0)) * 0.6, 0.5), Vector3(0, 0, angle), dark)
+			_part(_sphere(0.3, 0.6), Vector3(0, 0.25, -0.6), Vector3.ZERO, glass)
+			_engine(Vector3(0, 0, LENGTH * 0.5), 0.32, dark, glow)
+		6:  # Hornet: a striped body with four small wings and two stingers.
+			_part(_capsule(0.38, LENGTH * 0.75), Vector3(0, 0.05, 0.1), Vector3(-90, 0, 0), accent)
+			for z in [-0.2, 0.4, 1.0]:
+				_part(_box(Vector3(0.8, 0.8, 0.12)), Vector3(0, 0.05, z), Vector3.ZERO, dark)
+			for side: float in [-1.0, 1.0]:
+				for z: float in [-0.3, 0.5]:
+					_part(_box(Vector3(1.3, 0.04, 0.5)), Vector3(side * 0.85, 0.25, z), Vector3(0, side * -20.0, side * 12.0), glass)
+				_part(_box(Vector3(0.08, 0.08, 1.0)), Vector3(side * 0.25, -0.15, -1.6), Vector3.ZERO, dark)
+			_part(_sphere(0.28, 0.7), Vector3(0, 0.25, -0.7), Vector3.ZERO, glass)
+			_engine(Vector3(0, 0.05, LENGTH * 0.48), 0.22, dark, glow)
+		7:  # Nova: a saucer with three fins and a dome.
+			var disc := CylinderMesh.new()
+			disc.top_radius = 1.1
+			disc.bottom_radius = 1.4
+			disc.height = 0.35
+			_part(disc, Vector3(0, 0, 0), Vector3.ZERO, hull)
+			var rim := TorusMesh.new()
+			rim.inner_radius = 1.3
+			rim.outer_radius = 1.45
+			_part(rim, Vector3(0, 0, 0), Vector3.ZERO, accent)
+			_part(_sphere(0.5, 0.7), Vector3(0, 0.3, -0.1), Vector3.ZERO, glass)
+			for side: float in [-1.0, 0.0, 1.0]:
+				_part(_box(Vector3(0.08, 0.5, 0.7)), Vector3(side * 0.6, 0.3, 1.0), Vector3(0, 0, side * -25.0), accent)
+			_engine(Vector3(-0.5, 0, 1.3), 0.18, dark, glow)
+			_engine(Vector3(0.5, 0, 1.3), 0.18, dark, glow)
 		_:  # Twin boom: a pod between two engine booms.
 			_part(_capsule(0.4, LENGTH * 0.7), Vector3(0, 0.1, -0.2), Vector3(-90, 0, 0), hull)
 			_part(_box(Vector3(2.6, 0.08, 0.9)), Vector3(0, 0, 0.35), Vector3.ZERO, accent)

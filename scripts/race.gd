@@ -22,6 +22,15 @@ const LASER_WIDTH := 2.6
 const AI_FIRE_INTERVAL := 1.1
 const AI_ACCURACY := 0.55
 const GATE_CHARGE := 0.12
+## Specials: how long, how far.
+const SPECIAL_TIME := 4.0
+const SALVO_RANGE := 150.0
+const MISSILE_RANGE := 250.0
+const EMP_RANGE := 45.0
+const EMP_STUN := 2.0
+const WARP_DISTANCE := 70.0
+const MINE_RADIUS := 2.8
+const MINE_STUN := 1.2
 const PAD_RADIUS := 3.0
 const SHIP_RADIUS := 1.6
 const PLACE_SCORES := [3000, 2200, 1600, 1200, 900, 600]
@@ -47,6 +56,8 @@ var _passed := {}
 var _online := false
 var _send_left := 0.0
 var _ready_peers := {}
+## Mines on the track: [distance, offset, node, ship that laid it].
+var _mines: Array[Array] = []
 
 var _layer := CanvasLayer.new()
 var _touch := TouchControls.new()
@@ -72,8 +83,19 @@ func _ready() -> void:
 			seed_value = argument.get_slice("=", 1).to_int()
 	_track.build(seed_value)
 	add_child(_track)
+	# Each pilot flies a different ship: the player the one chosen in the
+	# armory, the computers the others, shuffled with the track's seed.
+	var others := Loadout.SHIPS.filter(func(item: Dictionary) -> bool: return item.id != Loadout.selected_ship().id)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	for i in range(others.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var swap: Dictionary = others[i]
+		others[i] = others[j]
+		others[j] = swap
 	for i in PILOTS.size():
 		var ship := RaceShip.new()
+		ship.configure(Loadout.selected_ship() if i == 0 else others[(i - 1) % others.size()])
 		ship.display_name = PILOTS[i][0]
 		ship.color = PILOTS[i][1]
 		ship.skill = PILOTS[i][2]
@@ -86,7 +108,7 @@ func _ready() -> void:
 				var info: Dictionary = Net.players[ids[i]]
 				ship.peer_id = ids[i]
 				ship.display_name = info.name
-				ship.color = Color.html(info.color)
+				ship.configure(Loadout.find(info.get("ship", "ship_dart")).item)
 				ship.skill = 1.0
 				ship.is_player = ids[i] == Net.my_id()
 			ship.remote = not ship.is_player and not (ship.peer_id == 0 and Net.is_host())
@@ -167,6 +189,7 @@ func _physics_process(delta: float) -> void:
 			_check_track(ship)
 	if _online:
 		_send_states(delta)
+	_check_mines()
 	_check_finish()
 	_place_camera(delta)
 	_refresh_ui()
@@ -178,13 +201,11 @@ func _steer_player(delta: float) -> void:
 	var steer := Vector2.ZERO
 	if not _over:
 		steer = Vector2(Input.get_axis("move_left", "move_right"), Input.get_axis("move_back", "move_forward"))
-		if Input.is_action_just_pressed("ultimate") and _player.boost_charge >= 1.0:
-			_player.boost_charge = 0.0
-			_player.boost(3.0)
-			_show_center("BOOST !", 0.8)
+		if Input.is_action_just_pressed("ultimate") and _player.boost_charge >= 1.0 and _player.is_flying():
+			_trigger_special(_player)
 		_laser_left -= delta
 		if (Input.is_action_pressed("fire") or Input.is_action_pressed("jump")) and _laser_left <= 0.0 and _player.is_flying():
-			_laser_left = LASER_INTERVAL
+			_laser_left = LASER_INTERVAL / _player.fire_rate
 			_fire(_player, 1.0)
 	_player.fly(delta, steer, _track)
 
@@ -205,13 +226,12 @@ func _steer_computers(delta: float) -> void:
 		var steer := (goal - ship.offset).limit_length(1.0)
 		var gap := _player.distance - ship.distance
 		ship.skill = PILOTS[_ships.find(ship)][2] * (1.06 if gap > 60.0 else (0.95 if gap < -80.0 else 1.0))
-		if ship.boost_charge >= 1.0 and randf() < 0.01:
-			ship.boost_charge = 0.0
-			ship.boost(3.0)
+		if ship.boost_charge >= 1.0 and randf() < 0.01 and ship.is_flying():
+			_trigger_special(ship)
 		ship.fly(delta, steer, _track)
 		_ai_fire_left[ship] -= delta
 		if _ai_fire_left[ship] <= 0.0 and ship.is_flying():
-			_ai_fire_left[ship] = AI_FIRE_INTERVAL * randf_range(0.7, 1.4)
+			_ai_fire_left[ship] = AI_FIRE_INTERVAL * randf_range(0.7, 1.4) / ship.fire_rate
 			_fire(ship, AI_ACCURACY)
 
 
@@ -221,7 +241,7 @@ func _fire(shooter: RaceShip, accuracy: float) -> void:
 	var target: RaceShip = null
 	var best := LASER_RANGE
 	for ship in _ships:
-		if ship == shooter or not ship.is_flying():
+		if ship == shooter or not ship.is_flying() or ship.is_untouchable():
 			continue
 		var ahead := ship.distance - shooter.distance
 		if ahead > 0.0 and ahead < best and ship.offset.distance_to(shooter.offset) < LASER_WIDTH:
@@ -243,6 +263,128 @@ func _fire(shooter: RaceShip, accuracy: float) -> void:
 	Effects.tracer(self, from, to, shooter.color.lerp(Color.WHITE, 0.3))
 
 
+## The gauge is full: the ship's special (online, on every device at once).
+func _trigger_special(ship: RaceShip) -> void:
+	ship.boost_charge = 0.0
+	if _online:
+		_special.rpc(_ships.find(ship))
+	else:
+		_apply_special(ship)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _special(index: int) -> void:
+	if index >= 0 and index < _ships.size():
+		_apply_special(_ships[index])
+
+
+func _apply_special(ship: RaceShip) -> void:
+	var info: Array = Loadout.SHIP_SPECIALS[ship.special]
+	if ship == _player:
+		_show_center(info[0] + " !", 1.0)
+	Effects.flash(self, ship.global_position, ship.color, 8.0, 0.4)
+	match ship.special:
+		&"surboost":
+			ship.boost(SPECIAL_TIME)
+		&"salvo":
+			for target in _ships:
+				var ahead := target.distance - ship.distance
+				if target != ship and ahead > 0.0 and ahead < SALVO_RANGE and target.is_flying() and not target.is_untouchable():
+					Effects.tracer(self, ship.global_position, target.global_position, ship.color)
+					target.hit()
+					_warn(target, ship, info[0])
+		&"rampart":
+			ship.raise_shield(SPECIAL_TIME)
+		&"cloak":
+			ship.cloak_left = SPECIAL_TIME
+		&"warp":
+			Effects.burst(self, ship.global_position, ship.color, 40)
+			ship.distance += WARP_DISTANCE
+			ship.boost(1.0)
+		&"missile":
+			var target: RaceShip = null
+			for other in _ships:
+				var ahead := other.distance - ship.distance
+				if other != ship and ahead > 0.0 and ahead < MISSILE_RANGE and other.is_flying() and not other.is_untouchable():
+					if target == null or ahead < target.distance - ship.distance:
+						target = other
+			if target:
+				Effects.tracer(self, ship.global_position, target.global_position, Color(1.0, 0.6, 0.2))
+				target.hit()
+				target.hit()
+				_warn(target, ship, info[0])
+		&"emp":
+			_emp_ring(ship)
+			for other in _ships:
+				if other != ship and absf(other.distance - ship.distance) < EMP_RANGE and not other.is_untouchable():
+					other.stun_left = EMP_STUN
+					_warn(other, ship, info[0])
+		&"mines":
+			for i in 3:
+				_lay_mine(ship, ship.distance - 6.0 - 5.0 * i, ship.offset + Vector2((i - 1) * 3.0, 0))
+
+
+## Tells the player who just got them, and with what.
+func _warn(target: RaceShip, attacker: RaceShip, what: String) -> void:
+	if target == _player:
+		_show_center("%s : %s" % [attacker.display_name, what], 1.2)
+
+
+func _emp_ring(ship: RaceShip) -> void:
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.9
+	torus.outer_radius = 1.0
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(ship.color, 0.7)
+	torus.material = material
+	ring.mesh = torus
+	add_child(ring)
+	ring.global_transform = ship.global_transform * Transform3D(Basis(Vector3.RIGHT, PI / 2.0), Vector3.ZERO)
+	var tween := ring.create_tween()
+	tween.tween_property(ring, "scale", Vector3.ONE * EMP_RANGE, 0.6)
+	tween.parallel().tween_property(material, "albedo_color:a", 0.0, 0.6)
+	tween.tween_callback(ring.queue_free)
+
+
+func _lay_mine(owner_ship: RaceShip, at: float, offset: Vector2) -> void:
+	var mine := MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.6
+	sphere.height = 1.2
+	var material := StandardMaterial3D.new()
+	material.albedo_color = owner_ship.color
+	material.emission_enabled = true
+	material.emission = owner_ship.color
+	material.emission_energy_multiplier = 3.0
+	sphere.material = material
+	mine.mesh = sphere
+	add_child(mine)
+	var clamped := RaceTrack.clamp_offset(offset)
+	mine.transform = _track.frame_at(at, clamped)
+	_mines.append([at, clamped, mine, owner_ship])
+
+
+## A ship (flown on this device) that runs into a mine is hit and slowed.
+func _check_mines() -> void:
+	for mine: Array in _mines.duplicate():
+		for ship in _ships:
+			if ship == mine[3] or ship.remote or not ship.is_flying():
+				continue
+			var lap_gap := fposmod(ship.distance - mine[0] + 10.0, _track.length) - 10.0
+			if absf(lap_gap) < 2.0 and ship.offset.distance_to(mine[1]) < MINE_RADIUS:
+				if not ship.is_untouchable():
+					ship.hit()
+					ship.stun_left = MINE_STUN
+					_warn(ship, mine[3], "MINE")
+				Effects.burst(self, ship.global_position, mine[3].color, 40)
+				(mine[2] as Node3D).queue_free()
+				_mines.erase(mine)
+				break
+
+
 ## Ships side by side push each other apart; the one behind loses speed.
 func _bump_ships() -> void:
 	for i in _ships.size():
@@ -259,6 +401,11 @@ func _bump_ships() -> void:
 				b.offset = RaceTrack.clamp_offset(b.offset - push * 0.4)
 				var behind := a if a.distance < b.distance else b
 				behind.speed *= 0.97
+				# A rampart knocks the other one off course.
+				for pair: Array in [[a, b], [b, a]]:
+					if pair[0].shielded_left > 0.0 and pair[1].stun_left <= 0.0:
+						pair[1].stun_left = RaceShip.STUN_TIME
+						pair[1].offset = RaceTrack.clamp_offset(pair[1].offset - push * (3.0 if pair[1] == b else -3.0))
 
 
 ## Gates crossed fill the boost gauge; pads flown over boost.
@@ -319,7 +466,7 @@ func _build_ui() -> void:
 	add_child(_layer)
 	_touch.buttons = [
 		{"action": "fire", "label": "TIR", "radius": TouchControls.FIRE_RADIUS, "offset": Vector2.ZERO, "toggle": false},
-		{"action": "ultimate", "label": "BOOST", "radius": 60.0, "offset": Vector2(-170, 20), "toggle": false},
+		{"action": "ultimate", "label": "CAPACITÉ", "radius": 60.0, "offset": Vector2(-170, 20), "toggle": false},
 	]
 	_touch.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_touch.visible = DisplayServer.is_touchscreen_available()
@@ -383,7 +530,7 @@ func _refresh_ui() -> void:
 	_place_label.text = "%d / %d" % [standings.find(_player) + 1, _ships.size()]
 	var lap := mini(int(maxf(_player.distance, 0.0) / _track.length) + 1, LAPS)
 	_lap_label.text = "TOUR %d / %d  ·  %s" % [lap, LAPS, _time_text(_clock)]
-	_shield_label.text = "BOUCLIER %d / %d" % [_player.shield, RaceShip.SHIELD] if _player.is_flying() else "RÉPARATION..."
+	_shield_label.text = "BOUCLIER %d / %d" % [_player.shield, _player.max_shield] if _player.is_flying() else "RÉPARATION..."
 	_speed_label.text = "%d KM/H" % int(_player.speed * 3.6 * 3.0)
 	_boost_bar.value = _player.boost_charge
 	_boost_bar.modulate = Color(1.0, 0.8, 0.25) if _player.boost_charge >= 1.0 else Color.WHITE

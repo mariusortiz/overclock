@@ -29,6 +29,8 @@ const REWARDS: Array[String] = [
 	"sniper_6", "shotgun_6", "rifle_7", "rifle_8", "rifle_9",
 	# Tiers 66 and up: the blades.
 	"kunai", "butterfly", "karambit", "machete", "katana",
+	# Tiers 71 and up: the ships of the race.
+	"ship_falcon", "ship_ram", "ship_specter", "ship_comet", "ship_hornet", "ship_storm", "ship_nova",
 ]
 
 

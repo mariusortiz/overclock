@@ -141,6 +141,33 @@ const WEAPONS := [
 	{"id": "minigun", "name": "Minigun", "model": "Blaster_Minigun", "length": 1.0, "fire_rate": 24.0, "damage": 1, "magazine": 150, "reload_time": 3.2, "zoom_fov": 44.0, "shop": true},
 ]
 
+## Ships of the race. "design" is the hull (RaceShip._build_model);
+## "velocity" scales the top speed, "handling" the steering, "fire" the rate
+## of fire; "shield" is the hits it takes before exploding. "special" is the
+## ability the gauge triggers (see Race._apply_special). The Dart is there from
+## the start, the others come with the battle pass.
+const SHIPS := [
+	{"id": "ship_dart", "name": "Dard", "design": 0, "color": Color(0.16, 0.9, 1.0), "velocity": 1.0, "handling": 1.0, "shield": 3, "fire": 1.0, "special": &"surboost"},
+	{"id": "ship_falcon", "name": "Faucon", "design": 1, "color": Color(1.0, 0.3, 0.2), "velocity": 1.06, "handling": 1.1, "shield": 2, "fire": 1.0, "special": &"salvo"},
+	{"id": "ship_ram", "name": "Bélier", "design": 3, "color": Color(1.0, 0.65, 0.1), "velocity": 0.95, "handling": 0.8, "shield": 5, "fire": 0.8, "special": &"rampart"},
+	{"id": "ship_specter", "name": "Spectre", "design": 4, "color": Color(0.7, 0.45, 1.0), "velocity": 1.0, "handling": 1.3, "shield": 2, "fire": 1.0, "special": &"cloak"},
+	{"id": "ship_comet", "name": "Comète", "design": 5, "color": Color(1.0, 0.85, 0.3), "velocity": 1.04, "handling": 0.9, "shield": 3, "fire": 0.9, "special": &"warp"},
+	{"id": "ship_hornet", "name": "Frelon", "design": 6, "color": Color(0.5, 1.0, 0.3), "velocity": 1.0, "handling": 1.1, "shield": 3, "fire": 1.6, "special": &"missile"},
+	{"id": "ship_storm", "name": "Tempête", "design": 2, "color": Color(0.3, 0.6, 1.0), "velocity": 0.98, "handling": 1.0, "shield": 4, "fire": 1.0, "special": &"emp"},
+	{"id": "ship_nova", "name": "Nova", "design": 7, "color": Color(1.0, 0.35, 0.75), "velocity": 1.02, "handling": 1.0, "shield": 3, "fire": 1.1, "special": &"mines"},
+]
+## What each special does, for the armory and the race.
+const SHIP_SPECIALS := {
+	&"surboost": ["SURBOOST", "4 s de vitesse maximale"],
+	&"salvo": ["RAFALE", "Touche tous les vaisseaux devant toi"],
+	&"rampart": ["REMPART", "Intouchable 4 s, renverse ceux qu'il percute"],
+	&"cloak": ["CAMOUFLAGE", "Invisible et intouchable 4 s"],
+	&"warp": ["HYPERPROPULSION", "Bond de 70 m en avant"],
+	&"missile": ["MISSILE GUIDÉ", "Ne rate jamais le vaisseau devant toi"],
+	&"emp": ["ONDE EMP", "Ralentit tous les vaisseaux proches"],
+	&"mines": ["MINES", "Sème 3 mines derrière toi"],
+}
+
 const GUN_DIR := "res://assets/models/guns/"
 const SKIN_DIR := "res://assets/textures/skins/"
 const SCOPE_MODEL := "Scope_2"
@@ -216,6 +243,7 @@ const WEAPON_KEY := "weapon"
 const MELEE_KEY := "melee"
 const SKIN_KEY := "skin"
 const MELEE_SKIN_KEY := "melee_skin"
+const SHIP_KEY := "ship"
 
 
 static func is_unlocked(item: Dictionary) -> bool:
@@ -244,6 +272,10 @@ static func selected_skin() -> Dictionary:
 
 static func selected_melee_skin() -> Dictionary:
 	return _selected(SKINS, MELEE_SKIN_KEY)
+
+
+static func selected_ship() -> Dictionary:
+	return _selected(SHIPS, SHIP_KEY)
 
 
 static func select(key: String, item: Dictionary) -> void:
@@ -371,7 +403,7 @@ static func unlock_text(item: Dictionary) -> String:
 
 ## Finds an item of any list by its id: {"item": ..., "kind": "Arme"}.
 static func find(id: String) -> Dictionary:
-	for group: Array in [["Personnage", CHARACTERS], ["Arme", WEAPONS], ["Corps à corps", MELEE], ["Skin d'arme", SKINS]]:
+	for group: Array in [["Personnage", CHARACTERS], ["Arme", WEAPONS], ["Corps à corps", MELEE], ["Skin d'arme", SKINS], ["Vaisseau", SHIPS]]:
 		for item: Dictionary in group[1]:
 			if item.id == id:
 				return {"item": item, "kind": group[0]}
