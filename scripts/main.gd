@@ -290,6 +290,12 @@ func _win() -> void:
 	trophy.position = Vector3(_boss.global_position.x, _arena.global_position.y, _boss.global_position.z)
 	trophy.add_to_group("transient")
 	add_child(trophy)
+	# Confetti and a golden flash over the fallen Titan.
+	var top := trophy.position + Vector3.UP * 3.0
+	Effects.flash(self, top, Color(1.0, 0.8, 0.25), 10.0, 1.2)
+	for burst in 3:
+		Effects.spray(self, top + Vector3.UP * burst, [Color(1.0, 0.85, 0.3), Color(1.0, 0.24, 0.95), Color(0.16, 0.9, 1.0), Color.WHITE],
+				90, Vector3(0.16, 0.1, 0.01), Vector2(4.0, 8.0), Vector3(0, -3.0, 0), 70.0, 3.0)
 	hud.show_banner("VICTOIRE")
 	SaveData.save_progress(Loadout.CHAMPION_KEY, true)
 	await get_tree().create_timer(VICTORY_TIME).timeout

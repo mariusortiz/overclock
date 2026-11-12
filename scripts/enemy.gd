@@ -39,6 +39,9 @@ const KAMIKAZE_RADIUS := 3.5
 const KAMIKAZE_DAMAGE := 25
 const KAMIKAZE_COLOR := Color(1.0, 0.25, 0.1)
 const HIT_FLASH_TIME := 0.07
+## The small health bar over an enemy shows for this long after a hit.
+const HEALTH_BAR_TIME := 2.5
+const HEALTH_BAR_SIZE := Vector2(0.07, 0.009)
 static var HIT_FLASH := _make_hit_flash()
 
 @export var max_health := 5
@@ -96,6 +99,9 @@ var _headshot_pending := false
 var _aim_left := 0.0
 ## The glow drawn over the model (elite, kamikaze), restored after a hit flash.
 var _overlay: Material
+var _health_bar: Node3D
+var _health_fill: MeshInstance3D
+var _health_bar_left := 0.0
 var _laser: MeshInstance3D
 var _tween: Tween
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -173,6 +179,7 @@ func take_damage(amount: int) -> void:
 		return
 	_health -= amount
 	health_changed.emit(maxi(_health, 0), max_health)
+	_show_health_bar()
 	var color := Effects.HEADSHOT_COLOR if _headshot_pending else Effects.DAMAGE_COLOR
 	if _burn_tick_left == BURN_TICK:
 		color = Effects.DAMAGE_OVER_TIME_COLOR
@@ -212,7 +219,44 @@ func chill(level: int) -> void:
 	_chill_factor = maxf(pow(0.6, level), 0.3)
 
 
+## A small bar over the head after a hit (bosses have theirs in the HUD).
+func _show_health_bar() -> void:
+	if self is Boss:
+		return
+	if _health_bar == null:
+		_health_bar = Node3D.new()
+		_health_bar.position.y = (model_hover + model_height) * _base_scale.y + 0.35
+		_health_bar.add_child(_bar_quad(Color(0, 0, 0, 0.65), HEALTH_BAR_SIZE + Vector2(0.004, 0.004), 0))
+		_health_fill = _bar_quad(ELITE_COLOR if elite else Color(1.0, 0.25, 0.2), HEALTH_BAR_SIZE, 1)
+		_health_bar.add_child(_health_fill)
+		add_child(_health_bar)
+	_health_bar.visible = _health > 0
+	_health_fill.scale.x = clampf(float(_health) / max_health, 0.0, 1.0)
+	_health_bar_left = HEALTH_BAR_TIME
+
+
+## A flat rectangle that always faces the camera and keeps its size on screen.
+func _bar_quad(color: Color, quad_size: Vector2, priority: int) -> MeshInstance3D:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	material.fixed_size = true
+	material.no_depth_test = true
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = color
+	material.render_priority = priority
+	var quad := QuadMesh.new()
+	quad.size = quad_size
+	quad.material = material
+	var mesh := MeshInstance3D.new()
+	mesh.mesh = quad
+	return mesh
+
+
 func _update_statuses(delta: float) -> void:
+	if _health_bar:
+		_health_bar_left -= delta
+		_health_bar.visible = _health_bar_left > 0.0 and not _dead
 	_chill_left = maxf(_chill_left - delta, 0.0)
 	if _burn_left > 0.0:
 		_burn_left -= delta
