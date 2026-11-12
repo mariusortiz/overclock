@@ -46,6 +46,27 @@ const BLADE_SPACING := 2.3
 const BLADE_HEIGHT := 1.35
 ## Size of the logo on the title cards, in the units of the 1280 x 720 screen.
 const LOGO_SIZE := Vector2(860, 180)
+## A narrow band of light, slanted, that moves along X: it makes each item it
+## crosses gleam. Added on top of the item's own material.
+const GLINT_SHADER := """
+shader_type spatial;
+render_mode unshaded, blend_add, cull_disabled, depth_draw_never;
+uniform float sweep_x = 0.0;
+varying vec3 world_position;
+void vertex() {
+	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}
+void fragment() {
+	float band = 1.0 - smoothstep(0.0, 0.14, abs(world_position.x + world_position.y * 0.5 - sweep_x));
+	ALBEDO = vec3(1.0, 0.97, 0.9) * band * 0.9;
+	ALPHA = band;
+}
+"""
+## The glint crosses this many meters of the hall, around the camera, per pass.
+const GLINT_SPAN := 7.0
+const GLINT_SPEED := 4.5
+const EMBER_COLOR := Color(1.0, 0.55, 0.15)
+const COUNT_TIME := 0.8
 ## The gun each hero holds in the line-up, in the order of Loadout.CHARACTERS.
 const HERO_GUNS: Array[String] = [
 	"heavy", "revolver_3", "smg", "pistol_4", "shotgun_5", "rifle_6", "sniper_2",
@@ -87,6 +108,19 @@ var _shake := 0.0
 ## Light rays behind the trophy, turned to face the camera every frame.
 var _rays: Node3D
 var _end_sparks := CPUParticles2D.new()
+## Sparks drawn in to the middle of the screen, where the logo then appears.
+var _logo_sparks := CPUParticles2D.new()
+## Embers drifting in front of the lens during the boss shots.
+var _embers := CPUParticles3D.new()
+## Mirror world under the hall's floor: a copy of each item on show, flipped.
+var _mirror: Node3D
+## Item on show -> its reflection, which copies its movement every frame.
+var _twins := {}
+## Light band sweeping over the items on show (see GLINT_SHADER).
+var _glint := ShaderMaterial.new()
+var _wipe := Control.new()
+var _cta := Label.new()
+var _cta_tween: Tween
 var _flock: Node3D
 
 var _shade := ColorRect.new()
@@ -106,6 +140,10 @@ func _ready() -> void:
 	_camera.far = 400.0
 	_camera.make_current()
 	_camera.add_child(_inspection)
+	var glint_shader := Shader.new()
+	glint_shader.code = GLINT_SHADER
+	_glint.shader = glint_shader
+	_build_embers()
 	_build_overlay()
 	_run.call_deferred()
 
@@ -171,7 +209,7 @@ func _run() -> void:
 	var last_gun := (Loadout.WEAPONS.size() - 1) * GUN_SPACING
 	_dolly(Vector3(-1.5, 1.2, 3.3), Vector3(last_gun + 1.5, 1.2, 3.3),
 			Vector3(-1.5, 1.05, 0), Vector3(last_gun + 1.5, 1.05, 0), 15.0)
-	_show_caption("ARSENAL", "%d ARMES · %d SKINS" % [Loadout.WEAPONS.size(), Loadout.SKINS.size()], 13.5)
+	_show_caption("ARSENAL", "%%d ARMES · %d SKINS" % Loadout.SKINS.size(), 13.5, Loadout.WEAPONS.size())
 	await _until(92.0)
 
 	# 92 s: the blades, then the butterfly knife flipping in the hand.
@@ -181,7 +219,7 @@ func _run() -> void:
 	var last_blade := (Loadout.MELEE.size() - 1) * BLADE_SPACING
 	_dolly(Vector3(-1.2, 1.25, 3.4), Vector3(last_blade + 1.2, 1.25, 3.4),
 			Vector3(-1.2, 1.15, 0), Vector3(last_blade + 1.2, 1.15, 0), 7.0)
-	_show_caption("CORPS À CORPS", "%d LAMES · %d SKINS" % [Loadout.MELEE.size(), Loadout.SKINS.size()], 6.0)
+	_show_caption("CORPS À CORPS", "%%d LAMES · %d SKINS" % Loadout.SKINS.size(), 6.0, Loadout.MELEE.size())
 	await _until(99.0)
 	_build_showroom()
 	_blink()
@@ -198,7 +236,7 @@ func _run() -> void:
 	var last_hero := (Loadout.CHARACTERS.size() - 1) * HERO_SPACING
 	_dolly(Vector3(-1.0, 1.5, 4.9), Vector3(last_hero + 1.0, 1.5, 4.9),
 			Vector3(-1.0, 1.45, 0), Vector3(last_hero + 1.0, 1.45, 0), 12.0)
-	_show_caption("CHACUN SON ULTI", "%d HÉROS" % Loadout.CHARACTERS.size(), 10.5)
+	_show_caption("CHACUN SON ULTI", "%d HÉROS", 10.5, Loadout.CHARACTERS.size())
 	await _until(114.6)
 
 	# 114.6 s: the last boss, and what beating it earns.
@@ -217,8 +255,8 @@ func _run() -> void:
 	_fade_shade(1.0, 0.9)
 	await _until(124.7)
 	_end_sparks.emitting = true
-	_show_title("JOUEZ MAINTENANT\n%s\n\n5 ARÈNES · 5 BOSS · %d ARMES · %d LAMES · %d HÉROS" % [
-			URL, Loadout.WEAPONS.size(), Loadout.MELEE.size(), Loadout.CHARACTERS.size()], 5.1)
+	_show_title("%s\n\n5 ARÈNES · 5 BOSS · %d ARMES · %d LAMES · %d HÉROS" % [
+			URL, Loadout.WEAPONS.size(), Loadout.MELEE.size(), Loadout.CHARACTERS.size()], 5.1, true)
 	await _until(DURATION)
 	get_tree().quit()
 
@@ -244,6 +282,7 @@ func _clear_actors() -> void:
 		if is_instance_valid(node):
 			node.queue_free()
 	_actors.clear()
+	_twins.clear()
 	_floaters.clear()
 	_spinners.clear()
 	_walkers.clear()
@@ -288,8 +327,13 @@ func _build_showroom() -> void:
 	sun.light_energy = 1.1
 	_set.add_child(sun)
 
+	# The floor lets the mirror world under it show through, dimmed: a reflection.
+	_mirror = Node3D.new()
+	_mirror.scale = Vector3(1, -1, 1)
+	_set.add_child(_mirror)
 	var floor_material := StandardMaterial3D.new()
-	floor_material.albedo_color = Color(0.05, 0.06, 0.15)
+	floor_material.albedo_color = Color(0.05, 0.06, 0.15, 0.82)
+	floor_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	floor_material.metallic = 0.5
 	floor_material.roughness = 0.35
 	var floor_mesh := PlaneMesh.new()
@@ -410,17 +454,21 @@ func _present_boss(kind: Boss.Kind, seconds: float) -> void:
 	# The lens closes in on the boss while it is on screen.
 	_fov_tween = create_tween()
 	_fov_tween.tween_property(_camera, "fov", 44.0, seconds).from(64.0)
-	_strike_later(boss, seconds * 0.35)
+	# It lands: a shock wave runs along the ground, and the frame jolts.
+	_ground_ring(BOSS_SPOT, EMBER_COLOR, height * 3.0, 0.8)
+	_shake = 0.1
+	_set_embers(true)
+	_strike_later(boss, seconds * 0.3)
+	_strike_later(boss, seconds * 0.68)
 
 
 func _strike_later(boss: CharacterModel, delay: float) -> void:
 	await get_tree().create_timer(delay).timeout
 	if is_instance_valid(boss) and not boss.is_queued_for_deletion():
 		boss.play(&"shoot", true)
-		# The blow lands: the ground shakes and dust flies.
+		# The blow lands: a light jolt, and dust flies.
 		await get_tree().create_timer(0.25).timeout
-		_shake = 0.22
-		_blink()
+		_shake = 0.12
 		Effects.burst(_set, BOSS_SPOT + Vector3.UP * 0.3, Color(0.85, 0.75, 0.6), 40)
 
 
@@ -471,22 +519,7 @@ func _celebrate() -> void:
 	light.position = top
 	_set.add_child(light)
 
-	# A golden ring that sweeps the ground.
-	var ring_material := StandardMaterial3D.new()
-	ring_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	ring_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	ring_material.albedo_color = gold
-	var torus := TorusMesh.new()
-	torus.inner_radius = 0.9
-	torus.outer_radius = 1.0
-	torus.material = ring_material
-	var ring := MeshInstance3D.new()
-	ring.mesh = torus
-	ring.position = BOSS_SPOT + Vector3.UP * 0.1
-	_set.add_child(ring)
-	var sweep := create_tween()
-	sweep.tween_property(ring, "scale", Vector3(9, 1, 9), 0.9).from(Vector3(0.3, 1, 0.3)).set_ease(Tween.EASE_OUT)
-	sweep.parallel().tween_property(ring_material, "albedo_color:a", 0.0, 0.9)
+	_ground_ring(BOSS_SPOT, gold, 9.0, 0.9)
 
 	_add_confetti(top + Vector3.UP * 2.5)
 	_add_sparkles(BOSS_SPOT)
@@ -494,16 +527,72 @@ func _celebrate() -> void:
 	# The Champion skin, on a rifle and a katana.
 	var skin: Dictionary = Loadout.find(Loadout.CHAMPION_SKIN_ID).item
 	var rifle := Loadout.instantiate_weapon(Loadout.find("heavy").item, skin)
-	rifle.scale = Vector3.ONE * 1.6
-	rifle.position.z = 0.6
+	rifle.scale = Vector3.ONE * 3.0
+	rifle.position.z = 1.1
 	var katana := Loadout.instantiate_melee(Loadout.find("katana").item, skin)
-	katana.position.y = -0.7
-	for pair: Array in [[rifle, -2.4], [katana, 2.4]]:
+	katana.scale = Vector3.ONE * 1.8
+	katana.position.y = -1.2
+	for pair: Array in [[rifle, -1.9], [katana, 1.9]]:
+		_shine(pair[0])
 		var holder := Node3D.new()
-		holder.position = BOSS_SPOT + Vector3(pair[1], 2.0, 0.3)
+		holder.position = BOSS_SPOT + Vector3(pair[1], 2.4, 1.6)
 		holder.add_child(pair[0])
 		_set.add_child(holder)
 		_spinners.append(holder)
+
+
+## A ring that sweeps out along the ground from `at`, to `size` meters across.
+func _ground_ring(at: Vector3, color: Color, size: float, seconds: float) -> void:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = color
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.9
+	torus.outer_radius = 1.0
+	torus.material = material
+	var ring := MeshInstance3D.new()
+	ring.mesh = torus
+	ring.position = at + Vector3.UP * 0.1
+	_set.add_child(ring)
+	var sweep := create_tween()
+	sweep.tween_property(ring, "scale", Vector3(size, 1, size), seconds).from(Vector3(0.3, 1, 0.3)).set_ease(Tween.EASE_OUT)
+	sweep.parallel().tween_property(material, "albedo_color:a", 0.0, seconds)
+	sweep.tween_callback(ring.queue_free)
+
+
+## Glowing embers floating just in front of the lens; they travel with it.
+func _build_embers() -> void:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	material.albedo_color = EMBER_COLOR
+	var mesh := QuadMesh.new()
+	mesh.size = Vector2.ONE * 0.025
+	mesh.material = material
+	_embers.mesh = mesh
+	_embers.local_coords = true
+	_embers.amount = 45
+	_embers.lifetime = 3.0
+	_embers.preprocess = 3.0
+	_embers.position = Vector3(0, -0.2, -1.4)
+	_embers.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	_embers.emission_box_extents = Vector3(1.6, 0.6, 0.8)
+	_embers.direction = Vector3(0.3, 1, 0)
+	_embers.spread = 30.0
+	_embers.gravity = Vector3(0, 0.15, 0)
+	_embers.initial_velocity_min = 0.1
+	_embers.initial_velocity_max = 0.35
+	_embers.scale_amount_min = 0.5
+	_embers.scale_amount_max = 1.6
+	_camera.add_child(_embers)
+	_set_embers(false)
+
+
+func _set_embers(on: bool) -> void:
+	_embers.visible = on
+	_embers.emitting = on
 
 
 ## Paper squares in the game's colors, raining down for a few seconds.
@@ -589,19 +678,48 @@ func _line_up_guns() -> void:
 	for index in Loadout.WEAPONS.size():
 		var item: Dictionary = Loadout.WEAPONS[index]
 		var skin: Dictionary = Loadout.SKINS[index % Loadout.SKINS.size()]
-		var gun := Loadout.instantiate_weapon(item, skin)
-		var length: float = item.length
-		gun.scale = Vector3.ONE * (GUN_LENGTH / length)
-		# The grip is at the gun's origin: slide it back to turn around its middle.
-		gun.position.z = GUN_LENGTH * 0.4
-		var holder := Node3D.new()
-		holder.position = Vector3(index * GUN_SPACING, GUN_HEIGHT, 0)
-		holder.add_child(gun)
-		_set.add_child(holder)
+		var holder := _gun_on_show(item, skin, index, _set)
+		_shine(holder)
 		_floaters.append(holder)
+		_twins[holder] = _gun_on_show(item, skin, index, _mirror)
 		var skin_color: Color = skin.shot
 		_label(str(item.name).to_upper(), Vector3(index * GUN_SPACING, 0.78, 0), Color.WHITE, 26)
 		_label(str(skin.name).to_upper(), Vector3(index * GUN_SPACING, 0.62, 0), skin_color, 22)
+
+
+## One gun of the line-up, side-on, under `parent`.
+func _gun_on_show(item: Dictionary, skin: Dictionary, index: int, parent: Node3D) -> Node3D:
+	var gun := Loadout.instantiate_weapon(item, skin)
+	var length: float = item.length
+	gun.scale = Vector3.ONE * (GUN_LENGTH / length)
+	# The grip is at the gun's origin: slide it back to turn around its middle.
+	gun.position.z = GUN_LENGTH * 0.4
+	var holder := Node3D.new()
+	holder.position = Vector3(index * GUN_SPACING, GUN_HEIGHT, 0)
+	holder.add_child(gun)
+	parent.add_child(holder)
+	return holder
+
+
+## One blade of the line-up, under `parent`.
+func _blade_on_show(item: Dictionary, skin: Dictionary, index: int, parent: Node3D) -> Node3D:
+	var bounds := Loadout.melee_bounds(item)
+	var size := minf(BLADE_HEIGHT / bounds.size.y, 2.6)
+	var blade := Loadout.instantiate_melee(item, skin)
+	blade.scale = Vector3.ONE * size
+	# Held by the handle: lower it so that it turns around its middle.
+	blade.position.y = -bounds.get_center().y * size
+	var holder := Node3D.new()
+	holder.position = Vector3(index * BLADE_SPACING, 1.3, 0)
+	holder.add_child(blade)
+	parent.add_child(holder)
+	return holder
+
+
+## Lets the glint pass over every mesh of `item`.
+func _shine(item: Node) -> void:
+	for mesh: MeshInstance3D in item.find_children("*", "MeshInstance3D", true, false):
+		mesh.material_overlay = _glint
 
 
 ## Every melee weapon in a row, each with a finish, turning on itself.
@@ -609,17 +727,10 @@ func _line_up_blades() -> void:
 	for index in Loadout.MELEE.size():
 		var item: Dictionary = Loadout.MELEE[index]
 		var skin: Dictionary = Loadout.SKINS[(index * 3 + 1) % Loadout.SKINS.size()]
-		var bounds := Loadout.melee_bounds(item)
-		var size := minf(BLADE_HEIGHT / bounds.size.y, 2.6)
-		var blade := Loadout.instantiate_melee(item, skin)
-		blade.scale = Vector3.ONE * size
-		# Held by the handle: lower it so that it turns around its middle.
-		blade.position.y = -bounds.get_center().y * size
-		var holder := Node3D.new()
-		holder.position = Vector3(index * BLADE_SPACING, 1.3, 0)
-		holder.add_child(blade)
-		_set.add_child(holder)
+		var holder := _blade_on_show(item, skin, index, _set)
+		_shine(holder)
 		_spinners.append(holder)
+		_twins[holder] = _blade_on_show(item, skin, index, _mirror)
 		var skin_color: Color = skin.shot
 		_label(str(item.name).to_upper(), Vector3(index * BLADE_SPACING, 0.42, 0), Color.WHITE, 26)
 		_label(str(skin.name).to_upper(), Vector3(index * BLADE_SPACING, 0.26, 0), skin_color, 22)
@@ -631,10 +742,14 @@ func _line_up_heroes() -> void:
 		var item: Dictionary = Loadout.CHARACTERS[index]
 		var at := Vector3(index * HERO_SPACING, 0, 0)
 		var scene: PackedScene = load(Loadout.CHARACTER_DIR + str(item.model))
-		var hero := _actor(scene, 1.75, 0.0, at, PI, &"aim")
 		var gun: Dictionary = Loadout.find(HERO_GUNS[index % HERO_GUNS.size()]).item
 		var skin: Dictionary = Loadout.SKINS[(index + 1) % Loadout.SKINS.size()]
-		_hold(hero, Loadout.instantiate_weapon(gun, skin), false)
+		for parent: Node3D in [_set, _mirror]:
+			var hero := _actor(scene, 1.75, 0.0, at, PI, &"aim", parent)
+			var held := Loadout.instantiate_weapon(gun, skin)
+			if parent == _set:
+				_shine(held)
+			_hold(hero, held, false)
 		var ultimate: Dictionary = Ultimate.INFO[item.ulti]
 		_label(str(item.name).to_upper(), at + Vector3(0, 2.85, 0), Color.WHITE, 40)
 		_label(str(ultimate.name).to_upper(), at + Vector3(0, 2.62, 0), ACCENT, 30)
@@ -684,6 +799,7 @@ func _dolly(from: Vector3, to: Vector3, look_from: Vector3, look_to: Vector3, se
 
 
 func _reset_lens() -> void:
+	_set_embers(false)
 	if _fov_tween:
 		_fov_tween.kill()
 	_camera.fov = 60.0
@@ -738,6 +854,12 @@ func _process(delta: float) -> void:
 			spinner.rotation = Vector3(0.25, _clock * 1.5 + index * 0.9, 0)
 	if is_instance_valid(_flock):
 		_flock.rotation.y += 0.45 * delta
+	for item: Node3D in _twins:
+		var twin: Node3D = _twins[item]
+		if is_instance_valid(item) and is_instance_valid(twin):
+			twin.transform = item.transform
+	_glint.set_shader_parameter("sweep_x",
+			_camera.global_position.x - GLINT_SPAN / 2.0 + fmod(_clock * GLINT_SPEED, GLINT_SPAN))
 	for entry: Array in _held:
 		var character := entry[0] as CharacterModel
 		if is_instance_valid(character):
@@ -785,6 +907,22 @@ func _build_overlay() -> void:
 	layer.add_child(_blink_rect)
 	_setup_label(layer, _kicker, 24, ACCENT, 0.745, HORIZONTAL_ALIGNMENT_LEFT)
 	_setup_label(layer, _caption, 54, Color.WHITE, 0.815, HORIZONTAL_ALIGNMENT_LEFT)
+	# The bar of the slide transitions: dark, with a cyan edge on its left.
+	_wipe.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_wipe.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var wipe_body := ColorRect.new()
+	wipe_body.color = Color(0.02, 0.04, 0.16)
+	wipe_body.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	wipe_body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wipe.add_child(wipe_body)
+	var wipe_edge := ColorRect.new()
+	wipe_edge.color = TEXT_COLOR
+	wipe_edge.anchor_bottom = 1.0
+	wipe_edge.offset_left = -18.0
+	wipe_edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wipe.add_child(wipe_edge)
+	_wipe.position.x = 99999.0  # off screen until the first cut
+	layer.add_child(_wipe)
 	_shade.color = Color.BLACK
 	_shade.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -807,6 +945,21 @@ func _build_overlay() -> void:
 	_end_sparks.scale_amount_min = 2.0
 	_end_sparks.scale_amount_max = 5.0
 	layer.add_child(_end_sparks)
+	_logo_sparks.color_initial_ramp = ramp
+	_logo_sparks.emitting = false
+	_logo_sparks.one_shot = true
+	_logo_sparks.explosiveness = 0.85
+	_logo_sparks.amount = 220
+	_logo_sparks.lifetime = 0.6
+	_logo_sparks.position = Vector2(640, 245)
+	_logo_sparks.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	_logo_sparks.emission_rect_extents = Vector2(680, 330)
+	_logo_sparks.gravity = Vector2.ZERO
+	_logo_sparks.radial_accel_min = -3400.0
+	_logo_sparks.radial_accel_max = -2800.0
+	_logo_sparks.scale_amount_min = 3.0
+	_logo_sparks.scale_amount_max = 6.0
+	layer.add_child(_logo_sparks)
 	_logo.anchor_left = 0.5
 	_logo.anchor_right = 0.5
 	_logo.anchor_top = 0.34
@@ -818,7 +971,9 @@ func _build_overlay() -> void:
 	_logo.pivot_offset = LOGO_SIZE / 2.0
 	_logo.modulate.a = 0.0
 	layer.add_child(_logo)
-	_setup_label(layer, _subtitle, 30, Color.WHITE, 0.66, HORIZONTAL_ALIGNMENT_CENTER)
+	_setup_label(layer, _cta, 52, ACCENT, 0.56, HORIZONTAL_ALIGNMENT_CENTER)
+	_cta.text = "JOUEZ MAINTENANT"
+	_setup_label(layer, _subtitle, 30, Color.WHITE, 0.71, HORIZONTAL_ALIGNMENT_CENTER)
 
 
 func _setup_label(layer: CanvasLayer, label: Label, font_size: int, color: Color, anchor_y: float,
@@ -844,8 +999,12 @@ func _fade_shade(alpha: float, seconds: float) -> void:
 
 ## A short dip to black that opens a chapter.
 func _flash() -> void:
-	_shade.color.a = 1.0
-	_fade_shade(0.0, 0.4)
+	# The new shot is under a bar that slides off to the right, led by a
+	# cyan edge.
+	var width := get_viewport().get_visible_rect().size.x
+	_wipe.position.x = 0.0
+	var tween := create_tween()
+	tween.tween_property(_wipe, "position:x", width * 1.1, 0.4).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 
 
 ## A white flash on a cut, in time with the music.
@@ -854,29 +1013,48 @@ func _blink() -> void:
 	create_tween().tween_property(_blink_rect, "color:a", 0.0, 0.3)
 
 
-## The logo lands on the screen with lines under it, for `seconds`.
-func _show_title(subtitle: String, seconds: float) -> void:
+## The logo lands on the screen with lines under it, for `seconds`. With
+## `end_card`, sparks first rush in to make it, and "JOUEZ MAINTENANT" pulses.
+func _show_title(subtitle: String, seconds: float, end_card := false) -> void:
 	_subtitle.text = subtitle
 	_logo.scale = Vector2.ONE * 1.5
 	var tween := create_tween()
+	if end_card:
+		_logo_sparks.restart()
+		_logo_sparks.emitting = true
+		tween.tween_interval(0.55)
 	tween.tween_property(_logo, "modulate:a", 1.0, 0.35)
 	tween.parallel().tween_property(_logo, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	# It lands with a flash and a jolt.
-	tween.parallel().tween_callback(_blink).set_delay(0.3)
+	tween.parallel().tween_callback(_blink).set_delay(0.3 if not end_card else 0.0)
 	tween.parallel().tween_callback(func() -> void: _shake = 0.12).set_delay(0.3)
 	tween.parallel().tween_property(_subtitle, "modulate:a", 1.0, 0.6).set_delay(0.5)
+	if end_card:
+		tween.parallel().tween_callback(_pulse_cta).set_delay(0.4)
 	# It keeps growing a little while it stays.
-	tween.tween_property(_logo, "scale", Vector2.ONE * 1.06, seconds - 1.7)
+	tween.tween_property(_logo, "scale", Vector2.ONE * 1.06, seconds - 1.7 - (0.55 if end_card else 0.0))
 	tween.tween_property(_logo, "modulate:a", 0.0, 0.6)
 	tween.parallel().tween_property(_subtitle, "modulate:a", 0.0, 0.6)
 
 
+## "JOUEZ MAINTENANT" appears, then beats: it swells and brightens in a loop.
+func _pulse_cta() -> void:
+	_cta.pivot_offset = _cta.size / 2.0
+	create_tween().tween_property(_cta, "modulate:a", 1.0, 0.3)
+	_cta_tween = create_tween().set_loops()
+	_cta_tween.tween_property(_cta, "scale", Vector2.ONE * 1.08, 0.35).set_trans(Tween.TRANS_SINE)
+	_cta_tween.parallel().tween_property(_cta, "self_modulate", Color(1.5, 1.5, 1.5), 0.35)
+	_cta_tween.tween_property(_cta, "scale", Vector2.ONE, 0.45).set_trans(Tween.TRANS_SINE)
+	_cta_tween.parallel().tween_property(_cta, "self_modulate", Color.WHITE, 0.45)
+
+
 ## Two lines at the bottom left: a small one over a large one.
-func _show_caption(kicker: String, text: String, seconds: float) -> void:
+## With `count`, `text` holds a %d that counts up from 0 to it.
+func _show_caption(kicker: String, text: String, seconds: float, count := -1) -> void:
 	if _caption_tween:
 		_caption_tween.kill()
 	_kicker.text = kicker
-	_caption.text = text
+	_caption.text = text % 0 if count >= 0 else text
 	_kicker.modulate.a = 0.0
 	_caption.modulate.a = 0.0
 	_caption_tween = create_tween()
@@ -886,6 +1064,9 @@ func _show_caption(kicker: String, text: String, seconds: float) -> void:
 	for label: Label in [_kicker, _caption]:
 		_caption_tween.parallel().tween_property(label, "offset_left", 0.0, 0.35).from(-70.0) \
 				.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	if count >= 0:
+		_caption_tween.parallel().tween_method(func(value: float) -> void: _caption.text = text % roundi(value),
+				0.0, float(count), COUNT_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	_caption_tween.tween_interval(maxf(seconds - 0.6, 0.1))
 	_caption_tween.tween_property(_kicker, "modulate:a", 0.0, 0.35)
 	_caption_tween.parallel().tween_property(_caption, "modulate:a", 0.0, 0.35)
