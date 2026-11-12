@@ -86,9 +86,9 @@ static func load_career() -> Dictionary:
 static func career_lines() -> Array[Array]:
 	var career := load_career()
 	var shots: float = career.get("shots", 0)
-	var accuracy := "–" if shots == 0 else "%d %%" % roundi(100.0 * minf(career.get("hits", 0) / shots, 1.0))
+	var accuracy := "-" if shots == 0 else "%d %%" % roundi(100.0 * minf(career.get("hits", 0) / shots, 1.0))
 	var minutes := roundi(career.get("seconds", 0.0) / 60.0)
-	var favorite := "–"
+	var favorite := "-"
 	var kills_by_weapon: Dictionary = career.get("weapon_kills", {})
 	var most := 0
 	for weapon_id: String in kills_by_weapon:

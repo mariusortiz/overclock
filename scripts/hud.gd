@@ -232,8 +232,9 @@ func _build_hint() -> void:
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_hint.anchor_left = 0.2
 	_hint.anchor_right = 0.8
-	_hint.anchor_top = 0.27
-	_hint.anchor_bottom = 0.27
+	# Below the banners, above the crosshair.
+	_hint.anchor_top = 0.34
+	_hint.anchor_bottom = 0.34
 	_hint.grow_vertical = Control.GROW_DIRECTION_BOTH
 	_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hint.modulate.a = 0.0
