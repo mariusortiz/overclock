@@ -143,6 +143,9 @@ jobs:
           site="$RUNNER_TEMP/site"
           cp -r build/web "$site"
           touch "$site/.nojekyll"
+          # Earlier builds installed a caching service worker: this file takes its
+          # place and removes it (see tools/remove_service_worker.js).
+          cp tools/remove_service_worker.js "$site/index.service.worker.js"
           cd "$site"
           git init -q -b gh-pages
           # The trailer is published by its own workflow: carry it over.

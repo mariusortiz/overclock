@@ -8,7 +8,7 @@ https://mariusortiz.github.io/overclock-builds/
 
 Cette version web est mise à jour à chaque push sur `main`. Elle s'ouvre aussi dans le navigateur d'un téléphone.
 
-Sur téléphone, elle s'installe comme une application : menu du navigateur, « Ajouter à l'écran d'accueil » (Chrome sur Android) ou Partager puis « Sur l'écran d'accueil » (Safari sur iPhone). Elle s'ouvre alors en plein écran, à l'horizontale, avec l'icône du jeu. Après une mise à jour, la nouvelle version peut demander d'ouvrir le jeu deux fois : la première ouverture la télécharge, la seconde l'affiche.
+Elle se charge toujours depuis le réseau : chaque mise à jour s'affiche à la prochaine ouverture du lien. Pour une vraie application sur téléphone, il y a l'APK (ci-dessous).
 
 ### APK Android
 
