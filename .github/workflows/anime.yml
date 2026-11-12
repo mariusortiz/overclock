@@ -40,7 +40,7 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" = "push" ] && git cat-file -e "$BEFORE" 2>/dev/null; then
             changed=$(git diff --name-only "$BEFORE" "$GITHUB_SHA")
           fi
-          if [ -z "$changed" ] || echo "$changed" | grep -qE 'anime_director|anime_episodes|anime_episode.html|workflows/anime.yml|scripts/race_|scripts/loadout'; then
+          if [ -z "$changed" ] || echo "$changed" | grep -qE 'anime_director|anime_episodes|anime_episode.html|workflows/anime.yml'; then
             picked="$listed"
           else
             picked=""

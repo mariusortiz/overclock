@@ -1,5 +1,5 @@
 extends AnimeDirector
-## Épisode 9 : Titan Mk II. The red Titan walks into the city. The ships
+## Épisode 9 : Titan Mk II (season 1). The red Titan walks into the city. The ships
 ## attack it from the sky, but a shield holds; the Soldier's ship goes down.
 ## On the ground, everyone gathers: it will take all of them.
 
