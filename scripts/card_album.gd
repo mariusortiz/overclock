@@ -23,6 +23,7 @@ var _overlay := Control.new()
 
 
 func _ready() -> void:
+	Cards.sync_hacker()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var background := ColorRect.new()
 	background.color = Color(0.02, 0.04, 0.16)
@@ -116,8 +117,7 @@ func _refresh() -> void:
 
 	var shown: String = Cards.SERIES[_series][0]
 	# The hacker cards owned come after the series' own.
-	var hacker := Cards.HACKER_CARDS.filter(func(card: Dictionary) -> bool: return card.series == shown and Cards.count(card.id) > 0)
-	for card: Dictionary in Cards.in_series(shown) + hacker:
+	for card: Dictionary in Cards.in_series(shown):
 		var view := CardView.new(card, Cards.count(card.id) > 0, Cards.count(card.id))
 		view.custom_minimum_size = CARD_SIZE
 		view.gui_input.connect(func(event: InputEvent) -> void:
@@ -210,7 +210,10 @@ func _show_card(card: Dictionary) -> void:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 12)
 	box.add_child(row)
-	if not owned:
+	if not owned and card.rarity == Cards.Rarity.HACKER:
+		var only := _button(row, "UNIQUEMENT AVEC UN CODE", func() -> void: pass, Color(0.2, 1.0, 0.45))
+		only.disabled = true
+	elif not owned:
 		var craft := _button(row, "FABRIQUER · %d POUSSIÈRE" % Cards.craft_cost(card.id), func() -> void:
 			if Cards.craft(card.id):
 				_show_card(card), GOLD)

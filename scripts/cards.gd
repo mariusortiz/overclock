@@ -29,6 +29,8 @@ const SERIES := [
 	["Héros", 3000, 100], ["Ennemis", 1500, 50], ["Boss", 2000, 80], ["Vaisseaux", 2000, 80],
 	["Armes", 2000, 80], ["Mêlée", 1200, 40], ["Skins", 1500, 60], ["Arènes", 1200, 40], ["Anime", 2500, 100],
 	["Mythiques", 5000, 250],
+	# Le Créateur's: only through his code, outside the album's count.
+	["Hacker", 10000, 500],
 ]
 
 ## Every card: id, name, series, rarity, and what its art shows ("art": a
@@ -152,8 +154,14 @@ const CATALOG := [
 
 ## Cards above the album: not in CATALOG (they are not counted, numbered,
 ## drawn or needed to complete it), only given by a code (see PromoCodes).
+## "item": what of Le Créateur's the card stands for; owning it gives the card
+## (see sync_hacker).
 const HACKER_CARDS := [
-	{"id": "card_createur", "name": "Le Créateur", "series": "Mythiques", "rarity": Rarity.HACKER, "art": ["hero", "createur"]},
+	{"id": "card_createur", "name": "Le Créateur", "series": "Hacker", "rarity": Rarity.HACKER, "art": ["hero", "createur"], "item": "createur"},
+	{"id": "card_source_code", "name": "Code source", "series": "Hacker", "rarity": Rarity.HACKER, "art": ["gun_skin", "source_code:skin_matrix"], "item": "source_code"},
+	{"id": "card_ctrl_alt_del", "name": "Ctrl+Alt+Suppr", "series": "Hacker", "rarity": Rarity.HACKER, "art": ["melee", "ctrl_alt_del"], "item": "ctrl_alt_del"},
+	{"id": "card_matrix", "name": "Skin Matrice", "series": "Hacker", "rarity": Rarity.HACKER, "art": ["gun_skin", "heavy:skin_matrix"], "item": "skin_matrix"},
+	{"id": "card_mainframe", "name": "Mainframe", "series": "Hacker", "rarity": Rarity.HACKER, "art": ["ship", "ship_mainframe"], "item": "ship_mainframe"},
 ]
 
 const SAVE_KEY := "cards"
@@ -235,6 +243,9 @@ const FLAVOR := {
 	"card_fleet": "Dard, Faucon, Frelon et Nova, en formation.",
 	"card_titan_city": "Quatre héros, un géant rouge, une ville entière.",
 	"card_createur": "Celui qui a écrit le jeu. Personne ne l'a jamais vu perdre.",
+	"card_source_code": "Chaque tir réécrit une ligne de l'ennemi.",
+	"card_ctrl_alt_del": "Quand plus rien ne répond.",
+	"card_matrix": "La pluie de code verte du Créateur.",
 	"card_elite": "Trois fois plus solide. Laisse toujours un bonus.",
 	"card_dragon": "Crache le feu sur toute la station.",
 	"card_skeleton": "Charge sans prévenir. Frappe fort.",
@@ -258,7 +269,7 @@ const FLAVOR := {
 ## The number in the corner, as in a numbered set: 12 -> "012/078".
 static func number(card: Dictionary) -> String:
 	if card.rarity == Rarity.HACKER:
-		return "000/%03d" % CATALOG.size()
+		return "H%02d/H%02d" % [HACKER_CARDS.find(card) + 1, HACKER_CARDS.size()]
 	return "%03d/%03d" % [CATALOG.find(card) + 1, CATALOG.size()]
 
 
@@ -276,7 +287,7 @@ static func find(id: String) -> Dictionary:
 
 
 static func in_series(series: String) -> Array:
-	return CATALOG.filter(func(card: Dictionary) -> bool: return card.series == series)
+	return (CATALOG + HACKER_CARDS).filter(func(card: Dictionary) -> bool: return card.series == series)
 
 
 ## How many of each card the player has: id -> count.
@@ -288,8 +299,10 @@ static func count(id: String) -> int:
 	return owned().get(id, 0)
 
 
+## Cards of the album owned (the Hacker cards, given by a code, are apart).
 static func owned_total() -> int:
-	return owned().keys().filter(func(id: String) -> bool: return owned()[id] > 0).size()
+	var cards := owned()
+	return CATALOG.filter(func(card: Dictionary) -> bool: return int(cards.get(card.id, 0)) > 0).size()
 
 
 static func add(id: String) -> void:
@@ -418,6 +431,14 @@ static func claim(series: String) -> bool:
 	claimed.append(series)
 	SaveData.save_progress(CLAIMED_KEY, claimed)
 	return true
+
+
+## The hacker cards of what the player owns of Le Créateur's (for those who
+## used his code before the cards existed).
+static func sync_hacker() -> void:
+	for card: Dictionary in HACKER_CARDS:
+		if count(card.id) == 0 and Wallet.owns(card.item):
+			add(card.id)
 
 
 static func album_complete() -> bool:
