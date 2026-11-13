@@ -5,8 +5,12 @@ extends Enemy
 
 signal summon_requested(count: int)
 
-## TITAN is the final boss, met in the last arena.
-enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER, TITAN }
+## TITAN is the final boss, met in the last arena; VIRUS guards the Matrice,
+## just before (it was added last, hence its place in the list: see ORDER).
+enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER, TITAN, VIRUS }
+
+## The bosses in the order of the arenas.
+const ORDER: Array[Kind] = [Kind.COLOSSUS, Kind.BRUTE, Kind.ARTILLERY, Kind.SUMMONER, Kind.VIRUS, Kind.TITAN]
 
 const MODEL_DIR := "res://assets/models/quaternius/"
 ## "height" is the model's height before the boss scene doubles it, and
@@ -17,7 +21,11 @@ const INFO := {
 	Kind.ARTILLERY: {"name": "CHAUVE-SOURIS GÉANTE", "model": "monsters/Bat.fbx", "height": 1.3, "hover": 0.9, "health": 55, "speed": 3.0, "fire_interval": 2.0, "range": 24.0},
 	Kind.SUMMONER: {"name": "SLIME ROYAL", "model": "monsters/Slime.fbx", "height": 1.3, "hover": 0.0, "health": 70, "speed": 3.0, "fire_interval": 1.3, "range": 13.0},
 	Kind.TITAN: {"name": "TITAN", "model": "mechs/George.fbx", "height": 2.6, "hover": 0.0, "health": 220, "speed": 2.6, "fire_interval": 1.7, "range": 20.0},
+	Kind.VIRUS: {"name": "LE VIRUS", "model": "mechs/George.fbx", "height": 2.3, "hover": 0.0, "health": 150, "speed": 3.2, "fire_interval": 1.2, "range": 18.0},
 }
+## The Virus jumps next to the player now and then (more often when hurt),
+## and copies itself (corrupted enemies) from its second phase on.
+const VIRUS_JUMP_INTERVAL := 5.0
 const FAN_ANGLES_DEG: Array[float] = [-24.0, -12.0, 0.0, 12.0, 24.0]
 const BRUTE_DAMAGE := 18
 const SUMMON_INTERVAL := 9.0
@@ -38,6 +46,7 @@ var _shielded := false
 var _shield: MeshInstance3D
 var _shockwave_left := TITAN_SHOCKWAVE_INTERVAL
 var _attack_count := 0
+var _jump_left := VIRUS_JUMP_INTERVAL
 
 
 ## Call before adding the boss to the scene. `health_scale` grows each time
@@ -70,6 +79,8 @@ func _ready() -> void:
 		_shield = _create_shield()
 	if kind == Kind.TITAN:
 		_dress_titan()
+	if kind == Kind.VIRUS:
+		_dress_virus()
 
 
 ## Bosses are too heavy to be pushed around.
@@ -96,6 +107,8 @@ func _physics_process(delta: float) -> void:
 			_update_summoner(delta)
 		Kind.TITAN:
 			_update_titan(delta)
+		Kind.VIRUS:
+			_update_virus(delta)
 
 
 func _update_summoner(delta: float) -> void:
@@ -121,6 +134,11 @@ func _attack() -> void:
 			_call_mortar(_player.global_position)
 		Kind.SUMMONER:
 			super()
+		Kind.VIRUS:
+			_attack_count += 1
+			_shoot_fan()
+			if _phase() == 3 and _attack_count % 3 == 0:
+				_call_mortar(_player.global_position)
 		Kind.TITAN:
 			_attack_count += 1
 			_shoot_fan()
@@ -165,6 +183,54 @@ func _update_titan(delta: float) -> void:
 			get_tree().current_scene.add_child(wave)
 			_model.play(&"jump", true)
 			_shoot_animation_left = 0.8
+
+
+func _update_virus(delta: float) -> void:
+	var phase := _phase()
+	_jump_left -= delta
+	if _jump_left <= 0.0:
+		_jump_left = VIRUS_JUMP_INTERVAL * (1.0 if phase == 1 else 0.65)
+		_glitch_jump()
+	if phase >= 2:
+		_summon_left -= delta
+		if _summon_left <= 0.0:
+			_summon_left = SUMMON_INTERVAL
+			summon_requested.emit(SUMMON_COUNT)
+
+
+## Vanishes in a burst of green and comes back somewhere near the player.
+func _glitch_jump() -> void:
+	if _player == null:
+		return
+	var scene := get_tree().current_scene
+	Effects.burst(scene, global_position + Vector3.UP * 2.0, VIRUS_COLOR, 40)
+	var angle := randf() * TAU
+	var wanted := _player.global_position + Vector3(cos(angle), 0, sin(angle)) * randf_range(7.0, 10.0)
+	var landing := NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, wanted)
+	if landing.distance_to(wanted) < 4.0:
+		global_position = landing
+	Effects.burst(scene, global_position + Vector3.UP * 2.0, VIRUS_COLOR, 40)
+	var tween := create_tween()
+	for i in 4:
+		tween.tween_callback(func() -> void: _visual.visible = i % 2 == 1)
+		tween.tween_interval(0.08)
+	tween.tween_callback(func() -> void: _visual.visible = true)
+
+
+## The Titan's body, black, with a green glow: the Virus in a body.
+func _dress_virus() -> void:
+	_dress_titan()
+	var body := StandardMaterial3D.new()
+	body.albedo_color = Color(0.08, 0.12, 0.09)
+	body.albedo_texture = load(TITAN_TEXTURE)
+	var glow := StandardMaterial3D.new()
+	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	glow.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	glow.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	glow.albedo_color = Color(VIRUS_COLOR, 0.3)
+	for mesh: MeshInstance3D in _model.find_children("*", "MeshInstance3D", true, false):
+		mesh.material_override = body
+		mesh.material_overlay = glow
 
 
 ## The mech's texture is a separate file, and it needs a body as big as it looks.

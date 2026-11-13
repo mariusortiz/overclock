@@ -11,6 +11,8 @@ extends NavigationRegion3D
 @export var enemy_weapon := "blaster"
 ## Music played in this arena (a Music.Track value).
 @export var music_track := 0
+## Its enemies are taken by the Virus (a green glow, see Enemy.corrupted).
+@export var corrupted := false
 
 ## The navigation mesh is baked and in use.
 signal navigation_ready

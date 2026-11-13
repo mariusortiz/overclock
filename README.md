@@ -145,6 +145,7 @@ Les arènes font 60 m de côté, sur plusieurs niveaux : ponts, passerelles, ét
 | Désert | temple à gradins, plateau rocheux relié par un pont de pierre, tour en ruine, murs écroulés, oasis |
 | Jungle | cabanes dans les arbres reliées par des ponts de corde, rivière avec passerelle et gué, ruines de temple |
 | Volcan | rivière de lave franchie par deux ponts de pierre, plateaux sur deux hauteurs, cratère |
+| Matrice | à l'intérieur du code : un noyau surélevé (rampe et deux ponts de données depuis des plateformes latérales), des tours où tombe une pluie de code verte, des pare-feu rouges pour se couvrir, des blocs qui grésillent et sautent dans les airs. Son boss est le Virus (le Titan noir de l'anime saison 2) : il disparaît dans un grésillement pour réapparaître près de toi, et se copie (ennemis corrompus) une fois blessé. Musique : Digital Acid |
 | Ville | carrefour sous un pont routier, immeubles au toit accessible par un escalier extérieur, voitures, feux et lampadaires |
 
 Les boss apparaissent au sol, dans un espace dégagé. La CI vérifie que chaque étage de chaque arène est accessible à pied aux ennemis.
@@ -157,6 +158,7 @@ Chaque arène a ses ennemis :
 | Désert | Assassins des sables | Pistolet-mitrailleur |
 | Jungle | Gobelins | Couteau : ils foncent et frappent au contact |
 | Volcan | Zombies (et des flaques de lave qui blessent) | Mains nues, au contact |
+| Matrice | Programmes corrompus (lueur verte) | Laser |
 | Ville | Hommes en costume | Revolver |
 
 Dans toutes les arènes, d'autres ennemis se mêlent aux vagues. À partir de la vague 2, chaque vague (hors boss) compte un **ennemi d'élite** : plus grand, entouré d'un halo doré, trois fois plus résistant ; il lâche toujours un bonus et rapporte 400 points. À partir de la vague 4 arrivent les **tireurs d'élite** : ils restent à distance, reculent si tu t'approches, et un laser rouge te vise une seconde avant chaque tir (18 dégâts) ; sortir de leur ligne de vue suffit à l'esquiver. À partir de la vague 6, les **kamikazes**, rouges et clignotants, foncent sur toi et explosent au contact (25 dégâts dans un rayon de 3,5 m) ; ils explosent aussi quand on les abat, donc mieux vaut les toucher de loin.

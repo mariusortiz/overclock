@@ -219,12 +219,12 @@ func _arena_center() -> Vector3:
 	return arena.boss_spawn_position() if arena else Vector3(0, 0.1, 0)
 
 
-## The bosses take turns, one per arena, and get tougher each time they come
-## around.
+## The bosses take turns, one per arena (Boss.ORDER), and get tougher each
+## time they come around.
 func _create_boss() -> Boss:
 	@warning_ignore("integer_division")
 	var index := wave / BOSS_EVERY - 1
-	var kinds := Boss.Kind.values()
+	var kinds := Boss.ORDER
 	var boss: Boss = boss_scene.instantiate()
 	@warning_ignore("integer_division")
 	boss.configure(kinds[index % kinds.size()], 1.0 + 0.6 * (index / kinds.size()))

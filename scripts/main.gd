@@ -34,6 +34,7 @@ const ARENAS: Array[PackedScene] = [
 	preload("res://scenes/arenas/desert.tscn"),
 	preload("res://scenes/arenas/jungle.tscn"),
 	preload("res://scenes/arenas/volcano.tscn"),
+	preload("res://scenes/arenas/matrix.tscn"),
 	preload("res://scenes/arenas/city.tscn"),
 ]
 
@@ -73,7 +74,6 @@ func _ready() -> void:
 				player.ultimate.add_charge(1.0)
 				Input.action_press("ultimate")
 				get_tree().create_timer(0.2, false).timeout.connect(Input.action_release.bind("ultimate")))
-	Enemy.corrupted = Story.is_active() and Story.mission().get("virus", false)
 	if Story.is_active():
 		first_arena = Story.mission().arena
 	_load_arena(first_arena)
@@ -195,6 +195,8 @@ func _load_arena(index: int) -> void:
 	_arena = ARENAS[_arena_index].instantiate()
 	add_child(_arena)
 	move_child(_arena, 0)
+	# The Matrice's enemies, and those of season 2's story, are the Virus'.
+	Enemy.corrupted = _arena.corrupted or (Story.is_active() and Story.mission().get("virus", false))
 	player.global_position = _arena.player_spawn_position()
 	player.velocity = Vector3.ZERO
 	_apply_quality()

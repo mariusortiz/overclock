@@ -450,7 +450,32 @@ def city(b):
         b.prop(ROADS + model + ".glb", x, z, height, yaw)
 
 
-LAYOUTS = {"station": station, "desert": desert, "jungle": jungle, "volcano": volcano, "city": city}
+def matrix(b):
+    """Inside the code: a raised core in the middle, reached by a ramp and by
+    two data bridges from side platforms; towers of falling code; low
+    firewalls to hide behind. Blocks glitch in the air above (scripts/matrix_fx.gd)."""
+    code = b.m["block"]
+    # The core.
+    b.block(0, 0, 10, 10, 3.0, material=code, roof_rails="nesw",
+            gaps=[("n", -1.6, 1.6), ("e", -1.6, 1.6), ("w", -1.6, 1.6)], check=True)
+    b.ramp((0, -14), (0, -5), 0, 3.0, 3.0)
+    # The side platforms, a bridge to the core each, a ramp down.
+    for side in (-1, 1):
+        x = side * 20
+        b.slab(x, 0, 8, 8, 3.0, gaps=[("w" if side > 0 else "e", -1.6, 1.6), ("s", x - 1.6, x + 1.6)])
+        b.bridge((side * 5, 0), (side * 16, 0), 3.0, 3.0, pillar_every=6)
+        b.ramp((x, 12), (x, 4), 0, 3.0, 3.0)
+    # Towers of code (no way up).
+    for x, z, w, top in [(-22, -22, 7, 9.0), (22, -22, 7, 11.0), (-24, 20, 6, 7.5), (24, 22, 6, 9.5), (0, -26, 5, 6.0)]:
+        b.block(x, z, w, w, top, material=code)
+    # Firewalls.
+    for x, z, w, d in [(-10, -14, 4, 0.8), (10, -14, 4, 0.8), (-12, 12, 0.8, 4), (12, 12, 0.8, 4),
+                       (-26, -8, 0.8, 5), (26, -10, 0.8, 5), (-6, 26, 5, 0.8)]:
+        b.cover(x, z, w, d, 1.3, material=b.m["firewall"])
+    b.loot += [("pad", (0, 3.05, 0)), ("chest", (-20, 3.0, -2)), ("chest", (20, 3.0, -2))]
+
+
+LAYOUTS = {"station": station, "desert": desert, "jungle": jungle, "volcano": volcano, "matrix": matrix, "city": city}
 
 ARENAS = {
     "station": {
@@ -489,6 +514,16 @@ ARENAS = {
         "spawns": [(-10, 0.1, -26), (0, 0.1, -26), (26, 0.1, -26), (-26, 0.1, 2), (8, 0.1, 24), (-25, 0.1, 25), (25, 0.1, 27)],
         "boss": (-6, 0.1, 8),
     },
+    "matrix": {
+        "name": "MATRICE", "music": 15, "enemy": "Ninja_Male.fbx", "enemy_weapon": "laser", "corrupted": True,
+        "fx": "res://scripts/matrix_fx.gd",
+        "sky_top": (0.0, 0.01, 0.005), "sky_horizon": (0.01, 0.1, 0.05), "ambient": (0.35, 0.6, 0.4), "ambient_energy": 0.5,
+        "sun": (0.7, 1, 0.8), "sun_energy": 0.7, "floor": "code", "wall": "code",
+        "materials": {"struct": "code", "block": "code", "trim": ("panel_dark", (0.2, 0.35, 0.25)), "rail": "glow",
+                      "firewall": "firewall"},
+        "spawns": [(-12, 0.1, -26), (12, 0.1, -26), (-6, 0.1, -20), (-27, 0.1, 6), (27, 0.1, 6), (-14, 0.1, 25), (14, 0.1, 26)],
+        "boss": (10, 0.1, 8),
+    },
     "city": {
         "name": "VILLE", "music": 6, "enemy": "Suit_Male.fbx", "enemy_weapon": "revolver_1",
         "sky_top": (0.05, 0.07, 0.2), "sky_horizon": (0.9, 0.45, 0.35), "ambient": (0.5, 0.5, 0.7), "ambient_energy": 0.6,
@@ -500,7 +535,7 @@ ARENAS = {
         "boss": (10, 0.1, 6),
     },
 }
-ORDER = ["station", "desert", "jungle", "volcano", "city"]
+ORDER = ["station", "desert", "jungle", "volcano", "matrix", "city"]
 
 
 def sun_basis():
@@ -541,17 +576,38 @@ def build(arena_id, arena):
             "agent_height = 1.75", "agent_radius = 0.5", "agent_max_slope = 32.0", ""]
 
     # --- Materials
-    if arena["floor"] == "grid":
+    def code_material(material_id, cell=0.3):
+        shader = ext_resource("Shader", "res://shaders/code_rain.gdshader")
+        sub.extend([f'[sub_resource type="ShaderMaterial" id="{material_id}"]', f"shader = {shader}",
+                    f"shader_parameter/cell = {cell}", ""])
+
+    if arena["floor"] == "code":
+        code_material("floor_material")
+    elif arena["floor"] == "grid":
         shader = ext_resource("Shader", "res://shaders/grid.gdshader")
         floor_texture = ext_resource("Texture2D", "res://assets/textures/floor_tiles.png")
         sub += ['[sub_resource type="ShaderMaterial" id="floor_material"]', f"shader = {shader}",
                 f"shader_parameter/floor_texture = {floor_texture}", ""]
     else:
         textured("floor_material", arena["floor"], (1, 1, 1), 0.25)
-    textured("wall_material", arena["wall"][0], arena["wall"][1])
+    if arena["wall"] == "code":
+        code_material("wall_material", 0.45)
+    else:
+        textured("wall_material", arena["wall"][0], arena["wall"][1])
     names = {}
     for key, value in arena["materials"].items():
-        if value == "accent":
+        if value == "code":
+            code_material(f"m_{key}")
+        elif value == "glow":
+            # Railings like glass panes with a faint green glow.
+            sub += [f'[sub_resource type="StandardMaterial3D" id="m_{key}"]', "transparency = 1",
+                    "albedo_color = Color(0.2, 1, 0.45, 0.18)", "emission_enabled = true", "emission = Color(0.2, 1, 0.45, 1)",
+                    "emission_energy_multiplier = 0.2", ""]
+        elif value == "firewall":
+            sub += [f'[sub_resource type="StandardMaterial3D" id="m_{key}"]', "transparency = 1",
+                    "albedo_color = Color(1, 0.3, 0.2, 0.55)", "emission_enabled = true", "emission = Color(1, 0.25, 0.15, 1)",
+                    "emission_energy_multiplier = 1.2", ""]
+        elif value == "accent":
             stripes = ext_resource("Texture2D", "res://assets/textures/stripes_emission.png")
             panel = ext_resource("Texture2D", "res://assets/textures/panel_dark.png")
             sub += [f'[sub_resource type="StandardMaterial3D" id="m_{key}"]', "albedo_color = Color(0.75, 0.45, 0.85, 1)",
@@ -576,7 +632,8 @@ def build(arena_id, arena):
     nodes += ['[node name="Arena" type="NavigationRegion3D"]', 'navigation_mesh = SubResource("navigation_mesh")',
               f"script = {script}", f'display_name = "{arena["name"]}"',
               f'enemy_model = {ext_resource("PackedScene", CHARACTERS + arena["enemy"])}',
-              f'enemy_weapon = "{arena["enemy_weapon"]}"', f'music_track = {arena["music"]}', "",
+              f'enemy_weapon = "{arena["enemy_weapon"]}"', f'music_track = {arena["music"]}',
+              *(["corrupted = true"] if arena.get("corrupted") else []), "",
               '[node name="WorldEnvironment" type="WorldEnvironment" parent="."]', 'environment = SubResource("environment")', "",
               '[node name="Sun" type="DirectionalLight3D" parent="."]', f"transform = {transform((0, 10, 0), sun_basis())}",
               f'light_color = {color(arena["sun"])}', f'light_energy = {arena["sun_energy"]}', "shadow_enabled = true", ""]
@@ -682,6 +739,10 @@ def build(arena_id, arena):
                       f"transform = {transform((0, 1.8, 0))}", 'mesh = SubResource("chest_marker_mesh")', "",
                       f'[node name="CollisionShape3D" type="CollisionShape3D" parent="Upstairs/Chest{i}"]',
                       f"transform = {transform((0, 1.0, 0))}", 'shape = SubResource("chest_shape")', ""]
+
+    # --- Moving decor (the arena's own script)
+    if arena.get("fx"):
+        nodes += ['[node name="Effects" type="Node3D" parent="."]', f'script = {ext_resource("Script", arena["fx"])}', ""]
 
     # --- Spawn points and checkpoints
     nodes += ['[node name="PlayerSpawn" type="Marker3D" parent="."]', f"transform = {transform(PLAYER_SPAWN)}", "",

@@ -13,12 +13,14 @@ const ARENAS: Array[PackedScene] = [
 	preload("res://scenes/arenas/desert.tscn"),
 	preload("res://scenes/arenas/jungle.tscn"),
 	preload("res://scenes/arenas/volcano.tscn"),
+	preload("res://scenes/arenas/matrix.tscn"),
 	preload("res://scenes/arenas/city.tscn"),
 ]
 ## Where the line runs in each arena: its middle (from the boss spawn point,
 ## plus this offset) and its direction. The camera stands on its +Z side
 ## (see _perp).
 const LANES := [
+	{"offset": Vector3.ZERO, "axis": Vector3.RIGHT},
 	{"offset": Vector3.ZERO, "axis": Vector3.RIGHT},
 	{"offset": Vector3.ZERO, "axis": Vector3.RIGHT},
 	{"offset": Vector3.ZERO, "axis": Vector3.RIGHT},

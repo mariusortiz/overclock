@@ -319,7 +319,7 @@ func _run() -> void:
 	for child in _cards_layer.get_children():
 		child.queue_free()
 
-	# 147.6 s: the fight mode, two fighters of the computer in the city.
+	# 147.6 s: the fight mode, two fighters of the computer in the Matrice.
 	_clear()
 	_flash()
 	_show_caption("NOUVEAU · MODE COMBAT", "1 CONTRE 1 · ARCADE", 6.6)
