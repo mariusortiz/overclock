@@ -1,7 +1,7 @@
 extends Node
 ## Directs the three-minute trailer: a showcase, with no fighting. It visits the
 ## arenas, parades their enemies and bosses, then scrolls past every weapon and
-## every hero, then the shop's exclusive guns, heroes and dances, and Le Créateur, with title cards on top. Nothing of the game itself runs here:
+## every hero, then the shop's exclusive guns, heroes and dances, Le Créateur and the fight mode, with title cards on top. Nothing of the game itself runs here:
 ## the director only borrows its scenes and models.
 ##
 ## Rendered by .github/workflows/trailer.yml with Godot's movie mode:
@@ -9,7 +9,7 @@ extends Node
 ## The music is laid over the picture afterwards, by the same workflow.
 
 const URL := "overclock.randomlabs.dev"
-const DURATION := 190.0
+const DURATION := 197.0
 ## The heroes of the story mode, for its shot.
 const STORY_HEROES := ["kunoichi", "soldier", "sand_ghost", "ronin", "captain", "cowgirl"]
 ## The ships flown on the circuits: the ultra ones lead.
@@ -319,7 +319,16 @@ func _run() -> void:
 	for child in _cards_layer.get_children():
 		child.queue_free()
 
-	# 135.6 s: the story mode, the season's heroes.
+	# 147.6 s: the fight mode, two fighters of the computer in the city.
+	_clear()
+	_flash()
+	_show_caption("NOUVEAU · MODE COMBAT", "1 CONTRE 1 · ARCADE", 6.6)
+	var fight := _start_fight()
+	await _until(154.6)
+	fight.queue_free()
+	_camera.make_current()
+
+	# 154.6 s: the story mode, the season's heroes.
 	_build_showroom()
 	_flash()
 	var cast: Array = []
@@ -332,9 +341,9 @@ func _run() -> void:
 	_dolly(Vector3(last_cast + 0.8, 1.5, 4.8), Vector3(-0.8, 1.5, 4.6),
 			Vector3(last_cast + 0.8, 1.45, 0), Vector3(-0.8, 1.45, 0), 7.6)
 	_show_caption("NOUVEAU · MODE HISTOIRE", "2 SAISONS · %d CHAPITRES", 7.0, Story.CHAPTERS.size())
-	await _until(155.6)
+	await _until(162.6)
 
-	# 155.6 s: the five circuits, their item boxes, the ultra ships.
+	# 162.6 s: the five circuits, their item boxes, the ultra ships.
 	for index in RaceTrack.CIRCUITS.size():
 		_load_circuit(index)
 		if index == 0:
@@ -350,39 +359,39 @@ func _run() -> void:
 				_show_caption("VAISSEAUX ULTRA", "OMÉGA · FAUCHEUSE · AURORE", CIRCUIT_SHOT)
 			_:
 				_show_caption("CIRCUIT", RaceTrack.CIRCUITS[index].name.to_upper(), CIRCUIT_SHOT)
-		await _until(155.6 + CIRCUIT_SHOT * (index + 1))
+		await _until(162.6 + CIRCUIT_SHOT * (index + 1))
 	_clear()
 
-	# 168.6 s: the collectible cards, then a booster torn open.
+	# 175.6 s: the collectible cards, then a booster torn open.
 	_build_showroom()
 	_flash()
 	_dolly(Vector3(0, 1.4, 6), Vector3(0, 1.4, 5.5), Vector3(0, 1.2, 0), Vector3(0, 1.2, 0), 7.0)
 	_show_cards()
 	_show_caption("CARTES À COLLECTIONNER", "%d CARTES · 6 RARETÉS", 3.8, Cards.CATALOG.size())
-	await _until(172.6)
+	await _until(179.6)
 	_tear_booster()
 	_show_caption("BOOSTER LÉGENDAIRE", "%d CARTES · 50 %% LÉGENDAIRE", 2.8, Cards.cards_in("legend"))
-	await _until(175.6)
+	await _until(182.6)
 	for child in _cards_layer.get_children():
 		child.queue_free()
 
-	# 175.6 s: the last boss, and what beating it earns.
+	# 182.6 s: the last boss, and what beating it earns.
 	_load_arena(CITY)
 	_flash()
 	_present_boss(Boss.Kind.TITAN, 4.6)
 	_show_caption("AU BOUT DE LA VILLE", "LE TITAN", 3.8)
-	await _until(180.2)
+	await _until(187.2)
 	_clear_actors()
 	_blink()
 	_celebrate()
 	_show_caption("BATS-LE", "GAGNE LE SKIN CHAMPION", 3.8)
-	await _until(184.6)
+	await _until(191.6)
 
 	# End card.
 	_fade_shade(1.0, 0.9)
-	await _until(185.7)
+	await _until(192.7)
 	_end_sparks.emitting = true
-	_show_title("%s\nSUR ANDROID ET DANS LE NAVIGATEUR\n\nMODE HISTOIRE · 5 ARÈNES · 5 CIRCUITS\n%d ARMES · %d HÉROS · %d CARTES" % [
+	_show_title("%s\nSUR ANDROID ET DANS LE NAVIGATEUR\n\nHISTOIRE · COMBAT · 5 ARÈNES · 5 CIRCUITS\n%d ARMES · %d HÉROS · %d CARTES" % [
 			URL, Loadout.WEAPONS.size(), Loadout.CHARACTERS.size(), Cards.CATALOG.size()], 4.3, true)
 	await _until(DURATION)
 	get_tree().quit()
@@ -499,6 +508,26 @@ func _present_creator() -> void:
 	var tween := view.create_tween()
 	tween.tween_property(view, "scale", Vector2.ONE, 0.45).from(Vector2.ONE * 0.2) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+## The fight mode (scenes/fight.tscn) played by the computer on both sides,
+## its camera and its HUD over the picture; the supers come out mid-way.
+func _start_fight() -> Node:
+	FightSetup.mode = "ai"
+	FightSetup.heroes.assign(["kunoichi", "viking"])
+	FightSetup.arena = 4
+	FightSetup.difficulty = 2
+	var fight: Node = load(FightSetup.SCENE).instantiate()
+	add_child(fight)
+	fight.set("_sources", [FightAI.new(fight.fighters[0], 2), FightAI.new(fight.fighters[1], 2)])
+	# No pause button in a film.
+	for button: Button in fight.find_children("*", "Button", true, false):
+		button.visible = false
+	get_tree().create_timer(3.0).timeout.connect(func() -> void:
+		if is_instance_valid(fight):
+			for fighter: Fighter in fight.fighters:
+				fighter.meter = Fighter.METER_MAX)
+	return fight
 
 
 ## The items of `items` earned by playing (the battle pass), and those sold

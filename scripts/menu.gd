@@ -12,7 +12,8 @@ const MODES := [
 	["VAGUES", "Survis aux vagues et bats les 5 boss", GAME_SCENE],
 	["CAPTURE DE ZONE", "4 contre 4 avec des bots · tiens les zones A, B et C", CAPTURE_SCENE],
 	["COURSE DE VAISSEAUX", "3 tours contre 5 pilotes · boost et lasers", RACE_SCENE],
-	["MULTIJOUEUR", "Wi-Fi local · course ou capture, jusqu'à 6 joueurs", LOBBY_SCENE],
+	["COMBAT", "Un contre un, de profil · IA, 2 joueurs, arcade, Wi-Fi", FightSetup.MENU],
+	["MULTIJOUEUR", "Wi-Fi local · course, capture ou combat", LOBBY_SCENE],
 ]
 const ARMORY_SCENE := "res://scenes/armory.tscn"
 const PASS_SCENE := "res://scenes/battle_pass.tscn"

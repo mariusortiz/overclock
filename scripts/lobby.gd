@@ -116,6 +116,8 @@ func _show_room() -> void:
 		_text("Ton adresse : %s · les places libres sont prises par des bots." % Net.local_address(), 18)
 		_button("LANCER LA COURSE", Net.start_game.bind("race"), CYAN)
 		_button("LANCER LA CAPTURE DE ZONE", Net.start_game.bind("capture"), CYAN)
+		var fight := _button("LANCER LE COMBAT (2 joueurs)", Net.start_game.bind("fight"), CYAN)
+		fight.disabled = Net.players.size() != 2
 	else:
 		_text("En attente du lancement par l'hôte…")
 	_button("QUITTER LA PARTIE", func() -> void:

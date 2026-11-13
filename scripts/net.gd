@@ -19,7 +19,7 @@ const MAX_PLAYERS := 6
 const ANNOUNCE_INTERVAL := 1.0
 ## A host not heard from for this long is dropped from the list.
 const HOST_TIMEOUT := 4.0
-const SCENES := {"race": "res://scenes/race.tscn", "capture": "res://scenes/capture.tscn"}
+const SCENES := {"race": "res://scenes/race.tscn", "capture": "res://scenes/capture.tscn", "fight": "res://scenes/fight.tscn"}
 
 ## peer id -> {"name", "hero" (Loadout id), "color" (Color as html)}
 var players := {}
@@ -114,6 +114,8 @@ func start_game(game_mode: String) -> void:
 func _start(game_mode: String, game_seed: int) -> void:
 	mode = game_mode
 	seed_value = game_seed
+	if game_mode == "fight":
+		FightSetup.mode = "online"
 	# Overpowered shop items play as their fair version against other players.
 	Loadout.fair_play = true
 	get_tree().change_scene_to_file.call_deferred(SCENES[game_mode])
