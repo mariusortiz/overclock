@@ -40,13 +40,20 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" = "push" ] && git cat-file -e "$BEFORE" 2>/dev/null; then
             changed=$(git diff --name-only "$BEFORE" "$GITHUB_SHA")
           fi
-          if [ -z "$changed" ] || echo "$changed" | grep -qE 'anime_director|anime_episodes|anime_episode.html|workflows/anime.yml'; then
+          # Episodes listed (or changed) in the list: those whose line changed.
+          lines=""
+          if [ -n "$changed" ]; then
+            lines=$(git diff -U0 "$BEFORE" "$GITHUB_SHA" -- tools/anime_episodes.tsv | grep -E '^\+[0-9]' | cut -c2- | cut -f1)
+          fi
+          if [ -z "$changed" ] || echo "$changed" | grep -qE 'anime_director|anime_episode.html'; then
             picked="$listed"
           else
             picked=""
             for n in $listed; do
               nn=$(printf '%02d' "$n")
-              if echo "$changed" | grep -qE "ep${nn}\.(gd|tscn)" || { [ "$n" = 1 ] && echo "$changed" | grep -qE 'anime_music|tools/anime.html'; }; then
+              if echo "$changed" | grep -qE "ep${nn}\.(gd|tscn)" || echo " $lines " | tr '\n' ' ' | grep -qw "$n" \
+                  || { [ "$n" = 1 ] && echo "$changed" | grep -qE 'anime_music|tools/anime.html'; } \
+                  || { [ "$n" -ge 11 ] && echo "$changed" | grep -q 'anime/season2.gd'; }; then
                 picked="$picked $n"
               fi
             done

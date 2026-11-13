@@ -28,6 +28,7 @@ Sa source est dans `site/`, publiée avec chaque build web. Godot l'ignore (`sit
 
 - Trailer (2 min 30) : https://overclock.randomlabs.dev/trailer.html
 - Anime, épisode 1 « L'escouade » (2 min) : https://overclock.randomlabs.dev/anime.html
+- Anime, saison 2 « Le Créateur » (épisodes 11 à 20) : https://overclock.randomlabs.dev/anime11.html (puis anime12 … anime20). Un virus corrompt le monde du jeu ; le Créateur, l'homme à tête de vache qui l'a écrit, guide l'escouade jusqu'au redémarrage. Les épisodes de la saison 2 partagent `scripts/anime/season2.gd` (glitchs, ennemis corrompus, apparitions) : le modifier ne rend que la saison 2.
 
 Les deux sont jouées par le moteur avec les modèles du jeu (`scripts/trailer.gd`, `scripts/anime.gd`) et rendues par leur propre workflow GitHub Actions quand ces fichiers changent. L'anime ajoute un rendu en cel-shading (aplats de lumière et contours à l'encre), des bulles façon manga, des lignes de vitesse et des images d'impact.
 
