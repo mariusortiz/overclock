@@ -7,7 +7,9 @@ extends Node
 ##
 ## Needs a display (not --headless):
 ##   godot --rendering-driver opengl3 res://scenes/tools/card_art.tscn
-## "-- --only=card_x" renders a single card.
+## "-- --only=card_x" renders a single card; "--size=640 --wide" renders it
+## bigger and framed wider, for tools/fit_card_art.py to crop around the
+## subject (bosses, whose animated models overflow their bounds).
 
 const SIZE := 320
 const OUT_DIR := "res://assets/cards/"
@@ -45,11 +47,18 @@ func _ready() -> void:
 	_render_all.call_deferred()
 
 
+var _wide := false
+
+
 func _render_all() -> void:
 	var only := ""
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--only="):
 			only = argument.get_slice("=", 1)
+		elif argument.begins_with("--size="):
+			_viewport.size = Vector2i.ONE * argument.get_slice("=", 1).to_int()
+		elif argument == "--wide":
+			_wide = true
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
 	for card: Dictionary in Cards.CATALOG + Cards.HACKER_CARDS:
 		if card.art[0] == "image" or (only != "" and card.id != only):
@@ -172,5 +181,7 @@ func _frame(subject: Node3D, kind: String) -> void:
 		radius *= 0.7
 	else:
 		radius *= 0.72
+	if _wide:
+		radius *= 2.0
 	var distance := radius / tan(deg_to_rad(_camera.fov * 0.5)) * 1.05
 	_camera.look_at_from_position(center + Vector3(0.0, radius * 0.25, distance), center)
