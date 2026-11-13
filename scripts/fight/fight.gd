@@ -15,11 +15,13 @@ const ARENAS: Array[PackedScene] = [
 	preload("res://scenes/arenas/volcano.tscn"),
 	preload("res://scenes/arenas/matrix.tscn"),
 	preload("res://scenes/arenas/city.tscn"),
+	preload("res://scenes/arenas/snow.tscn"),
 ]
 ## Where the line runs in each arena: its middle (from the boss spawn point,
 ## plus this offset) and its direction. The camera stands on its +Z side
 ## (see _perp).
 const LANES := [
+	{"offset": Vector3.ZERO, "axis": Vector3.RIGHT},
 	{"offset": Vector3.ZERO, "axis": Vector3.RIGHT},
 	{"offset": Vector3.ZERO, "axis": Vector3.RIGHT},
 	{"offset": Vector3.ZERO, "axis": Vector3.RIGHT},
@@ -91,12 +93,12 @@ func _ready() -> void:
 	if _online:
 		var ids := Net.ids()
 		FightSetup.heroes.assign([Net.players[ids[0]].hero, Net.players[ids[1]].hero])
-		index = Net.seed_value % ARENAS.size()
+		index = Net.seed_value % FightSetup.arena_count()
 		Net.left.connect(_on_net_left)
 	elif FightSetup.is_arcade():
 		index = FightSetup.arcade_arena()
 	if index < 0:
-		index = randi() % ARENAS.size()
+		index = randi() % FightSetup.arena_count()
 	_load_arena(index)
 	for i in 2:
 		var fighter := Fighter.new()

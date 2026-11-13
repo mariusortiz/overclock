@@ -475,7 +475,50 @@ def matrix(b):
     b.loot += [("pad", (0, 3.05, 0)), ("chest", (-20, 3.0, -2)), ("chest", (20, 3.0, -2))]
 
 
-LAYOUTS = {"station": station, "desert": desert, "jungle": jungle, "volcano": volcano, "matrix": matrix, "city": city}
+def pine(b, x, z, height, collide=True):
+    """A fir tree: a trunk and three tiers of needles, snow on top."""
+    b.box((0.5, height * 0.3, 0.5), (x, height * 0.15, z), b.m["trunk"], collide=collide)
+    for i in range(3):
+        width = height * 0.55 * (1 - i * 0.28)
+        tier = height * 0.3
+        y = height * 0.25 + i * height * 0.22 + tier / 2
+        b.box((width, tier, width), (x, y, z), b.m["pine"], rot_y(45 + i * 20), collide=False)
+        b.box((width * 0.55, tier * 0.18, width * 0.55), (x, y + tier / 2, z), b.m["snowcap"], rot_y(45 + i * 20), collide=False)
+
+
+def snow(b):
+    """The Christmas village: a frozen lake, chalets with roofs reached by
+    outside stairs, an ice bridge over the north side, fir trees and the big
+    tree of the village square (lights in scripts/snow_fx.gd)."""
+    b.box((16, 0.06, 12), (0, 0.03, -4), b.m["ice"], collide=False)
+    for side in (-1, 1):
+        x = side * 18
+        b.block(x, 10, 9, 7, 4.0, roof_rails="nesw", gaps=[("s", x - 1.6, x + 1.6)], check=True)
+        b.windows(x, 10, 9, 7, 4.0, 1)
+        b.box((9.6, 0.5, 7.6), (x, 4.25, 10), b.m["snowcap"], collide=False)
+        b.ramp((x, 23.5), (x, 13.5), 0, 4.0, 2.8)
+    b.bridge((-14, -16), (14, -16), 3.0, 3.0, pillar_every=7, material=b.m["ice"])
+    b.ramp((-25, -16), (-14, -16), 0, 3.0, 3.0)
+    b.ramp((25, -16), (14, -16), 0, 3.0, 3.0)
+    b.checkpoints.append((0, 3.1, -16))
+    # The big tree, its star lit.
+    pine(b, 0, -25, 11.0)
+    b.box((0.9, 0.9, 0.9), (0, 11.4, -25), "m_window", rot_y(45), collide=False)
+    for x, z, h in [(-26, -26, 6), (-22, 2, 5), (25, -2, 5.5), (26, -26, 6.5), (-10, 24, 4.5), (11, 25, 5),
+                    (-27, 14, 5), (27, 26, 4.5), (-8, -26, 5), (8, -27, 5.5)]:
+        pine(b, x, z, h)
+    # Snow walls to hide behind.
+    for x, z, w, d in [(-10, -6, 0.9, 4), (10, -6, 0.9, 4), (-6, 6, 4, 0.9), (6, 6, 4, 0.9), (-24, -8, 4, 0.9), (24, -9, 4, 0.9)]:
+        b.cover(x, z, w, d, 1.3, material=b.m["snowcap"])
+    b.loot += [("pad", (-18, 4.05, 9)), ("chest", (18, 4.0, 9)), ("chest", (0, 3.0, -16))]
+    for x, z, model, height, yaw in [
+        (-14, 14, "log_stackLarge", 1.2, 0), (14, -6, "tent_detailedOpen", 2.4, 200), (-15, -5, "tent_detailedClosed", 2.4, 20),
+        (4, 14, "campfire_stones", 0.6, 0), (-26, 22, "rock_largeD", 1.4, 0), (22, 18, "stump_roundDetailed", 0.6, 0),
+    ]:
+        b.prop(NATURE + model + ".glb", x, z, height, yaw)
+
+
+LAYOUTS = {"station": station, "desert": desert, "jungle": jungle, "volcano": volcano, "matrix": matrix, "city": city, "snow": snow}
 
 ARENAS = {
     "station": {
@@ -534,8 +577,20 @@ ARENAS = {
         "spawns": [(-8, 0.1, -27), (8, 0.1, -27), (-27, 0.1, -8), (27, 0.1, -8), (-27, 0.1, 25), (27, 0.1, 25), (-12, 0.1, 6)],
         "boss": (10, 0.1, 6),
     },
+    # Only during the Christmas event (scripts/events.gd).
+    "snow": {
+        "name": "VILLAGE ENNEIGÉ", "music": 23, "enemy": "Elf.fbx", "enemy_weapon": "smg", "fx": "res://scripts/snow_fx.gd",
+        "sky_top": (0.22, 0.32, 0.55), "sky_horizon": (0.6, 0.68, 0.82), "ambient": (0.55, 0.6, 0.75), "ambient_energy": 0.3,
+        "sun": (1, 0.95, 0.88), "sun_energy": 0.6, "floor": "snow", "floor_tint": (0.46, 0.52, 0.64), "wall": ("snow", (0.5, 0.56, 0.68)),
+        "materials": {"struct": ("melee/wood", (0.95, 0.85, 0.75)), "block": ("melee/wood", (0.75, 0.55, 0.42)),
+                      "trim": ("melee/wood", (0.55, 0.4, 0.3)), "rail": ("melee/wood", (0.6, 0.45, 0.35)),
+                      "ice": ("ice", (0.85, 0.95, 1.0)), "pine": ("grass", (0.2, 0.42, 0.28)), "trunk": ("melee/wood", (0.45, 0.32, 0.22)),
+                      "snowcap": ("snow", (0.85, 0.9, 0.98))},
+        "spawns": [(-12, 0.1, -27), (12, 0.1, -27), (-27, 0.1, -12), (27, 0.1, -12), (-27, 0.1, 6), (27, 0.1, 8), (-14, 0.1, 24)],
+        "boss": (10, 0.1, 4),
+    },
 }
-ORDER = ["station", "desert", "jungle", "volcano", "matrix", "city"]
+ORDER = ["station", "desert", "jungle", "volcano", "matrix", "city", "snow"]
 
 
 def sun_basis():
@@ -589,7 +644,7 @@ def build(arena_id, arena):
         sub += ['[sub_resource type="ShaderMaterial" id="floor_material"]', f"shader = {shader}",
                 f"shader_parameter/floor_texture = {floor_texture}", ""]
     else:
-        textured("floor_material", arena["floor"], (1, 1, 1), 0.25)
+        textured("floor_material", arena["floor"], arena.get("floor_tint", (1, 1, 1)), 0.25)
     if arena["wall"] == "code":
         code_material("wall_material", 0.45)
     else:

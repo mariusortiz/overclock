@@ -4,7 +4,7 @@ render_mode cull_disabled;
 // The pattern follows the model (object space), so it stays on the gun.
 // mode 0: hologram scanlines, 1: twinkling galaxy, 2: flowing plasma,
 // 3: glitch blocks, 4: rainbow prism, 5: lightning, 6: black hole,
-// 7: digital rain.
+// 7: digital rain, 8: candy cane stripes, 9: snowflakes, 10: Christmas lights.
 
 uniform int mode = 0;
 uniform vec3 color_a : source_color = vec3(0.0, 0.9, 1.0);
@@ -71,6 +71,30 @@ void fragment() {
 		float trail = pow(fall, 3.0) * glyph;
 		color = color_b;
 		glow = color_a * trail * 1.4 + vec3(0.8, 1.0, 0.85) * step(0.97, fall) * glyph;
+	} else if (mode == 8) {
+		// Candy cane: diagonal red and white stripes sliding along.
+		float stripe = step(0.5, fract((p.x + p.y) * 1.2 - t * 0.4));
+		color = mix(color_a, color_b, stripe);
+		glow = color * 0.15;
+	} else if (mode == 9) {
+		// Snowflakes: icy blue, white crystals twinkling.
+		vec3 cell = floor(p * 3.5);
+		vec3 f = fract(p * 3.5) - 0.5;
+		float arm = min(abs(f.x), min(abs(f.y), abs(f.x - f.y)));
+		float flake = step(0.85, hash(cell)) * smoothstep(0.06, 0.0, arm) * step(length(f), 0.45);
+		float twinkle = 0.5 + 0.5 * sin(t * 3.0 + hash(cell + 2.0) * 30.0);
+		color = mix(color_b, color_a, 0.25 + 0.15 * sin(p.y * 2.0 + t));
+		glow = color_a * flake * (0.6 + twinkle);
+	} else if (mode == 10) {
+		// Christmas lights: a dark green cord with bulbs blinking in turn.
+		vec3 cell = floor(p * 2.5);
+		vec3 f = fract(p * 2.5) - 0.5;
+		float bulb = smoothstep(0.22, 0.12, length(f));
+		float h = hash(cell);
+		vec3 bulb_color = h < 0.25 ? vec3(1.0, 0.15, 0.15) : (h < 0.5 ? vec3(0.2, 1.0, 0.35) : (h < 0.75 ? vec3(0.3, 0.55, 1.0) : color_a));
+		float on = step(0.5, fract(t * 0.8 + h * 3.0));
+		color = mix(color_b, bulb_color, bulb);
+		glow = bulb_color * bulb * (0.3 + 1.6 * on);
 	} else if (mode == 6) {
 		// Black hole: pitch black, a glowing ring of fire that swirls in.
 		float r = length(p.xy);

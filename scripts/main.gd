@@ -36,7 +36,11 @@ const ARENAS: Array[PackedScene] = [
 	preload("res://scenes/arenas/volcano.tscn"),
 	preload("res://scenes/arenas/matrix.tscn"),
 	preload("res://scenes/arenas/city.tscn"),
+	# Christmas only (Events.SNOW_ARENA): never in the usual round of arenas.
+	preload("res://scenes/arenas/snow.tscn"),
 ]
+## The arenas that follow one another in a game.
+const ROTATION := 6
 
 var score := 0
 
@@ -67,6 +71,9 @@ func _ready() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--arena="):
 			first_arena = argument.get_slice("=", 1).to_int()
+		elif argument == "--christmas":
+			# Test option: the Christmas waves.
+			Events.christmas_run = true
 		elif argument == "--autofire":
 			Input.action_press("fire")
 		elif argument == "--ulti":
@@ -76,6 +83,9 @@ func _ready() -> void:
 				get_tree().create_timer(0.2, false).timeout.connect(Input.action_release.bind("ultimate")))
 	if Story.is_active():
 		first_arena = Story.mission().arena
+	if Events.christmas_run:
+		first_arena = Events.SNOW_ARENA
+		waves.boss_kind = Boss.Kind.FROST
 	_load_arena(first_arena)
 
 	hud.touch_controls.look.connect(_on_touch_look)
@@ -191,7 +201,7 @@ func _load_arena(index: int) -> void:
 	# Projectiles, power-ups and other leftovers of the previous arena.
 	get_tree().call_group("transient", "queue_free")
 
-	_arena_index = index % ARENAS.size()
+	_arena_index = index if index == Events.SNOW_ARENA else index % ROTATION
 	_arena = ARENAS[_arena_index].instantiate()
 	add_child(_arena)
 	move_child(_arena, 0)
@@ -295,6 +305,32 @@ func _on_boss_killed(kind: Boss.Kind) -> void:
 		return
 	if kind == Boss.Kind.TITAN and not _endless:
 		_win()
+	if Events.christmas_run and waves.wave >= Events.CHRISTMAS_WAVES:
+		_win_christmas()
+
+
+## The arena after a boss: the next of the round, or the village again in
+## the Christmas waves.
+func _next_arena() -> int:
+	return Events.SNOW_ARENA if Events.christmas_run else (_arena_index + 1) % ROTATION
+
+
+## The Christmas waves are won: the last Père Glaçon is down. A shower of
+## snow and gifts, the reward, then the end screen.
+func _win_christmas() -> void:
+	_won = true
+	waves.stop()
+	player.invulnerable = true
+	for enemy in get_tree().get_nodes_in_group("targets"):
+		enemy.take_damage(9999)
+	var top := _boss.global_position + Vector3.UP * 3.0
+	Effects.flash(self, top, Color(1.0, 0.9, 0.6), 10.0, 1.2)
+	for burst in 3:
+		Effects.spray(self, top + Vector3.UP * burst, [Color(1.0, 0.15, 0.15), Color(0.15, 0.8, 0.3), Color(1.0, 0.85, 0.3), Color.WHITE],
+				90, Vector3(0.16, 0.1, 0.01), Vector2(4.0, 8.0), Vector3(0, -3.0, 0), 70.0, 3.0)
+	hud.show_banner("JOYEUX NOËL !   " + Events.clear_reward().to_upper())
+	await get_tree().create_timer(VICTORY_TIME).timeout
+	_on_exit_chosen(true)
 
 
 ## The final boss is down: a trophy rises where it fell, the Champion skin is
@@ -355,7 +391,7 @@ func _on_perk_chosen(type: Perk.Type) -> void:
 	player.add_perk(type)
 	# A boss was just beaten: go on to the next arena, or go home with the XP.
 	if _arena_change_pending:
-		var next: Arena = ARENAS[(_arena_index + 1) % ARENAS.size()].instantiate()
+		var next: Arena = ARENAS[_next_arena()].instantiate()
 		hud.show_exit_choice(next.display_name, _earned_xp())
 		next.free()
 		return
@@ -381,7 +417,7 @@ func _on_exit_chosen(leave: bool) -> void:
 		return
 	_resume()
 	await hud.fade_to_black()
-	_load_arena(_arena_index + 1)
+	_load_arena(_next_arena())
 	hud.show_banner(_arena.display_name)
 	hud.fade_from_black()
 

@@ -82,3 +82,6 @@ ground((168, 138, 92), 8, seed=11).save(OUT + "sand.png")
 ground((72, 118, 60), 10, seed=12).save(OUT + "grass.png")
 ground((48, 40, 42), 8, seed=13).save(OUT + "basalt.png")
 panels((58, 58, 66), 1, seed=14, rivets=False).save(OUT + "asphalt.png")
+# The Christmas arena: snow (bright, bluish speckles) and ice.
+ground((228, 234, 244), 5, seed=15, speckles=600).save(OUT + "snow.png")
+ground((150, 200, 228), 7, seed=16, speckles=300).save(OUT + "ice.png")

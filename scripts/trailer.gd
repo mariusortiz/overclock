@@ -9,7 +9,7 @@ extends Node
 ## The music is laid over the picture afterwards, by the same workflow.
 
 const URL := "overclock.randomlabs.dev"
-const DURATION := 197.0
+const DURATION := 203.0
 ## The heroes of the story mode, for its shot.
 const STORY_HEROES := ["kunoichi", "soldier", "sand_ghost", "ronin", "captain", "cowgirl"]
 ## The ships flown on the circuits: the ultra ones lead.
@@ -375,21 +375,32 @@ func _run() -> void:
 	for child in _cards_layer.get_children():
 		child.queue_free()
 
-	# 182.6 s: the last boss, and what beating it earns.
+	# 182.6 s: Christmas, the snow village and its Père Glaçon.
+	_clear()
+	var village: Node3D = load("res://scenes/arenas/snow.tscn").instantiate()
+	village.name = "Arena"
+	_set.add_child(village)
+	_flash()
+	_present_boss(Boss.Kind.FROST, 5.6)
+	_set_embers(false)
+	_show_caption("NOËL · DU 1ER DÉCEMBRE AU 6 JANVIER", "LE PÈRE GLAÇON", 5.2)
+	await _until(188.6)
+
+	# 188.6 s: the last boss, and what beating it earns.
 	_load_arena(CITY)
 	_flash()
 	_present_boss(Boss.Kind.TITAN, 4.6)
 	_show_caption("AU BOUT DE LA VILLE", "LE TITAN", 3.8)
-	await _until(187.2)
+	await _until(193.2)
 	_clear_actors()
 	_blink()
 	_celebrate()
 	_show_caption("BATS-LE", "GAGNE LE SKIN CHAMPION", 3.8)
-	await _until(191.6)
+	await _until(197.6)
 
 	# End card.
 	_fade_shade(1.0, 0.9)
-	await _until(192.7)
+	await _until(198.7)
 	_end_sparks.emitting = true
 	_show_title("%s\nSUR ANDROID ET DANS LE NAVIGATEUR\n\nHISTOIRE · COMBAT · 5 ARÈNES · 5 CIRCUITS\n%d ARMES · %d HÉROS · %d CARTES" % [
 			URL, Loadout.WEAPONS.size(), Loadout.CHARACTERS.size(), Cards.CATALOG.size()], 4.3, true)
@@ -732,6 +743,13 @@ func _present_boss(kind: Boss.Kind, seconds: float) -> void:
 		material.albedo_texture = load(Boss.TITAN_TEXTURE)
 		for mesh: MeshInstance3D in boss.find_children("*", "MeshInstance3D", true, false):
 			mesh.material_override = material
+	if kind == Boss.Kind.FROST:
+		var ice := StandardMaterial3D.new()
+		ice.albedo_color = Color(0.75, 0.9, 1.0)
+		ice.metallic = 0.3
+		ice.roughness = 0.15
+		for mesh: MeshInstance3D in boss.find_children("*", "MeshInstance3D", true, false):
+			mesh.material_override = ice
 	var look := BOSS_SPOT + Vector3.UP * (hover + height * 0.55)
 	_dolly(BOSS_SPOT + Vector3(-height * 1.1, height * 0.25, height * 2.1),
 			BOSS_SPOT + Vector3(height * 1.0, height * 0.4, height * 1.7), look, look, seconds, true)

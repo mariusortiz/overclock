@@ -5,7 +5,7 @@ extends Node3D
 ## at their base after a few seconds.
 
 const MENU_SCENE := "res://scenes/menu.tscn"
-const ARENAS := ["station", "desert", "jungle", "volcano", "matrix", "city"]
+const ARENAS := ["station", "desert", "jungle", "volcano", "matrix", "city", "snow"]
 const ENEMY_SCENE := preload("res://scenes/enemy.tscn")
 const TEAM_SIZE := 4
 const WIN_SCORE := 150
@@ -36,10 +36,12 @@ var _net: CaptureNet
 
 
 func _ready() -> void:
-	var index := randi() % ARENAS.size()
+	# The snow village (last) only during the Christmas event.
+	var count := ARENAS.size() if Events.is_christmas() else ARENAS.size() - 1
+	var index := randi() % count
 	if Net.is_online():
 		# The same arena everywhere.
-		index = Net.seed_value % ARENAS.size()
+		index = Net.seed_value % count
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--arena="):
 			index = argument.get_slice("=", 1).to_int() % ARENAS.size()

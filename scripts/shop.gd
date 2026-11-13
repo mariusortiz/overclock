@@ -31,7 +31,8 @@ static func catalog() -> Array[Dictionary]:
 	var offers: Array[Dictionary] = []
 	for group: Array in [["Personnage", Loadout.CHARACTERS], ["Arme", Loadout.WEAPONS], ["Skin d'arme", Loadout.SKINS], ["Vaisseau", Loadout.SHIPS], ["Danse", Dances.LIST]]:
 		for item: Dictionary in group[1]:
-			if item.get("shop", false):
+			# Event items are sold during their event only.
+			if item.get("shop", false) and Events.is_on(item.get("event", "")):
 				var price: Array = PRICES[group[0]]
 				var factor := OP_PRICE if item.get("op", false) else 1.0
 				offers.append({"item": item, "kind": group[0], "credits": roundi(price[0] * factor), "gems": roundi(price[1] * factor), "discount": false})

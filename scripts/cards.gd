@@ -30,7 +30,7 @@ const SERIES := [
 	["Armes", 2000, 80], ["Mêlée", 1200, 40], ["Skins", 1500, 60], ["Arènes", 1200, 40], ["Anime", 2500, 100],
 	["Mythiques", 5000, 250],
 	# The "Saison 2" expansion (EXPANSION): its own numbers, outside the 99.
-	["Matrice", 1500, 60], ["Anime S2", 2500, 100], ["Combat", 1500, 60], ["Boutique", 1800, 70],
+	["Matrice", 1500, 60], ["Anime S2", 2500, 100], ["Combat", 1500, 60], ["Boutique", 1800, 70], ["Noël", 1500, 80],
 	# Le Créateur's: only through his code, outside the album's count.
 	["Hacker", 10000, 500],
 ]
@@ -194,6 +194,13 @@ const EXPANSION := [
 	{"id": "card_dance_spin", "name": "Danse Toupie", "series": "Boutique", "rarity": E, "art": ["dance", "dance_spin:paladin"]},
 	{"id": "card_annihilator", "name": "Annihilateur", "series": "Boutique", "rarity": E, "art": ["gun", "annihilator"]},
 	{"id": "card_golden_gun", "name": "Pistolet d'or", "series": "Boutique", "rarity": L, "art": ["gun", "golden_gun"]},
+	# Christmas: drawn during the event only ("event"), crafted all year.
+	{"id": "card_snow_village", "name": "Village enneigé", "series": "Noël", "rarity": E, "art": ["image", "snow_village"], "event": "christmas"},
+	{"id": "card_elf_enemy", "name": "Lutin", "series": "Noël", "rarity": C, "art": ["enemy", "Elf.fbx"], "event": "christmas"},
+	{"id": "card_frost", "name": "Père Glaçon", "series": "Noël", "rarity": L, "art": ["frost", ""], "event": "christmas"},
+	{"id": "card_skin_candy", "name": "Skin Sucre d'orge", "series": "Noël", "rarity": R, "art": ["gun_skin", "heavy:skin_candy"], "event": "christmas"},
+	{"id": "card_skin_garland", "name": "Skin Guirlande", "series": "Noël", "rarity": E, "art": ["gun_skin", "heavy:skin_garland"], "event": "christmas"},
+	{"id": "card_dance_snowman", "name": "Danse Bonhomme de neige", "series": "Noël", "rarity": R, "art": ["dance", "dance_snowman:soldier"], "event": "christmas"},
 ]
 
 ## Every card there is: the album, the expansion, Le Créateur's.
@@ -274,7 +281,7 @@ static func ability(card: Dictionary) -> Array:
 		"melee":
 			var blade: Dictionary = Loadout.find(reference).item
 			return ["FRAPPE", "Dégâts %d · portée %s m." % [blade.damage, str(blade.range).trim_suffix(".0")]]
-		"boss", "titan", "virus":
+		"boss", "titan", "virus", "frost":
 			return ["BOSS", FLAVOR.get(card.id, "Garde la fin d'une arène.")]
 		"dance":
 			var dance: Dictionary = Dances.find(reference.split(":")[0])
@@ -341,6 +348,11 @@ const FLAVOR := {
 	"card_fight_titan": "Le dernier combat de l'arcade, dans la ville.",
 	"card_annihilator": "Le canon plasma de la boutique, en version ultra.",
 	"card_golden_gun": "99 dégâts. Six balles. Pas de seconde chance.",
+	"card_snow_village": "Chalets, lac gelé et le grand sapin. Seulement à Noël.",
+	"card_elf_enemy": "Petit, rapide, et il ne fait pas de cadeaux.",
+	"card_frost": "Un squelette géant changé en glace. Son bonnet est rouge.",
+	"card_skin_candy": "Rayures rouges et blanches. Les ennemis éclatent en bonbons.",
+	"card_skin_garland": "Des ampoules qui clignotent. Les ennemis s'allument puis éclatent.",
 }
 
 
@@ -456,7 +468,8 @@ static func _draw(lowest: Rarity, highest := Rarity.MYTHIC) -> Dictionary:
 		if roll <= 0.0:
 			chosen = rarity
 			break
-	var drawable := CATALOG + EXPANSION
+	# Event cards only during their event.
+	var drawable := (CATALOG + EXPANSION).filter(func(card: Dictionary) -> bool: return Events.is_on(card.get("event", "")))
 	var pool := drawable.filter(func(card: Dictionary) -> bool: return card.rarity == chosen)
 	if pool.is_empty():
 		pool = drawable.filter(func(card: Dictionary) -> bool: return card.rarity == lowest)

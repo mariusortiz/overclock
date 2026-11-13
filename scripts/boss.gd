@@ -7,7 +7,8 @@ signal summon_requested(count: int)
 
 ## TITAN is the final boss, met in the last arena; VIRUS guards the Matrice,
 ## just before (it was added last, hence its place in the list: see ORDER).
-enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER, TITAN, VIRUS }
+## FROST, the Père Glaçon, only comes in the Christmas waves (see Events).
+enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER, TITAN, VIRUS, FROST }
 
 ## The bosses in the order of the arenas.
 const ORDER: Array[Kind] = [Kind.COLOSSUS, Kind.BRUTE, Kind.ARTILLERY, Kind.SUMMONER, Kind.VIRUS, Kind.TITAN]
@@ -21,6 +22,7 @@ const INFO := {
 	Kind.ARTILLERY: {"name": "CHAUVE-SOURIS GÉANTE", "model": "monsters/Bat.fbx", "height": 1.3, "hover": 0.9, "health": 55, "speed": 3.0, "fire_interval": 2.0, "range": 24.0},
 	Kind.SUMMONER: {"name": "SLIME ROYAL", "model": "monsters/Slime.fbx", "height": 1.3, "hover": 0.0, "health": 70, "speed": 3.0, "fire_interval": 1.3, "range": 13.0},
 	Kind.TITAN: {"name": "TITAN", "model": "mechs/George.fbx", "height": 2.6, "hover": 0.0, "health": 220, "speed": 2.6, "fire_interval": 1.7, "range": 20.0},
+	Kind.FROST: {"name": "PÈRE GLAÇON", "model": "monsters/Skeleton.fbx", "height": 2.2, "hover": 0.0, "health": 90, "speed": 3.4, "fire_interval": 1.3, "range": 16.0},
 	Kind.VIRUS: {"name": "LE VIRUS", "model": "mechs/George.fbx", "height": 2.3, "hover": 0.0, "health": 150, "speed": 3.2, "fire_interval": 1.2, "range": 18.0},
 }
 ## The Virus jumps next to the player now and then (more often when hurt),
@@ -81,6 +83,8 @@ func _ready() -> void:
 		_dress_titan()
 	if kind == Kind.VIRUS:
 		_dress_virus()
+	if kind == Kind.FROST:
+		_dress_frost()
 
 
 ## Bosses are too heavy to be pushed around.
@@ -134,6 +138,14 @@ func _attack() -> void:
 			_call_mortar(_player.global_position)
 		Kind.SUMMONER:
 			super()
+		Kind.FROST:
+			# A gust of icy shards, and icicles falling around the player.
+			_attack_count += 1
+			_shoot_fan()
+			if _attack_count % 2 == 0:
+				for i in 2 if _phase() == 1 else 4:
+					var spread := Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * 4.0
+					_call_mortar(_player.global_position + (spread if i > 0 else Vector3.ZERO))
 		Kind.VIRUS:
 			_attack_count += 1
 			_shoot_fan()
@@ -215,6 +227,47 @@ func _glitch_jump() -> void:
 		tween.tween_callback(func() -> void: _visual.visible = i % 2 == 1)
 		tween.tween_interval(0.08)
 	tween.tween_callback(func() -> void: _visual.visible = true)
+
+
+## The giant skeleton turned to ice, a red bonnet on its head.
+func _dress_frost() -> void:
+	var ice := StandardMaterial3D.new()
+	ice.albedo_color = Color(0.75, 0.9, 1.0)
+	ice.metallic = 0.3
+	ice.roughness = 0.15
+	ice.emission_enabled = true
+	ice.emission = Color(0.4, 0.7, 1.0)
+	ice.emission_energy_multiplier = 0.25
+	for mesh: MeshInstance3D in _model.find_children("*", "MeshInstance3D", true, false):
+		mesh.material_override = ice
+	var bonnet := MeshInstance3D.new()
+	var cone := CylinderMesh.new()
+	cone.top_radius = 0.0
+	cone.bottom_radius = 0.45
+	cone.height = 0.9
+	var red := StandardMaterial3D.new()
+	red.albedo_color = Color(0.85, 0.08, 0.1)
+	cone.material = red
+	bonnet.mesh = cone
+	var pompom := MeshInstance3D.new()
+	var ball := SphereMesh.new()
+	ball.radius = 0.14
+	ball.height = 0.28
+	var white := StandardMaterial3D.new()
+	white.albedo_color = Color.WHITE
+	ball.material = white
+	pompom.mesh = ball
+	pompom.position.y = 0.48
+	bonnet.add_child(pompom)
+	var head := BoneAttachment3D.new()
+	var skeleton: Skeleton3D = _model.find_child("Skeleton3D", true, false)
+	if skeleton and skeleton.find_bone("Head") != -1:
+		head.bone_name = "Head"
+		skeleton.add_child(head)
+		head.add_child(bonnet)
+		bonnet.position.y = 0.35
+		# The skeleton's own scale: the bonnet keeps its size in meters.
+		bonnet.scale = Vector3.ONE / maxf(skeleton.global_basis.get_scale().x, 0.001)
 
 
 ## The Titan's body, black, with a green glow: the Virus in a body.

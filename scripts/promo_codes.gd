@@ -14,12 +14,13 @@ const USED_KEY := "promo_codes_used"
 ##   "cards": card ids, or "all" (one of each);
 ##   "boosters": {"standard": n, "rare": n};
 ##   "pass_complete": every battle pass tier;
+##   "christmas": turns the Christmas event on (see Events);
 ##   "repeat": usable again and again.
 const CODES := {
 	# The test code: everything.
 	"f8e9ba92bc9d944d69bb7545813a0ebb8272c56cc99e860189087cc3261740eb": {
 		"gems": 10000, "credits": 100000, "items": "all_shop", "cards": "all",
-		"boosters": {"standard": 5, "rare": 5}, "pass_complete": true, "repeat": true},
+		"boosters": {"standard": 5, "rare": 5}, "pass_complete": true, "christmas": true, "repeat": true},
 	# Le Créateur and all that is his, only through this code.
 	"cd81d6f34c6dc2796f4fc3601ac73a3a45f9f9e57ddff4a905bbf37f3452a469": {
 		"items": ["createur", "source_code", "ctrl_alt_del", "skin_matrix", "ship_mainframe"],
@@ -82,6 +83,9 @@ static func redeem(code: String) -> Array:
 		var plural := "s" if boosters[kind] > 1 else ""
 		var adjective: String = {"rare": " rare", "legend": " légendaire"}.get(kind, "")
 		given.append("%d booster%s%s" % [boosters[kind], plural, (adjective + plural) if adjective != "" else ""])
+	if reward.get("christmas", false):
+		SaveData.save_progress(Events.FORCE_KEY, true)
+		given.append("l'événement de Noël")
 	if reward.get("pass_complete", false):
 		var all_tiers := 0
 		for tier in range(1, BattlePass.REWARDS.size() + 1):

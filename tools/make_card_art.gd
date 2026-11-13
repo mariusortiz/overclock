@@ -166,6 +166,16 @@ func _subject(kind: String, reference: String) -> Node3D:
 				mesh.material_override = body
 				mesh.material_overlay = glow
 			return virus
+		"frost":
+			# The giant skeleton in ice (see Boss._dress_frost).
+			var frost := _character(Boss.MODEL_DIR + str(Boss.INFO[Boss.Kind.FROST].model), &"idle")
+			var ice := StandardMaterial3D.new()
+			ice.albedo_color = Color(0.75, 0.9, 1.0)
+			ice.metallic = 0.3
+			ice.roughness = 0.15
+			for mesh: MeshInstance3D in frost.find_children("*", "MeshInstance3D", true, false):
+				mesh.material_override = ice
+			return frost
 		"dance":
 			# A hero caught in the dance's most telling pose.
 			var parts := reference.split(":")
@@ -202,7 +212,7 @@ func _frame(subject: Node3D, kind: String) -> void:
 	var center := bounds.get_center()
 	var radius := bounds.size.length() * 0.5
 	# Characters: a little above the middle, so the face is in the picture.
-	if kind in ["hero", "enemy", "elite", "glow", "boss", "titan", "virus", "dance"]:
+	if kind in ["hero", "enemy", "elite", "glow", "boss", "titan", "virus", "frost", "dance"]:
 		center.y += bounds.size.y * 0.02
 		radius *= 0.7
 	else:

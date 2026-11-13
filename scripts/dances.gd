@@ -115,6 +115,23 @@ static var LIST: Array[Dictionary] = [
 			PoseLayer.symmetric({"UpperArm": Vector3(0, 0, 100), "LowerArm": Vector3(0, 0, 20)}, {"UpperLeg.L": Vector3(-50, 0, 0), "LowerLeg.L": Vector3(80, 0, 0)}),
 		],
 	},
+	# Sold during the Christmas event only ("event", see Events).
+	{
+		# The snowman: round arms out like branches, a stiff little wobble.
+		"id": "dance_snowman", "shop": true, "event": "christmas", "name": "BONHOMME DE NEIGE", "snap": true, "bounce": 0.03, "spin": 0.0,
+		"poses": [
+			PoseLayer.symmetric({"UpperArm": Vector3(0, 0, 60), "LowerArm": Vector3(0, 0, 30)}, {"Torso": Vector3(0, 0, 10), "Head": Vector3(0, 0, -15)}),
+			PoseLayer.symmetric({"UpperArm": Vector3(0, 0, 60), "LowerArm": Vector3(0, 0, 30)}, {"Torso": Vector3(0, 0, -10), "Head": Vector3(0, 0, 15)}),
+		],
+	},
+	{
+		# The sleigh ride: holding the reins, bouncing on the bumps.
+		"id": "dance_sleigh", "shop": true, "event": "christmas", "name": "TRAÎNEAU", "snap": false, "bounce": 0.1, "spin": 0.0,
+		"poses": [
+			PoseLayer.symmetric({"UpperArm": Vector3(-70, 0, 15), "LowerArm": Vector3(-40, 0, 0), "UpperLeg": Vector3(-30, 0, 0), "LowerLeg": Vector3(40, 0, 0)}, {"Torso": Vector3(15, 0, 0)}),
+			PoseLayer.symmetric({"UpperArm": Vector3(-90, 0, 15), "LowerArm": Vector3(-10, 0, 0), "UpperLeg": Vector3(-20, 0, 0), "LowerLeg": Vector3(25, 0, 0)}, {"Torso": Vector3(5, 0, 0), "Head": Vector3(-15, 0, 0)}),
+		],
+	},
 ]
 
 

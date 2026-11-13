@@ -674,6 +674,24 @@ func _play_death(style: StringName) -> void:
 			Effects.spray(scene, chest, [_kill_color, Color(1.0, 0.85, 0.3), Color(0.16, 0.9, 1.0), Color.WHITE], 70,
 					Vector3(0.12, 0.08, 0.01), Vector2(3.0, 6.0), Vector3(0, -3.0, 0), 70.0, 2.0)
 			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.08)
+		&"candy":  # Sucre d'orge: bursts into red and white sweets
+			Effects.spray(scene, chest, [Color(0.95, 0.1, 0.15), Color.WHITE, Color(0.2, 0.75, 0.3)], 54,
+					Vector3(0.14, 0.08, 0.08), Vector2(2.5, 5.5), Vector3(0, -9.0, 0), 140.0, 1.5)
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.08)
+		&"snow":  # Flocon: frozen white, then a puff of snow that drifts down
+			_model.stop()
+			_model.tint(Color(0.9, 0.95, 1.0), 0.5)
+			_tween.tween_interval(0.3)
+			_tween.tween_callback(Effects.spray.bind(scene, chest + Vector3.UP * 0.3, [Color.WHITE, Color(0.8, 0.9, 1.0)], 60,
+					Vector3.ONE * 0.09, Vector2(0.8, 2.5), Vector3(0.3, -0.7, 0), 180.0, 2.4))
+			_tween.tween_property(_visual, "scale", _base_scale * Vector3(1.2, 0.01, 1.2), 0.2)
+		&"lights":  # Guirlande: lights up in every color, then pops like bulbs
+			_model.stop()
+			_model.tint(Color(1.0, 0.85, 0.3), 1.5)
+			_tween.tween_interval(0.25)
+			_tween.tween_callback(Effects.spray.bind(scene, chest, [Color(1.0, 0.15, 0.15), Color(0.2, 1.0, 0.35), Color(0.3, 0.55, 1.0), Color(1.0, 0.85, 0.3)], 44,
+					Vector3.ONE * 0.12, Vector2(3.0, 6.0), Vector3(0, -6.0, 0), 160.0, 1.2, true))
+			_tween.tween_property(_visual, "scale", Vector3.ZERO, 0.06)
 		&"burst":  # a kamikaze's blast: explodes into a shower of pieces
 			Effects.burst(scene, chest, _kill_color, 48)
 			Effects.burst(scene, chest, Color.WHITE, 16)

@@ -68,6 +68,10 @@ const SKINS := [
 	{"id": "skin_storm", "kill": &"vanish", "name": "Foudre", "pattern": true, "fx": 5, "colors": [Color(0.75, 0.9, 1.0), Color(0.03, 0.04, 0.12)], "glow": 0.0, "scope": true, "silencer": false, "shot": Color(0.7, 0.9, 1.0), "shop": true, "op": true},
 	{"id": "skin_matrix", "kill": &"pixelate", "name": "Matrice", "pattern": true, "fx": 7, "colors": [Color(0.2, 1.0, 0.45), Color(0.0, 0.03, 0.01)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(0.3, 1.0, 0.5), "code": true},
 	{"id": "skin_void", "kill": &"ascend", "name": "Trou noir", "pattern": true, "fx": 6, "colors": [Color(1.0, 0.45, 0.1), Color(0.0, 0.0, 0.0)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 0.5, 0.15), "shop": true, "op": true},
+	# Sold during the Christmas event only ("event", see Events): kept after it.
+	{"id": "skin_candy", "kill": &"candy", "name": "Sucre d'orge", "pattern": true, "fx": 8, "colors": [Color(0.95, 0.1, 0.15), Color(1.0, 1.0, 1.0)], "glow": 0.0, "scope": false, "silencer": true, "shot": Color(1.0, 0.4, 0.45), "shop": true, "event": "christmas"},
+	{"id": "skin_flake", "kill": &"snow", "name": "Flocon", "pattern": true, "fx": 9, "colors": [Color(0.85, 0.95, 1.0), Color(0.15, 0.3, 0.55)], "glow": 0.0, "scope": true, "silencer": false, "shot": Color(0.8, 0.95, 1.0), "shop": true, "event": "christmas"},
+	{"id": "skin_garland", "kill": &"lights", "name": "Guirlande", "pattern": true, "fx": 10, "colors": [Color(1.0, 0.85, 0.3), Color(0.05, 0.2, 0.08)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 0.85, 0.3), "shop": true, "event": "christmas"},
 	# Not sold: earned by completing the card album (see Cards).
 	{"id": "skin_collector", "kill": &"ascend", "name": "Collectionneur", "pattern": true, "fx": 1, "colors": [Color(1.0, 0.85, 0.35), Color(0.2, 0.08, 0.02)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 0.85, 0.35)},
 ]
@@ -471,6 +475,8 @@ static func _melee_material(part_name: String) -> StandardMaterial3D:
 static func unlock_text(item: Dictionary) -> String:
 	if item.id == Cards.COLLECTOR_SKIN_ID:
 		return "Complète l'album de cartes"
+	if item.get("event", "") == "christmas":
+		return "Boutique de Noël (1er décembre – 6 janvier)"
 	if item.get("shop", false):
 		return "En vente à la boutique"
 	if item.id == CHAMPION_SKIN_ID:

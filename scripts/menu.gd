@@ -30,8 +30,9 @@ var _mode_panel := Control.new()
 func _ready() -> void:
 	Loadout.fair_play = false
 	Story.leave()
+	Events.christmas_run = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	Music.play_track(Music.Track.MAIN)
+	Music.play_track(Music.Track.CHRISTMAS if Events.is_christmas() else Music.Track.MAIN)
 	_stage.show_loadout()
 	_best_label.text = "Record : %d  ·  Palier %d\nDéfis du jour : %d / %d\n%d crédits  ·  %d gemmes" % [
 			SaveData.load_high_score(), BattlePass.progress().tier, Challenges.done_count(), Challenges.PER_DAY,
@@ -50,6 +51,8 @@ func _ready() -> void:
 	# Deferred: a scene must not be removed while its button handles the click.
 	_build_mode_panel()
 	$Right/Box/Play.pressed.connect(func() -> void: _mode_panel.visible = true)
+	if Events.is_christmas():
+		_add_christmas()
 	$Right/Box/Gear/Armory.pressed.connect(get_tree().change_scene_to_file.bind(ARMORY_SCENE), CONNECT_DEFERRED)
 	$Right/Box/Gear/Shop.pressed.connect(get_tree().change_scene_to_file.bind(SHOP_SCENE), CONNECT_DEFERRED)
 	$Right/Box/PassRow/Pass.pressed.connect(get_tree().change_scene_to_file.bind(PASS_SCENE), CONNECT_DEFERRED)
@@ -135,7 +138,7 @@ func _build_mode_panel() -> void:
 	var panel := PanelContainer.new()
 	center.add_child(panel)
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 14)
+	box.add_theme_constant_override("separation", 10 if Events.is_christmas() else 14)
 	panel.add_child(box)
 	var title := Label.new()
 	title.text = "MODE DE JEU"
@@ -143,16 +146,26 @@ func _build_mode_panel() -> void:
 	title.add_theme_font_size_override("font_size", 36)
 	title.add_theme_color_override("font_color", Color(0.16, 0.83, 1.0))
 	box.add_child(title)
-	for mode: Array in MODES:
+	var modes := MODES.duplicate()
+	if Events.is_christmas():
+		modes.push_front(["VAGUES DE NOËL", "10 vagues dans le village enneigé · le Père Glaçon", GAME_SCENE, true])
+	for mode: Array in modes:
 		var button := Button.new()
 		button.text = "%s\n%s" % [mode[0], mode[1]]
 		button.custom_minimum_size = Vector2(560, 88)
 		button.add_theme_font_size_override("font_size", 24)
-		button.pressed.connect(get_tree().change_scene_to_file.bind(mode[2]), CONNECT_DEFERRED)
+		# Seven modes at Christmas: a little less tall each.
+		button.custom_minimum_size.y = 64 if modes.size() > 6 else 88
+		if modes.size() > 6:
+			button.add_theme_font_size_override("font_size", 20)
+		var christmas: bool = mode.size() > 3
+		button.pressed.connect(func() -> void:
+			Events.christmas_run = christmas
+			get_tree().change_scene_to_file(mode[2]), CONNECT_DEFERRED)
 		box.add_child(button)
 	var back := Button.new()
 	back.text = "RETOUR"
-	back.custom_minimum_size.y = 64
+	back.custom_minimum_size.y = 50 if Events.is_christmas() else 64
 	back.add_theme_font_size_override("font_size", 24)
 	back.pressed.connect(func() -> void: _mode_panel.visible = false)
 	box.add_child(back)
@@ -221,6 +234,52 @@ func _open_code_panel() -> void:
 	close.pressed.connect(get_tree().reload_current_scene, CONNECT_DEFERRED)
 	row.add_child(close)
 	field.grab_focus()
+
+
+## The Christmas event: snow over the home screen, and the gift of the day.
+func _add_christmas() -> void:
+	var flake := GradientTexture2D.new()
+	flake.fill = GradientTexture2D.FILL_RADIAL
+	flake.fill_from = Vector2(0.5, 0.5)
+	flake.fill_to = Vector2(1.0, 0.5)
+	var gradient := Gradient.new()
+	gradient.set_color(0, Color.WHITE)
+	gradient.set_color(1, Color(1, 1, 1, 0))
+	flake.gradient = gradient
+	flake.width = 16
+	flake.height = 16
+	var snow := CPUParticles2D.new()
+	snow.texture = flake
+	snow.amount = 140
+	snow.lifetime = 9.0
+	snow.preprocess = 9.0
+	snow.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	snow.emission_rect_extents = Vector2(get_viewport_rect().size.x / 2.0 + 40.0, 4)
+	snow.position = Vector2(get_viewport_rect().size.x / 2.0, -10)
+	snow.direction = Vector2(0.15, 1)
+	snow.spread = 12.0
+	snow.gravity = Vector2(4, 12)
+	snow.initial_velocity_min = 40.0
+	snow.initial_velocity_max = 80.0
+	snow.scale_amount_min = 0.3
+	snow.scale_amount_max = 1.0
+	add_child(snow)
+	move_child(snow, 2)
+	if not Events.gift_ready():
+		return
+	var gift := Button.new()
+	gift.text = "CADEAU DU JOUR"
+	gift.custom_minimum_size.y = 64
+	gift.theme_type_variation = &"PrimaryButton"
+	gift.add_theme_font_size_override("font_size", 26)
+	gift.pressed.connect(func() -> void:
+		var given := Events.open_gift()
+		gift.text = "JOYEUX NOËL : %s !" % given.to_upper()
+		gift.disabled = true
+		var waiting: Dictionary = Cards.boosters()
+		$Right/Box/PassRow/Cards.text = "CARTES (%d)" % (waiting.get("standard", 0) + waiting.get("rare", 0) + waiting.get("legend", 0)))
+	$Right/Box.add_child(gift)
+	$Right/Box.move_child(gift, $Right/Box/Play.get_index() + 1)
 
 
 ## The buttons need about 600 pixels: on a wide phone the right part of the

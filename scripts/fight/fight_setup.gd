@@ -8,7 +8,7 @@ class_name FightSetup
 
 const SCENE := "res://scenes/fight.tscn"
 const MENU := "res://scenes/fight_menu.tscn"
-const ARENA_NAMES := ["Station", "Désert", "Jungle", "Volcan", "Matrice", "Ville"]
+const ARENA_NAMES := ["Station", "Désert", "Jungle", "Volcan", "Matrice", "Ville", "Village"]
 ## Heroes met in the arcade before the Titan.
 const ARCADE_FIGHTS := 5
 const ARCADE_KEY := "fight_arcade_cleared"
@@ -25,6 +25,11 @@ static var difficulty := 1
 ## The arcade run: its opponents (hero ids, then "titan") and how far it is.
 static var arcade_opponents: Array[String] = []
 static var arcade_stage := 0
+
+
+## The arenas offered: the snow village (last) only during the Christmas event.
+static func arena_count() -> int:
+	return ARENA_NAMES.size() if Events.is_christmas() else ARENA_NAMES.size() - 1
 
 
 static func is_arcade() -> bool:

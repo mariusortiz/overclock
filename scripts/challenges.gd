@@ -17,6 +17,21 @@ const POOL: Array[Dictionary] = [
 	{"id": "elites", "stat": "elites", "goal": 3, "xp": 350, "text": "Abats %d ennemis d'élite"},
 	{"id": "games", "stat": "games", "goal": 3, "xp": 250, "text": "Joue %d parties"},
 ]
+## During the Christmas event (see Events): themed, and worth more.
+const CHRISTMAS_POOL: Array[Dictionary] = [
+	{"id": "xmas_kills", "stat": "kills", "goal": 50, "xp": 450, "text": "Abats %d lutins et compagnie"},
+	{"id": "xmas_boss", "stat": "bosses", "goal": 2, "xp": 600, "text": "Bats %d boss (le Père Glaçon compte)"},
+	{"id": "xmas_waves", "stat": "waves", "goal": 8, "xp": 450, "text": "Termine %d vagues sous la neige ou ailleurs"},
+	{"id": "xmas_headshots", "stat": "headshots", "goal": 20, "xp": 450, "text": "Touche %d fois à la tête, comme une boule de neige"},
+	{"id": "xmas_melee", "stat": "melee_hits", "goal": 12, "xp": 450, "text": "Frappe %d fois au corps à corps"},
+	{"id": "xmas_ultimates", "stat": "ultimates", "goal": 3, "xp": 450, "text": "Lance %d ultis, comme des feux d'artifice"},
+	{"id": "xmas_games", "stat": "games", "goal": 2, "xp": 400, "text": "Joue %d parties pendant les fêtes"},
+]
+
+
+## The pool of the day: the Christmas one during the event.
+static func _pool() -> Array[Dictionary]:
+	return CHRISTMAS_POOL if Events.is_christmas() else POOL
 
 
 ## Today's challenges, each with its "progress" and whether it is "done".
@@ -24,7 +39,8 @@ static func today() -> Array[Dictionary]:
 	var saved := _saved()
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(_date())
-	var order := range(POOL.size())
+	var pool := _pool()
+	var order := range(pool.size())
 	# Fisher-Yates with the day's seed: everyone gets the same three.
 	for i in range(order.size() - 1, 0, -1):
 		var j := rng.randi_range(0, i)
@@ -33,7 +49,7 @@ static func today() -> Array[Dictionary]:
 		order[j] = swap
 	var list: Array[Dictionary] = []
 	for index: int in order.slice(0, PER_DAY):
-		var challenge: Dictionary = POOL[index].duplicate()
+		var challenge: Dictionary = pool[index].duplicate()
 		challenge.text = challenge.text % challenge.goal
 		challenge.progress = mini(saved.progress.get(challenge.id, 0), challenge.goal)
 		challenge.done = challenge.id in saved.done

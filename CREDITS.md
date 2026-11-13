@@ -37,6 +37,8 @@ Tous les fichiers externes du jeu sont sous licence [CC0 1.0](https://creativeco
 | Musique des cartes | [Chill Main Menu Music](https://opengameart.org/content/chill-main-menu-music) | Augmentality (Brandon Morris) | `assets/audio/music/chill_menu.ogg` (réencodée en Ogg) |
 | Musique du menu combat | [All the Fight Left](https://opengameart.org/content/all-the-fight-left) | Holizn | `assets/audio/music/all_the_fight_left.ogg` (réencodée en Ogg) |
 | Musique du multijoueur | [Electronic Outlaw](https://opengameart.org/content/electronic-outlaw) | Zane Little Music | `assets/audio/music/electronic_outlaw.ogg` (réencodée en Ogg) |
+| Musique de Noël (accueil) | [Cheerful Christmas Time](https://opengameart.org/content/cheerful-christmas-time) | Tarush Singhal | `assets/audio/music/cheerful_christmas.ogg` (réencodée en Ogg) |
+| Musique des vagues de Noël | [Happy synths loop with slight Christmas feeling](https://opengameart.org/content/happy-synths-loop-with-slight-christmas-feeling) | 3xBlas | `assets/audio/music/christmas_synths.ogg` (réencodée en Ogg) |
 | Fanfare des cartes légendaires | [Win Jingle](https://opengameart.org/content/win-jingle) | Fupi | `assets/audio/fanfare_legendary.ogg` |
 | Fanfare des cartes mythiques | [Hyper Ultra Fanfare](https://opengameart.org/content/hyper-ultra-fanfare) | Zane Little Music | `assets/audio/fanfare_mythic.ogg` (réencodée en Ogg) |
 | Musique de boss | [Boss Battle (loop)](https://opengameart.org/content/boss-battle-loop) | Alex McCulloch | `assets/audio/music/` |

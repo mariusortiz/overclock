@@ -174,7 +174,7 @@ func _refresh() -> void:
 	_arenas.add_child(_button("AU HASARD", func() -> void:
 		FightSetup.arena = -1
 		_refresh(), FightSetup.arena == -1))
-	for index in FightSetup.ARENA_NAMES.size():
+	for index in FightSetup.arena_count():
 		_arenas.add_child(_button(FightSetup.ARENA_NAMES[index].to_upper(), func() -> void:
 			FightSetup.arena = index
 			_refresh(), FightSetup.arena == index))

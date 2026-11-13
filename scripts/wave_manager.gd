@@ -40,6 +40,9 @@ const KAMIKAZE_SPEED := 1.8
 @export var min_player_distance := 12.0
 
 var wave := 0
+## The only boss to come, or -1 for the usual round (Boss.ORDER): the
+## Christmas waves have the Père Glaçon only.
+var boss_kind := -1
 
 var _to_spawn := 0
 var _alive := 0
@@ -224,7 +227,7 @@ func _arena_center() -> Vector3:
 func _create_boss() -> Boss:
 	@warning_ignore("integer_division")
 	var index := wave / BOSS_EVERY - 1
-	var kinds := Boss.ORDER
+	var kinds: Array = Boss.ORDER if boss_kind < 0 else [boss_kind]
 	var boss: Boss = boss_scene.instantiate()
 	@warning_ignore("integer_division")
 	boss.configure(kinds[index % kinds.size()], 1.0 + 0.6 * (index / kinds.size()))
