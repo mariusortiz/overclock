@@ -26,6 +26,7 @@ const INFO := {
 	&"arrows": {"name": "Volée de flèches", "text": "Touche tous les ennemis de l'arène"},
 	&"dynamite": {"name": "Dynamite", "text": "Explosion de 9 m qui repousse les ennemis"},
 	&"curse": {"name": "Malédiction", "text": "Tous les ennemis brûlent et sont ralentis"},
+	&"root": {"name": "Accès root", "text": "Efface tous les ennemis, entame les boss d'un tiers et rend toute la vie"},
 	&"timestop": {"name": "Arrêt du temps", "text": "Fige tous les ennemis pendant 5 s"},
 	&"blessing": {"name": "Bénédiction", "text": "Soin complet, bouclier et régénération"},
 }
@@ -140,6 +141,14 @@ func _activate() -> void:
 		&"timestop":
 			for enemy: Node3D in get_tree().get_nodes_in_group("targets"):
 				enemy.stun(5.0 * _boost)
+		&"root":
+			# Le Créateur rewrites the arena: the ordinary enemies vanish, the
+			# bosses lose a third of their health, the player is healed.
+			for enemy: Node3D in get_tree().get_nodes_in_group("targets"):
+				Effects.tracer(scene, center, enemy.get_aim_position(), Color(0.3, 1.0, 0.5))
+				var damage: int = roundi(enemy.max_health * 0.33) if enemy is Boss else 9999
+				_hit(enemy, damage)
+			_player.heal(_player.max_health)
 		&"blessing":
 			_player.heal(_player.max_health)
 			_player.apply_power_up(PowerUp.Type.SHIELD)

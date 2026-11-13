@@ -73,7 +73,7 @@ static func receive(text: String) -> Array:
 
 
 static func card_of(key: PackedByteArray) -> Dictionary:
-	for card: Dictionary in Cards.CATALOG:
+	for card: Dictionary in Cards.CATALOG + Cards.HACKER_CARDS:
 		if card_key(card.id) == key:
 			return card
 	return {}

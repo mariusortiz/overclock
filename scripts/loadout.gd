@@ -30,6 +30,10 @@ const CHARACTERS := [
 	# Overpowered ("op"): far above the rest, sold dear. "fair" is what they
 	# become in multiplayer, so that a purchase does not decide the match.
 	{"id": "directeur", "ulti": &"timestop", "name": "Le Directeur", "model": "Suit_Male.fbx", "shop": true, "op": true, "boost": 3.0, "fair": {"boost": 1.6}},
+	# Le Créateur: the game's maker, the strongest of all, only with a code
+	# ("code"), everywhere at full power. "health" and "speed" raise the
+	# player's (see Player).
+	{"id": "createur", "ulti": &"root", "name": "Le Créateur", "model": "Cow.fbx", "code": true, "boost": 3.0, "health": 300, "speed": 1.3},
 	{"id": "commander", "ulti": &"airstrike", "name": "Commandant", "model": "BlueSoldier_Male.fbx", "shop": true, "op": true, "boost": 3.0, "fair": {"boost": 1.6}},
 ]
 
@@ -62,6 +66,7 @@ const SKINS := [
 	{"id": "skin_glitch", "kill": &"pixelate", "name": "Glitch", "pattern": true, "fx": 3, "colors": [Color(0.1, 1.0, 0.4), Color(1.0, 0.1, 0.5)], "glow": 0.0, "scope": false, "silencer": true, "shot": Color(0.3, 1.0, 0.5), "shop": true},
 	{"id": "skin_prism", "kill": &"confetti", "name": "Prisme", "pattern": true, "fx": 4, "colors": [Color.WHITE, Color.WHITE], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 1.0, 1.0), "shop": true},
 	{"id": "skin_storm", "kill": &"vanish", "name": "Foudre", "pattern": true, "fx": 5, "colors": [Color(0.75, 0.9, 1.0), Color(0.03, 0.04, 0.12)], "glow": 0.0, "scope": true, "silencer": false, "shot": Color(0.7, 0.9, 1.0), "shop": true, "op": true},
+	{"id": "skin_matrix", "kill": &"pixelate", "name": "Matrice", "pattern": true, "fx": 7, "colors": [Color(0.2, 1.0, 0.45), Color(0.0, 0.03, 0.01)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(0.3, 1.0, 0.5), "code": true},
 	{"id": "skin_void", "kill": &"ascend", "name": "Trou noir", "pattern": true, "fx": 6, "colors": [Color(1.0, 0.45, 0.1), Color(0.0, 0.0, 0.0)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 0.5, 0.15), "shop": true, "op": true},
 	# Not sold: earned by completing the card album (see Cards).
 	{"id": "skin_collector", "kill": &"ascend", "name": "Collectionneur", "pattern": true, "fx": 1, "colors": [Color(1.0, 0.85, 0.35), Color(0.2, 0.08, 0.02)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 0.85, 0.35)},
@@ -147,6 +152,7 @@ const WEAPONS := [
 	{"id": "flamer", "name": "Lance-flammes", "model": "Blaster_Flame", "length": 0.6, "fire_rate": 8.0, "damage": 1, "magazine": 60, "reload_time": 2.0, "zoom_fov": 40.0, "pellets": 2, "spread": 9.0, "range": 11.0, "ignite": 1, "shop": true},
 	{"id": "flechette", "name": "Lance-fléchettes", "model": "Blaster_Flechette", "length": 0.7, "fire_rate": 3.0, "damage": 2, "magazine": 10, "reload_time": 1.6, "zoom_fov": 36.0, "pellets": 5, "spread": 2.5, "pierce": true, "shop": true},
 	{"id": "minigun", "name": "Minigun", "model": "Blaster_Minigun", "length": 1.0, "fire_rate": 24.0, "damage": 1, "magazine": 150, "reload_time": 3.2, "zoom_fov": 44.0, "shop": true},
+	{"id": "source_code", "name": "Code source", "model": "Blaster_Rail", "length": 0.8, "fire_rate": 8.0, "damage": 40, "magazine": 200, "reload_time": 0.5, "zoom_fov": 24.0, "pierce": true, "beam": true, "code": true, "finish": "skin_matrix"},
 	{"id": "annihilator", "name": "Annihilateur", "model": "Blaster_Plasma", "length": 0.8, "fire_rate": 5.0, "damage": 12, "magazine": 30, "reload_time": 1.0, "zoom_fov": 36.0, "blast_radius": 5.0, "shop": true, "op": true, "finish": "skin_plasma",
 		"fair": {"fire_rate": 2.2, "damage": 5, "magazine": 8, "reload_time": 1.8, "blast_radius": 3.0}},
 	{"id": "golden_gun", "name": "Pistolet d'or", "model": "Pistol_6", "length": 0.49, "fire_rate": 2.5, "damage": 99, "magazine": 6, "reload_time": 0.8, "zoom_fov": 30.0, "pierce": true, "shop": true, "op": true, "finish": "skin_gold",
@@ -172,6 +178,8 @@ const SHIPS := [
 		"fair": {"velocity": 1.04, "handling": 1.1, "shield": 3, "fire": 1.1, "special": &"surboost"}},
 	{"id": "ship_reaper", "name": "Faucheuse", "design": 1, "color": Color(1.0, 0.1, 0.15), "hull": Color(0.18, 0.05, 0.07), "velocity": 1.18, "handling": 1.2, "shield": 4, "fire": 2.2, "special": &"blackhole", "shop": true, "op": true,
 		"fair": {"velocity": 1.04, "handling": 1.1, "shield": 3, "fire": 1.1, "special": &"salvo"}},
+	# Le Créateur's ship, only with a code: the fastest and toughest.
+	{"id": "ship_mainframe", "name": "Mainframe", "design": 7, "color": Color(0.2, 1.0, 0.45), "hull": Color(0.03, 0.05, 0.04), "velocity": 1.4, "handling": 1.7, "shield": 10, "fire": 3.0, "special": &"admin", "code": true},
 	# Earned by finishing the story mode's season 1 (see Story): Vipère's ship.
 	{"id": "ship_scarlet", "name": "Écarlate", "design": 1, "color": Color(1.0, 0.2, 0.15), "hull": Color(0.55, 0.08, 0.1), "velocity": 1.08, "handling": 1.15, "shield": 3, "fire": 1.2, "special": &"salvo", "story": true},
 	{"id": "ship_aurora", "name": "Aurore", "design": 4, "color": Color(0.3, 1.0, 0.85), "hull": Color(0.95, 0.97, 1.0), "velocity": 1.2, "handling": 1.5, "shield": 5, "fire": 1.5, "special": &"chronos", "shop": true, "op": true,
@@ -190,6 +198,7 @@ const SHIP_SPECIALS := {
 	&"hyperdrive": ["HYPERDRIVE", "6 s de vitesse maximale, intouchable"],
 	&"blackhole": ["TROU NOIR", "Touche deux fois tous les vaisseaux devant toi"],
 	&"chronos": ["CHRONOS", "Ralentit tous les autres vaisseaux 3 s"],
+	&"admin": ["ACCÈS ADMIN", "Touche deux fois et ralentit tous les autres, puis 5 s de vitesse max intouchable"],
 }
 
 const GUN_DIR := "res://assets/models/guns/"
@@ -234,6 +243,9 @@ const MELEE := [
 		"damage": 9, "range": 2.6, "cooldown": 0.9, "sweep": false, "cone": 70.0, "knockback": 0.0},
 	{"id": "katana", "name": "Katana", "model": "katana",
 		"damage": 7, "range": 3.2, "cooldown": 0.7, "sweep": true, "cone": 80.0, "knockback": 0.0},
+	# Le Créateur's blade, only with a code.
+	{"id": "ctrl_alt_del", "name": "Ctrl+Alt+Suppr", "model": "katana", "code": true,
+		"damage": 99, "range": 4.0, "cooldown": 0.35, "sweep": true, "cone": 120.0, "knockback": 6.0},
 ]
 
 const MELEE_DIR := "res://assets/models/melee/"
@@ -279,6 +291,8 @@ static func is_unlocked(item: Dictionary) -> bool:
 		return SaveData.load_progress(CHAMPION_KEY, false)
 	if item.get("story", false):
 		return Story.season_done()
+	if item.get("code", false):
+		return Wallet.owns(item.id)
 	return BattlePass.is_unlocked(item.id)
 
 
@@ -458,6 +472,8 @@ static func unlock_text(item: Dictionary) -> String:
 		return "Bats le boss final de la ville"
 	if item.get("story", false):
 		return "Termine la saison 1 du mode histoire"
+	if item.get("code", false):
+		return "Uniquement avec un code"
 	return "Palier %d du passe de combat" % BattlePass.required_tier(item.id)
 
 

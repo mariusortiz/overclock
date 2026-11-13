@@ -10,7 +10,7 @@ func _ready() -> void:
 		if argument.begins_with("--out="):
 			out = argument.get_slice("=", 1)
 	var cards := []
-	for card: Dictionary in Cards.CATALOG:
+	for card: Dictionary in Cards.CATALOG + Cards.HACKER_CARDS:
 		var rarity: Dictionary = Cards.RARITY[card.rarity]
 		cards.append({
 			"key": Trade.card_key(card.id).hex_encode(),

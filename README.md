@@ -307,6 +307,10 @@ Limite : les achats sont vérifiés par Google sur le téléphone, sans serveur 
 
 Sans serveur, par codes. Dans CARTES, touche une carte que tu possèdes, puis ENVOYER : la carte quitte ta collection et le jeu donne un code (`OC-XXXX-XXXX-XXXXX`) et le lien de sa page web (`site/carte.html#OC-…`), qui montre la carte en holographique. Celui qui tape le code dans CODE, sur l'accueil, reçoit la carte. Un code ne sert qu'une fois par appareil et jamais sur celui qui l'a créé ; il contient la carte, une partie aléatoire et un contrôle qui attrape les fautes de frappe (`scripts/trade.gd`). Limite assumée : sans serveur, un joueur qui lit le code source peut fabriquer de faux codes, et un même code peut servir sur plusieurs appareils. La page web lit le catalogue exporté par `scenes/tools/export_cards.tscn` (fait par la CI à chaque publication).
 
+## Le Créateur
+
+Le personnage du créateur du jeu, à tête de vache, et le plus puissant de tous : 300 PV, 30 % plus rapide, et l'ulti **Accès root** (×3) qui efface tous les ennemis, entame les boss d'un tiers et rend toute la vie. Il vient avec son arme à feu (**Code source** : 40 dégâts, 8 tirs/s, rayon qui transperce, chargeur 200), sa lame (**Ctrl+Alt+Suppr** : 99 dégâts, 4 m, large balayage), son skin **Matrice** (pluie de code verte, pour l'arme et la lame), son vaisseau **Mainframe** (vitesse 140 %, maniabilité 170 %, bouclier 10, tir ×3, capacité **Accès admin**) et sa carte, la seule de rareté **Hacker** (au-dessus de mythique : jamais en booster, hors album, numéro 000). Il reste à pleine puissance partout, multijoueur compris. On ne l'obtient qu'avec un code secret (ni boutique, ni passe, ni code de test).
+
 ## Codes
 
 Le bouton CODE de l'accueil ouvre un champ : un code valide donne des récompenses (gemmes, crédits, héros, armes et skins de la boutique, cartes, boosters, passe de combat). Chaque code ne sert qu'une fois par sauvegarde, sauf le code de test. Majuscules et espaces ne comptent pas.

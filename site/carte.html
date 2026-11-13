@@ -88,6 +88,8 @@
   .card[data-rarity="3"] .foil { opacity: 0.55; } .card[data-rarity="3"] .glitter { opacity: 0.45; }
   .card[data-rarity="4"] .foil { opacity: 0.65; } .card[data-rarity="4"] .glitter { opacity: 0.6; }
   .card[data-rarity="4"] { background: linear-gradient(135deg, #ff3df2, #ffd84d, #4dff9a, #29d4ff, #b44dff); }
+  .card[data-rarity="5"] .foil { opacity: 0.75; } .card[data-rarity="5"] .glitter { opacity: 0.7; }
+  .card[data-rarity="5"] { box-shadow: 0 0 40px rgba(51, 255, 115, 0.6), 0 18px 50px rgba(0, 0, 0, 0.55); }
   @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
   .back { display: grid; place-items: center; aspect-ratio: 0.716; border-radius: 16px; border: 6px solid var(--cyan); background: #0f173f;
     color: var(--cyan); font: 1.4rem var(--title); text-align: center; padding: 24px; }
@@ -137,7 +139,7 @@
   // characters, 8 bytes: card key (2), random (4), check (2).
   const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
   const SALT = "overclock-trade:";
-  const SYMBOLS = ["●", "◆", "★", "★★", "✪"];
+  const SYMBOLS = ["●", "◆", "★", "★★", "✪", "</>"];
   let catalog = null;
 
   function clean(text) {
@@ -187,6 +189,7 @@
     const view = element("div", "card" + (card.rarity >= 3 ? " full" : ""));
     view.dataset.rarity = card.rarity;
     if (card.rarity < 4) view.style.setProperty("--border", card.rarity >= 2 ? "#f5cf55" : "#" + card.color);
+    if (card.rarity === 5) view.style.setProperty("--border", "#33ff73");
     const panel = element("div", "panel");
     const head = element("div", "head");
     head.append(element("span", "", card.name), element("span", "power", card.power));

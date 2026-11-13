@@ -77,8 +77,11 @@ var _model: CharacterModel
 
 func _ready() -> void:
 	add_to_group("player")
-	health = max_health
 	var character := Loadout.selected_character()
+	# Some heroes are tougher or faster (Le Créateur).
+	max_health = int(character.get("health", max_health))
+	move_speed *= float(character.get("speed", 1.0))
+	health = max_health
 	_model = Loadout.instantiate_character(character)
 	ultimate.setup(self, character.ulti, character.get("boost", 1.0))
 	add_child(ultimate)

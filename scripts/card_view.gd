@@ -131,9 +131,9 @@ func _layout() -> void:
 	_foil.size = size
 	_foil_material.set_shader_parameter("rect_size", size)
 	_foil_material.set_shader_parameter("radius", float(int(size.x * 0.05)))
-	_foil_material.set_shader_parameter("strength", [0.0, 0.35, 0.5, 0.6, 0.75][_rarity()])
-	_foil_material.set_shader_parameter("wash", [0.0, 0.05, 0.08, 0.11, 0.14][_rarity()])
-	_foil_material.set_shader_parameter("glitter", [0.0, 0.5, 0.8, 1.0, 1.0][_rarity()])
+	_foil_material.set_shader_parameter("strength", [0.0, 0.35, 0.5, 0.6, 0.75, 0.9][_rarity()])
+	_foil_material.set_shader_parameter("wash", [0.0, 0.05, 0.08, 0.11, 0.14, 0.18][_rarity()])
+	_foil_material.set_shader_parameter("glitter", [0.0, 0.5, 0.8, 1.0, 1.0, 1.0][_rarity()])
 	queue_redraw()
 
 
@@ -232,6 +232,9 @@ func _border_color() -> Color:
 	if not owned:
 		return Color(0.35, 0.35, 0.4)
 	match _rarity():
+		Cards.Rarity.HACKER:
+			# Neon green that flickers, like a screen.
+			return Color(0.2, 1.0, 0.45).lerp(Color.WHITE, 0.4 * float(int(_time * 12.0) % 7 == 0))
 		Cards.Rarity.MYTHIC:
 			return Color.from_hsv(fmod(_time * 0.2, 1.0), 0.6, 1.0)
 		Cards.Rarity.LEGENDARY:
@@ -253,6 +256,8 @@ func _rarity_symbol(at: Vector2, r: float, color: Color) -> void:
 		Cards.Rarity.LEGENDARY:
 			_star(at - Vector2(r * 1.1, 0), r, color)
 			_star(at + Vector2(r * 1.1, 0), r, color)
+		Cards.Rarity.HACKER:
+			_text("</>", at + Vector2(0, r), r * 2.6, Color(0.2, 1.0, 0.45), false, -1, true)
 		_:
 			_canvas.draw_arc(at, r * 1.6, 0, TAU, 24, color, r * 0.3)
 			_star(at, r * 1.1, color)

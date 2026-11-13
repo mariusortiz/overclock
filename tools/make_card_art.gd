@@ -51,7 +51,7 @@ func _render_all() -> void:
 		if argument.begins_with("--only="):
 			only = argument.get_slice("=", 1)
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
-	for card: Dictionary in Cards.CATALOG:
+	for card: Dictionary in Cards.CATALOG + Cards.HACKER_CARDS:
 		if card.art[0] == "image" or (only != "" and card.id != only):
 			continue
 		await _render(card)

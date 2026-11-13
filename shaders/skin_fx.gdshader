@@ -3,7 +3,8 @@ render_mode cull_disabled;
 // Animated weapon finishes of the shop skins (Loadout.SKINS, key "fx").
 // The pattern follows the model (object space), so it stays on the gun.
 // mode 0: hologram scanlines, 1: twinkling galaxy, 2: flowing plasma,
-// 3: glitch blocks, 4: rainbow prism, 5: lightning, 6: black hole.
+// 3: glitch blocks, 4: rainbow prism, 5: lightning, 6: black hole,
+// 7: digital rain.
 
 uniform int mode = 0;
 uniform vec3 color_a : source_color = vec3(0.0, 0.9, 1.0);
@@ -59,6 +60,17 @@ void fragment() {
 		float flicker = step(0.35, fract(sin(floor(t * 12.0)) * 43758.5));
 		color = mix(color_b, color_a * 0.4, 0.2);
 		glow = color_a * bolt * (1.2 + 2.0 * flicker) + color_a * 0.04;
+	} else if (mode == 7) {
+		// Digital rain: columns of glowing glyph blocks falling, each at its
+		// own speed, a bright head and a fading trail.
+		float column = floor(p.x * 4.0 + p.z * 4.0);
+		float speed = 1.5 + hash(vec3(column, 1.0, 7.0)) * 2.5;
+		float fall = fract(-p.y * 0.6 + t * speed * 0.25 + hash(vec3(column, 3.0, 1.0)));
+		vec3 cell = floor(vec3(p.x * 4.0, p.y * 6.0 + floor(t * 6.0), p.z * 4.0));
+		float glyph = step(0.35, hash(cell));
+		float trail = pow(fall, 3.0) * glyph;
+		color = color_b;
+		glow = color_a * trail * 1.4 + vec3(0.8, 1.0, 0.85) * step(0.97, fall) * glyph;
 	} else if (mode == 6) {
 		// Black hole: pitch black, a glowing ring of fire that swirls in.
 		float r = length(p.xy);

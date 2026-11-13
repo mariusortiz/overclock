@@ -20,6 +20,9 @@ const CODES := {
 	"f8e9ba92bc9d944d69bb7545813a0ebb8272c56cc99e860189087cc3261740eb": {
 		"gems": 10000, "credits": 100000, "items": "all_shop", "cards": "all",
 		"boosters": {"standard": 5, "rare": 5}, "pass_complete": true, "repeat": true},
+	# Le Créateur and all that is his, only through this code.
+	"cd81d6f34c6dc2796f4fc3601ac73a3a45f9f9e57ddff4a905bbf37f3452a469": {
+		"items": ["createur", "source_code", "ctrl_alt_del", "skin_matrix", "ship_mainframe"], "cards": ["card_createur"]},
 	# BIENVENUE
 	"6dc420a9ea8e9ba1307c227deeac5e85b59a7afe19a29e96effb926cc79f3c5b": {
 		"gems": 500, "boosters": {"standard": 2}},
@@ -59,7 +62,7 @@ static func redeem(code: String) -> Array:
 		if Wallet.give(id):
 			new_items += 1
 	if new_items > 0:
-		given.append(Loadout.find(items[0]).item.name if items.size() == 1 else "%d articles de la boutique" % new_items)
+		given.append(Loadout.find(items[0]).item.name if items.size() == 1 else "%d objets" % new_items)
 	var cards: Array = []
 	if str(reward.get("cards", "")) == "all":
 		for card: Dictionary in Cards.CATALOG:

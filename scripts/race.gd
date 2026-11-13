@@ -174,7 +174,7 @@ func _setup(circuit: int, seed_value: int) -> void:
 	# armory, the computers the others, shuffled with the track's seed.
 	# The computers fly the ordinary ships, never the ultra ones.
 	var others := Loadout.SHIPS.filter(func(item: Dictionary) -> bool:
-		return item.id != Loadout.selected_ship().id and not item.get("op", false))
+		return item.id != Loadout.selected_ship().id and not item.get("op", false) and not item.get("code", false))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
 	for i in range(others.size() - 1, 0, -1):
@@ -396,6 +396,17 @@ func _apply_special(ship: RaceShip) -> void:
 		&"hyperdrive":
 			ship.boost(HYPERDRIVE_TIME)
 			ship.raise_shield(HYPERDRIVE_TIME)
+		&"admin":
+			Effects.burst(self, ship.global_position, Color(0.3, 1.0, 0.5), 60)
+			for other in _ships:
+				if other != ship and other.is_flying() and not other.is_untouchable():
+					Effects.tracer(self, ship.global_position, other.global_position, Color(0.3, 1.0, 0.5))
+					other.hit()
+					other.hit()
+					other.stun_left = CHRONOS_STUN
+					_warn(other, ship, info[0])
+			ship.boost(5.0)
+			ship.raise_shield(5.0)
 		&"chronos":
 			for other in _ships:
 				if other != ship and not other.is_untouchable():

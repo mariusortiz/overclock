@@ -114,7 +114,9 @@ func _refresh() -> void:
 		tab.add_theme_font_size_override("font_size", 18)
 
 	var shown: String = Cards.SERIES[_series][0]
-	for card: Dictionary in Cards.in_series(shown):
+	# The hacker cards owned come after the series' own.
+	var hacker := Cards.HACKER_CARDS.filter(func(card: Dictionary) -> bool: return card.series == shown and Cards.count(card.id) > 0)
+	for card: Dictionary in Cards.in_series(shown) + hacker:
 		var view := CardView.new(card, Cards.count(card.id) > 0, Cards.count(card.id))
 		view.custom_minimum_size = CARD_SIZE
 		view.gui_input.connect(func(event: InputEvent) -> void:
@@ -406,8 +408,10 @@ func _reveal(view: CardView, pile: Control) -> void:
 ## The show of a legendary or mythic card: it trembles and glows, columns of
 ## light rise behind it, then a flash, confetti and a fanfare as it turns.
 func _celebrate(view: CardView, pile: Control) -> void:
-	var mythic: bool = view.card.rarity == Cards.Rarity.MYTHIC
+	var mythic: bool = view.card.rarity >= Cards.Rarity.MYTHIC
 	var colors: Array = [Color(1.0, 0.24, 0.95), GOLD, Color(0.3, 1.0, 0.6), CYAN, Color(0.7, 0.4, 1.0)] if mythic else [GOLD, Color(1.0, 0.95, 0.7)]
+	if view.card.rarity == Cards.Rarity.HACKER:
+		colors = [Color(0.2, 1.0, 0.45), Color(0.6, 1.0, 0.7), Color(0.0, 0.6, 0.25), Color.WHITE]
 	# Columns of light, behind the pile.
 	var beams := Control.new()
 	beams.mouse_filter = Control.MOUSE_FILTER_IGNORE

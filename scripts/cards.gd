@@ -6,7 +6,8 @@ class_name Cards
 ## completed series pays credits and gems, the whole album a skin.
 ## Card art: assets/cards/<id>.jpg (see tools/make_card_art.gd).
 
-enum Rarity { COMMON, RARE, EPIC, LEGENDARY, MYTHIC }
+## HACKER is above everything, and only for the cards of HACKER_CARDS.
+enum Rarity { COMMON, RARE, EPIC, LEGENDARY, MYTHIC, HACKER }
 
 const RARITY := {
 	Rarity.COMMON: {"name": "Commune", "color": Color(0.75, 0.78, 0.85), "weight": 60.0, "dust": 5, "craft": 40},
@@ -14,6 +15,8 @@ const RARITY := {
 	Rarity.EPIC: {"name": "Épique", "color": Color(0.75, 0.35, 1.0), "weight": 10.0, "dust": 50, "craft": 400},
 	Rarity.LEGENDARY: {"name": "Légendaire", "color": Color(1.0, 0.75, 0.2), "weight": 4.0, "dust": 150, "craft": 1200},
 	Rarity.MYTHIC: {"name": "Mythique", "color": Color(1.0, 0.25, 0.6), "weight": 1.0, "dust": 500, "craft": 4000},
+	# Never drawn, recycled or crafted: only with a code.
+	Rarity.HACKER: {"name": "Hacker", "color": Color(0.2, 1.0, 0.45), "weight": 0.0, "dust": 0, "craft": 0},
 }
 const ART_DIR := "res://assets/cards/"
 const CARDS_PER_BOOSTER := 3
@@ -146,6 +149,12 @@ const CATALOG := [
 	{"id": "card_titan_city", "name": "Le Titan sur la ville", "series": "Mythiques", "rarity": M, "art": ["image", "titan_city"]},
 ]
 
+## Cards above the album: not in CATALOG (they are not counted, numbered,
+## drawn or needed to complete it), only given by a code (see PromoCodes).
+const HACKER_CARDS := [
+	{"id": "card_createur", "name": "Le Créateur", "series": "Mythiques", "rarity": Rarity.HACKER, "art": ["hero", "createur"]},
+]
+
 const SAVE_KEY := "cards"
 ## Boosters waiting to be opened: "standard" (any rarity) and "rare" (its
 ## last card rare or better).
@@ -223,6 +232,7 @@ const FLAVOR := {
 	"card_skin_prism": "Toutes les couleurs, qui défilent sans fin.",
 	"card_fleet": "Dard, Faucon, Frelon et Nova, en formation.",
 	"card_titan_city": "Quatre héros, un géant rouge, une ville entière.",
+	"card_createur": "Celui qui a écrit le jeu. Personne ne l'a jamais vu perdre.",
 	"card_elite": "Trois fois plus solide. Laisse toujours un bonus.",
 	"card_dragon": "Crache le feu sur toute la station.",
 	"card_skeleton": "Charge sans prévenir. Frappe fort.",
@@ -245,17 +255,19 @@ const FLAVOR := {
 
 ## The number in the corner, as in a numbered set: 12 -> "012/078".
 static func number(card: Dictionary) -> String:
+	if card.rarity == Rarity.HACKER:
+		return "000/%03d" % CATALOG.size()
 	return "%03d/%03d" % [CATALOG.find(card) + 1, CATALOG.size()]
 
 
 ## The big number at the top: higher for rarer cards, a little different for each.
 static func power(card: Dictionary) -> int:
-	var base := [60, 90, 120, 160, 220][card.rarity] as int
+	var base := [60, 90, 120, 160, 220, 960][card.rarity] as int
 	return base + absi(hash(card.id)) % 4 * 10
 
 
 static func find(id: String) -> Dictionary:
-	for card: Dictionary in CATALOG:
+	for card: Dictionary in CATALOG + HACKER_CARDS:
 		if card.id == id:
 			return card
 	return {}
@@ -338,7 +350,7 @@ static func recycle_duplicates() -> int:
 	var cards := owned()
 	var gained := 0
 	for id: String in cards:
-		if cards[id] > 1:
+		if cards[id] > 1 and find(id).rarity != Rarity.HACKER:
 			gained += (cards[id] - 1) * int(RARITY[find(id).rarity].dust)
 			cards[id] = 1
 	SaveData.save_progress(SAVE_KEY, cards)
@@ -352,7 +364,7 @@ static func craft_cost(id: String) -> int:
 
 static func craft(id: String) -> bool:
 	var cost := craft_cost(id)
-	if dust() < cost or count(id) > 0:
+	if dust() < cost or count(id) > 0 or find(id).rarity == Rarity.HACKER:
 		return false
 	SaveData.save_progress(DUST_KEY, dust() - cost)
 	add(id)
