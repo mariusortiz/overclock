@@ -54,7 +54,7 @@ func _ready() -> void:
 	$Right/Box/PassRow/Pass.pressed.connect(get_tree().change_scene_to_file.bind(PASS_SCENE), CONNECT_DEFERRED)
 	$Right/Box/PassRow/Cards.pressed.connect(get_tree().change_scene_to_file.bind(CARDS_SCENE), CONNECT_DEFERRED)
 	var waiting: Dictionary = Cards.boosters()
-	var boosters: int = waiting.get("standard", 0) + waiting.get("rare", 0)
+	var boosters: int = waiting.get("standard", 0) + waiting.get("rare", 0) + waiting.get("legend", 0)
 	if boosters > 0:
 		$Right/Box/PassRow/Cards.text = "CARTES (%d)" % boosters
 	$Right/Box/Row/Settings.pressed.connect(func() -> void: _settings_panel.visible = true)

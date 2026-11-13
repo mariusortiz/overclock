@@ -78,6 +78,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			and (OS.is_debug_build() or OS.has_feature("web")):
 		Cards.give_booster("standard", 3)
 		Cards.give_booster("rare", 3)
+		Cards.give_booster("legend", 3)
 		_refresh()
 
 
@@ -98,10 +99,10 @@ func _refresh() -> void:
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_top.add_child(title)
 	var pending := Cards.boosters()
-	var open_standard := _button(_actions, "OUVRIR UN BOOSTER (%d)" % pending.get("standard", 0), _open.bind("standard"), CYAN)
-	open_standard.disabled = pending.get("standard", 0) <= 0
-	var open_rare := _button(_actions, "BOOSTER RARE (%d)" % pending.get("rare", 0), _open.bind("rare"), GOLD)
-	open_rare.disabled = pending.get("rare", 0) <= 0
+	for kind: Array in [["standard", "BOOSTER", CYAN], ["rare", "RARE", GOLD], ["legend", "LÉGENDAIRE", MAGENTA]]:
+		var count: int = pending.get(kind[0], 0)
+		var open := _button(_actions, "%s (%d)" % [kind[1], count], _open.bind(kind[0]), kind[2])
+		open.disabled = count <= 0
 	_button(_actions, "RECYCLER LES DOUBLONS", _recycle)
 
 	for index in Cards.SERIES.size():
@@ -283,10 +284,10 @@ func _open(kind: String) -> void:
 		return
 	var box := _open_overlay()
 	var title := Label.new()
-	title.text = "BOOSTER RARE" if kind == "rare" else "BOOSTER"
+	title.text = {"rare": "BOOSTER RARE", "legend": "BOOSTER LÉGENDAIRE"}.get(kind, "BOOSTER")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 34)
-	title.add_theme_color_override("font_color", GOLD if kind == "rare" else CYAN)
+	title.add_theme_color_override("font_color", {"rare": GOLD, "legend": MAGENTA}.get(kind, CYAN))
 	box.add_child(title)
 	var hint := Label.new()
 	hint.text = "Glisse sur le pointillé pour ouvrir"

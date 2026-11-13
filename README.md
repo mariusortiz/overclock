@@ -82,7 +82,7 @@ Huit vaisseaux pour la course, choisis dans l'onglet VAISSEAU de l'arsenal. Le D
 Les cartes arrivent en boosters de 3, à ouvrir dans CARTES (accueil) : on déchire le haut du booster en glissant le doigt le long du pointillé (ou d'un simple toucher), les cartes en sortent en pile, face cachée, la plus rare en dessous. Un toucher retourne la carte du dessus, un autre la met de côté ; à la fin, les trois s'affichent côte à côte. Une carte légendaire ou mythique a droit à un spectacle : elle tremble et s'illumine, des colonnes de lumière montent derrière elle, puis flash, confettis et fanfare (deux fanfares différentes, la plus grande pour les mythiques). Les boosters s'obtiennent :
 - un booster à chaque fin de partie (tous les modes), un deuxième au-delà de 8000 points ;
 - un booster rare (sa troisième carte au moins rare) tous les 5 paliers du passe, et quand les trois défis du jour sont réussis ;
-- à la boutique, onglet CARTES : booster 400 crédits ou 30 gemmes, booster rare 1200 crédits ou 90 gemmes.
+- à la boutique, onglet CARTES : booster 400 crédits ou 30 gemmes, booster rare 1200 crédits ou 90 gemmes, booster légendaire 20 000 crédits ou 1500 gemmes (sa dernière carte est légendaire ou mieux une fois sur deux, sinon rare ou épique).
 
 Les doublons se recyclent en poussière (5 à 500 selon la rareté), qui sert à fabriquer une carte manquante (40 à 4000). Une série complète rapporte des crédits et des gemmes (bouton RÉCUPÉRER), l'album entier le skin Collectionneur. Les illustrations sont dans `assets/cards/` : les modèles sont rendus par `tools/make_card_art.gd` (scène `scenes/tools/card_art.tscn`, à lancer avec un affichage), les arènes et les épisodes sont des images des vidéos.
 

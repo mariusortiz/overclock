@@ -81,11 +81,21 @@ func _fit() -> void:
 
 
 func _color() -> Color:
-	return Color(0.55, 0.38, 0.05) if kind == "rare" else Color(0.07, 0.12, 0.38)
+	match kind:
+		"rare":
+			return Color(0.55, 0.38, 0.05)
+		"legend":
+			return Color(0.4, 0.05, 0.42)
+	return Color(0.07, 0.12, 0.38)
 
 
 func _accent() -> Color:
-	return GOLD if kind == "rare" else CYAN
+	match kind:
+		"rare":
+			return GOLD
+		"legend":
+			return MAGENTA
+	return CYAN
 
 
 # --- Tearing ------------------------------------------------------------------
@@ -146,7 +156,7 @@ func _burst() -> void:
 	var sparks := CPUParticles2D.new()
 	sparks.one_shot = true
 	sparks.explosiveness = 0.85
-	sparks.amount = 60 if kind == "rare" else 40
+	sparks.amount = 40 if kind == "standard" else 70
 	sparks.lifetime = 0.8
 	sparks.position = Vector2(size.x / 2.0, size.y * TEAR_LINE)
 	sparks.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
@@ -202,7 +212,7 @@ func _draw_body() -> void:
 		bolt.append(center + point * size.x * 0.22)
 	_body.draw_colored_polygon(bolt, MAGENTA)
 	_centered(_body, "OVERCLOCK", Vector2(size.x / 2.0, size.y * 0.3), size.x * 0.11, Color.WHITE)
-	_centered(_body, "BOOSTER RARE" if kind == "rare" else "BOOSTER", Vector2(size.x / 2.0, size.y * 0.78), size.x * 0.085, _accent())
+	_centered(_body, {"rare": "BOOSTER RARE", "legend": "LÉGENDAIRE"}.get(kind, "BOOSTER"), Vector2(size.x / 2.0, size.y * 0.78), size.x * 0.085, _accent())
 	_centered(_body, "%d CARTES" % Cards.CARDS_PER_BOOSTER, Vector2(size.x / 2.0, size.y * 0.86), size.x * 0.06, Color(1, 1, 1, 0.8))
 	# The hint arrow, until the tear starts.
 	if _progress < 1.0:

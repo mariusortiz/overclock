@@ -156,8 +156,9 @@ const HACKER_CARDS := [
 ]
 
 const SAVE_KEY := "cards"
-## Boosters waiting to be opened: "standard" (any rarity) and "rare" (its
-## last card rare or better).
+## Boosters waiting to be opened: "standard" (any rarity), "rare" (its
+## last card rare or better) and "legend" (its last card legendary or better
+## one time in two, rare or better otherwise; sold dear in the shop).
 const BOOSTERS_KEY := "boosters"
 const DUST_KEY := "card_dust"
 const CLAIMED_KEY := "card_series_claimed"
@@ -319,29 +320,46 @@ static func open_booster(kind: String) -> Array[Dictionary]:
 	SaveData.save_progress(BOOSTERS_KEY, pending)
 	var drawn: Array[Dictionary] = []
 	for slot in CARDS_PER_BOOSTER:
-		var lowest := Rarity.RARE if kind == "rare" and slot == CARDS_PER_BOOSTER - 1 else Rarity.COMMON
-		var card := _draw(lowest)
+		var lowest := Rarity.COMMON
+		var highest := Rarity.MYTHIC
+		if slot == CARDS_PER_BOOSTER - 1:
+			if kind == "rare":
+				lowest = Rarity.RARE
+			elif kind == "legend":
+				# One time in two legendary or better; otherwise rare or epic.
+				if randf() < LEGEND_CHANCE:
+					lowest = Rarity.LEGENDARY
+				else:
+					lowest = Rarity.RARE
+					highest = Rarity.EPIC
+		var card := _draw(lowest, highest)
 		add(card.id)
 		drawn.append(card)
 	return drawn
 
 
+## Chance that a legendary booster's last card is legendary or better.
+const LEGEND_CHANCE := 0.5
+
+
 ## A random card of rarity `lowest` or above, by the rarities' weights.
-static func _draw(lowest: Rarity) -> Dictionary:
+static func _draw(lowest: Rarity, highest := Rarity.MYTHIC) -> Dictionary:
 	var total := 0.0
 	for rarity: Rarity in RARITY:
-		if rarity >= lowest:
+		if rarity >= lowest and rarity <= highest:
 			total += RARITY[rarity].weight
 	var roll := randf() * total
 	var chosen := lowest
 	for rarity: Rarity in RARITY:
-		if rarity < lowest:
+		if rarity < lowest or rarity > highest:
 			continue
 		roll -= RARITY[rarity].weight
 		if roll <= 0.0:
 			chosen = rarity
 			break
 	var pool := CATALOG.filter(func(card: Dictionary) -> bool: return card.rarity == chosen)
+	if pool.is_empty():
+		pool = CATALOG.filter(func(card: Dictionary) -> bool: return card.rarity == lowest)
 	return pool.pick_random()
 
 

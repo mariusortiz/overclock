@@ -79,7 +79,8 @@ static func redeem(code: String) -> Array:
 	for kind: String in boosters:
 		Cards.give_booster(kind, boosters[kind])
 		var plural := "s" if boosters[kind] > 1 else ""
-		given.append("%d booster%s%s" % [boosters[kind], plural, (" rare" + plural) if kind == "rare" else ""])
+		var adjective: String = {"rare": " rare", "legend": " légendaire"}.get(kind, "")
+		given.append("%d booster%s%s" % [boosters[kind], plural, (adjective + plural) if adjective != "" else ""])
 	if reward.get("pass_complete", false):
 		var all_tiers := 0
 		for tier in range(1, BattlePass.REWARDS.size() + 1):
