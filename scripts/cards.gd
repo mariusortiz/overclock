@@ -31,6 +31,7 @@ const SERIES := [
 	["Mythiques", 5000, 250],
 	# The "Saison 2" expansion (EXPANSION): its own numbers, outside the 99.
 	["Matrice", 1500, 60], ["Anime S2", 2500, 100], ["Combat", 1500, 60], ["Boutique", 1800, 70], ["Noël", 1500, 80], ["Passe S2", 2000, 90],
+	["Portail", 1800, 70], ["Anime S3", 2500, 100],
 	# Le Créateur's: only through his code, outside the album's count.
 	["Hacker", 10000, 500],
 ]
@@ -157,7 +158,7 @@ const CATALOG := [
 ## The "Saison 2" expansion: what came after the 99 (the Matrice and its
 ## Virus, the anime's season 2, the fight mode, the shop's latest). Drawn from
 ## the same boosters, recycled and crafted like the others, numbered apart
-## (S01/S31); the album of 99 does not need them.
+## (S01, S02...); the album of 99 does not need them.
 const EXPANSION := [
 	# The Matrice.
 	{"id": "card_matrix_arena", "name": "La Matrice", "series": "Matrice", "rarity": E, "art": ["image", "matrix_arena"]},
@@ -212,6 +213,24 @@ const EXPANSION := [
 	{"id": "card_skin_candy", "name": "Skin Sucre d'orge", "series": "Noël", "rarity": R, "art": ["gun_skin", "heavy:skin_candy"], "event": "christmas"},
 	{"id": "card_skin_garland", "name": "Skin Guirlande", "series": "Noël", "rarity": E, "art": ["gun_skin", "heavy:skin_garland"], "event": "christmas"},
 	{"id": "card_dance_snowman", "name": "Danse Bonhomme de neige", "series": "Noël", "rarity": R, "art": ["dance", "dance_snowman:soldier"], "event": "christmas"},
+	# Season 3: the portal and its galaxy.
+	{"id": "card_crystal_arena", "name": "Planète de cristal", "series": "Portail", "rarity": E, "art": ["image", "crystal_arena"]},
+	{"id": "card_ruins_arena", "name": "Ruines stellaires", "series": "Portail", "rarity": E, "art": ["image", "ruins_arena"]},
+	{"id": "card_sentinel", "name": "Sentinelle de cristal", "series": "Portail", "rarity": C, "art": ["glow", "Knight_Male.fbx:73d9ff"]},
+	{"id": "card_looter", "name": "Pillard stellaire", "series": "Portail", "rarity": C, "art": ["enemy", "Pirate_Male.fbx"]},
+	{"id": "card_guardian", "name": "Le Gardien", "series": "Portail", "rarity": L, "art": ["guardian", ""]},
+	{"id": "card_portal", "name": "Le Portail", "series": "Portail", "rarity": M, "art": ["image", "portal"]},
+	# The anime's season 3.
+	{"id": "card_ep21", "name": "Le Portail", "series": "Anime S3", "rarity": E, "art": ["image", "ep21"]},
+	{"id": "card_ep22", "name": "Terre inconnue", "series": "Anime S3", "rarity": E, "art": ["image", "ep22"]},
+	{"id": "card_ep23", "name": "Le Chant des cristaux", "series": "Anime S3", "rarity": E, "art": ["image", "ep23"]},
+	{"id": "card_ep24", "name": "La Ceinture", "series": "Anime S3", "rarity": E, "art": ["image", "ep24"]},
+	{"id": "card_ep25", "name": "Les Ruines stellaires", "series": "Anime S3", "rarity": E, "art": ["image", "ep25"]},
+	{"id": "card_ep26", "name": "L'Archive", "series": "Anime S3", "rarity": E, "art": ["image", "ep26"]},
+	{"id": "card_ep27", "name": "La Lune qui boucle", "series": "Anime S3", "rarity": E, "art": ["image", "ep27"]},
+	{"id": "card_ep28", "name": "Écarlate", "series": "Anime S3", "rarity": E, "art": ["image", "ep28"]},
+	{"id": "card_ep29", "name": "Le Gardien", "series": "Anime S3", "rarity": L, "art": ["image", "ep29"]},
+	{"id": "card_ep30", "name": "Retour", "series": "Anime S3", "rarity": L, "art": ["image", "ep30"]},
 ]
 
 ## Every card there is: the album, the expansion, Le Créateur's.
@@ -292,20 +311,26 @@ static func ability(card: Dictionary) -> Array:
 		"melee":
 			var blade: Dictionary = Loadout.find(reference).item
 			return ["FRAPPE", "Dégâts %d · portée %s m." % [blade.damage, str(blade.range).trim_suffix(".0")]]
-		"boss", "titan", "virus", "frost":
+		"boss", "titan", "virus", "frost", "guardian":
 			return ["BOSS", FLAVOR.get(card.id, "Garde la fin d'une arène.")]
 		"dance":
 			var dance: Dictionary = Dances.find(reference.split(":")[0])
 			return ["DANSE · " + str(dance.get("name", "")), FLAVOR.get(card.id, "Vendue en boutique, à danser en pleine partie.")]
 	if str(card.id).begins_with("card_ep"):
 		var episode := str(card.id).trim_prefix("card_ep").to_int()
-		return ["ÉPISODE %d" % episode, "L'anime Overclock, saison %d." % (1 if episode <= 10 else 2)]
+		return ["ÉPISODE %d" % episode, "L'anime Overclock, saison %d." % ((episode - 1) / 10 + 1)]
 	return ["", FLAVOR.get(card.id, "")]
 
 
 ## A short line for the cards whose subject has no stats.
 const FLAVOR := {
 	"card_guard": "Garde la station, en rangs serrés.",
+	"card_sentinel": "Sort du sol de la planète de cristal. Déteste les fausses notes.",
+	"card_looter": "Fouille les ruines stellaires, fusil à pompe en main.",
+	"card_guardian": "Garde le portail au cœur de la galaxie. Il chante, et son chant coupe.",
+	"card_portal": "Un anneau de lumière. De l'autre côté, une galaxie inconnue.",
+	"card_crystal_arena": "Une mesa, deux plateaux, des cristaux qui chantent.",
+	"card_ruins_arena": "Une arche, des colonnes, et une statue d'or à tête de vache.",
 	"card_sand": "Surgit des dunes, pistolet-mitrailleur au poing.",
 	"card_goblin": "Couteau entre les dents, toujours en bande.",
 	"card_zombie": "Lent, mais il ne lâche jamais.",

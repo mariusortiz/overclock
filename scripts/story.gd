@@ -1,11 +1,13 @@
 class_name Story
 ## The story mode: the anime's seasons, one chapter per episode (season 1:
-## chapters 1 to 10, season 2: 11 to 20). A chapter is a short scene played
+## chapters 1 to 10, season 2: 11 to 20, season 3: 21 to 30). A chapter is a short scene played
 ## by the engine (scripts/story/chNN.gd), then a mission in one of the game's
 ## modes with the episode's hero. A mission gives 1 to 3 stars; the first win
 ## pays the chapter's rewards, the last chapter of a season a bigger prize.
 ## Each season opens at its first chapter. In season 2 the enemies are
-## corrupted by the Virus ("virus").
+## corrupted by the Virus ("virus"). A wave mission starts as if the player
+## had come through `level` arenas (by default its own arena's place), and
+## `boss` picks its boss (by default the arena's).
 
 const SCREEN := "res://scenes/story.tscn"
 const CUTSCENE := "res://scenes/story_cutscene.tscn"
@@ -15,6 +17,7 @@ const FINAL_SHIP := "ship_scarlet"
 const FINAL_GEMS := 500
 const SEASON_SIZE := 10
 const SEASON_2_FINAL_GEMS := 1000
+const SEASON_3_FINAL_GEMS := 1500
 
 ## Each chapter: title, hero (Loadout id), mode, arena or circuit, what to
 ## do, and the line that closes it. A race is won in the first `place`;
@@ -81,6 +84,37 @@ const CHAPTERS := [
 	{"title": "Redémarrage", "hero": "soldier", "mode": "waves", "arena": 6, "virus": true,
 		"goal": "La dernière bataille : la ville, le Virus, tous les héros, les trois fragments.",
 		"outro": "Le Virus est effacé, le monde redémarre. Le Créateur dit au revoir. Fin de la saison 2."},
+	# Season 3: Le Portail.
+	{"title": "Le Portail", "hero": "soldier", "mode": "capture", "arena": 0,
+		"goal": "Un anneau de lumière s'ouvre sur la station, des créatures en sortent. Tiens les zones.",
+		"outro": "L'anneau aspire l'escouade. Le Créateur saute derrière eux. Trois lunes dans le ciel."},
+	{"title": "Terre inconnue", "hero": "cowgirl", "mode": "waves", "arena": 5, "level": 2, "boss": Boss.Kind.SUMMONER,
+		"goal": "La planète de cristal. Les sentinelles se lèvent : tiens jusqu'à leur reine.",
+		"outro": "Ici, Le Créateur n'est qu'une vache. Et les cristaux chantent."},
+	{"title": "Le Chant des cristaux", "hero": "ronin", "mode": "capture", "arena": 5,
+		"goal": "Trois cristaux, trois notes. Tiens les zones A, B et C pour jouer la mélodie.",
+		"outro": "La mélodie juste. Une carte des étoiles s'allume : des ruines, au-delà d'une ceinture."},
+	{"title": "La Ceinture", "hero": "sand_ghost", "mode": "race", "circuit": 2, "place": 2, "ship": "ship_scarlet",
+		"goal": "Des drones de cristal dans la ceinture. Termine 2e ou mieux.",
+		"outro": "Vipère fait demi-tour en pleine ceinture. Les drones tombent. Les ruines approchent."},
+	{"title": "Les Ruines stellaires", "hero": "kunoichi", "mode": "waves", "arena": 7, "level": 3, "boss": Boss.Kind.BRUTE,
+		"goal": "Des pillards fouillent les ruines. Repousse-les jusqu'au golem qui s'éveille.",
+		"outro": "Sur l'arche, une statue d'or : une tête de vache. « Le Premier Codeur. »"},
+	{"title": "L'Archive", "hero": "paladin", "mode": "waves", "arena": 7, "level": 4, "boss": Boss.Kind.BRUTE,
+		"goal": "Les gardiens de l'archive se réveillent. Tiens jusqu'au dernier golem.",
+		"outro": "Version 0. Le Créateur est une copie. « Copie ou pas, t'es notre vache. »"},
+	{"title": "La Lune qui boucle", "hero": "sand_ghost", "mode": "waves", "arena": 1, "level": 3, "boss": Boss.Kind.ARTILLERY,
+		"goal": "Les météores tombent en boucle. Survis jusqu'à briser la boucle.",
+		"outro": "Un seul tir, et la boucle se brise. Trois silhouettes reprennent vie : l'Écarlate."},
+	{"title": "Écarlate", "hero": "witch", "mode": "capture", "arena": 1,
+		"goal": "Les deux escouades ensemble, pour la première fois. Tiens les zones.",
+		"outro": "Hex avait la clé. Un rayon d'or montre le cœur de la galaxie. « Venez. »"},
+	{"title": "Le Gardien", "hero": "soldier", "mode": "waves", "arena": 5,
+		"goal": "Le cœur de la galaxie. Traverse la planète de cristal jusqu'au Gardien.",
+		"outro": "Le Gardien pose un genou à terre. « Qui a créé le Créateur ? »"},
+	{"title": "Retour", "hero": "sand_ghost", "mode": "race", "circuit": 0, "place": 1, "ship": "ship_scarlet",
+		"goal": "Rentrés à la station, Vipère réclame sa revanche promise. Gagne la course.",
+		"outro": "Personne ne crée seul. Le code est revenu, la revanche est gagnée. Fin de la saison 3."},
 ]
 
 ## The chapter being played (-1: none), and the result of the last mission
@@ -180,8 +214,8 @@ static func finish(won: bool, earned_stars: int) -> void:
 	last_result = {"chapter": chapter, "won": won, "stars": clampi(earned_stars, 1, 3) if won else 0, "rewards": rewards}
 
 
-## A chapter's first win: gems and a rare booster, plus the episode's card in
-## season 1 (season 2 has no cards: the album stays at 99). The last chapter
+## A chapter's first win: gems and a rare booster, plus the episode's card
+## when it has one. The last chapter
 ## of season 1 adds gems and the Écarlate ship, that of season 2 gems and a
 ## legendary booster.
 static func _pay(index: int) -> Array[String]:
@@ -202,6 +236,11 @@ static func _pay(index: int) -> Array[String]:
 		Cards.give_booster("legend")
 		given.append("%d gemmes de plus" % SEASON_2_FINAL_GEMS)
 		given.append("1 booster légendaire")
+	elif index == 3 * SEASON_SIZE - 1:
+		Wallet.add_gems(SEASON_3_FINAL_GEMS)
+		Cards.give_booster("legend")
+		given.append("%d gemmes de plus" % SEASON_3_FINAL_GEMS)
+		given.append("1 booster légendaire")
 	return given
 
 
@@ -218,6 +257,8 @@ static func rewards_text(index: int) -> String:
 		parts.append("le vaisseau Écarlate")
 	elif index == 2 * SEASON_SIZE - 1:
 		parts.append("%d gemmes de plus et un booster légendaire" % SEASON_2_FINAL_GEMS)
+	elif index == 3 * SEASON_SIZE - 1:
+		parts.append("%d gemmes de plus et un booster légendaire" % SEASON_3_FINAL_GEMS)
 	return ", ".join(parts)
 
 

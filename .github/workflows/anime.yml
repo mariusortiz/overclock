@@ -53,7 +53,8 @@ jobs:
               nn=$(printf '%02d' "$n")
               if echo "$changed" | grep -qE "ep${nn}\.(gd|tscn)" || echo " $lines " | tr '\n' ' ' | grep -qw "$n" \
                   || { [ "$n" = 1 ] && echo "$changed" | grep -qE 'anime_music|tools/anime.html'; } \
-                  || { [ "$n" -ge 11 ] && echo "$changed" | grep -q 'anime/season2.gd'; }; then
+                  || { [ "$n" -ge 11 ] && echo "$changed" | grep -q 'anime/season2.gd'; } \
+                  || { [ "$n" -ge 21 ] && echo "$changed" | grep -q 'anime/season3.gd'; }; then
                 picked="$picked $n"
               fi
             done

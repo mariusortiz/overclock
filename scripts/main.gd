@@ -544,9 +544,12 @@ func _on_quit_pressed() -> void:
 ## A story mission: the waves of the chapter's arena (from its first one),
 ## with a power-up for each arena skipped, as if the player had come this far.
 func _start_story_mission() -> void:
-	var arena: int = Story.mission().arena
-	waves.wave = arena * WaveManager.BOSS_EVERY
-	for i in arena * 2:
+	var level: int = Story.mission().get("level", Story.mission().arena)
+	waves.wave = level * WaveManager.BOSS_EVERY
+	if Story.mission().has("boss"):
+		waves.boss_kind = Story.mission().boss
+		waves.boss_health_scale = 1.0
+	for i in level * 2:
 		player.add_perk(Perk.pick_choices(1)[0])
 	hud.show_banner("CHAPITRE %d  ·  %s" % [Story.chapter + 1, str(Story.mission().title).to_upper()])
 

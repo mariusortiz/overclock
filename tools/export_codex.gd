@@ -5,14 +5,16 @@ extends Node
 ## Run by the build at each publication, so the site is always up to date:
 ##   godot --headless res://scenes/tools/export_codex.tscn -- --out=codex.json
 
-const ARENAS := ["station", "desert", "jungle", "volcano", "matrix", "city", "snow"]
+const ARENAS := ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow"]
 const ARENA_TEXTS := {
 	"station": "Tour de contrôle à deux étages, passerelles, quai de chargement.",
 	"desert": "Temple à gradins, plateau rocheux relié par un pont de pierre, oasis.",
 	"jungle": "Cabanes dans les arbres reliées par des ponts de corde, rivière, ruines.",
 	"volcano": "Rivière de lave franchie par deux ponts, plateaux de basalte, cratère.",
 	"matrix": "À l'intérieur du code : noyau surélevé, ponts de données, pluie de code, pare-feu.",
+	"crystal": "Une mesa, deux plateaux reliés par des ponts de pierre, des cristaux qui chantent.",
 	"city": "Carrefour sous un pont routier, immeubles au toit accessible, voitures.",
+	"ruins": "Une arche de portail, une allée de colonnes, deux salles hautes. Hors des Vagues.",
 	"snow": "Chalets, lac gelé, pont de glace et grand sapin. Seulement à Noël.",
 }
 ## What a skin does to the enemy it kills (Enemy._play_death).
@@ -49,7 +51,8 @@ func _ready() -> void:
 		codex.ships.append(_entry(item, art, {"speed": item.get("velocity", 1.0), "handling": item.get("handling", 1.0),
 				"shield": item.get("shield", 3), "special": special[0], "text": special[1]}))
 	var boss_cards := {Boss.Kind.COLOSSUS: "card_dragon", Boss.Kind.BRUTE: "card_skeleton", Boss.Kind.ARTILLERY: "card_giant_bat",
-			Boss.Kind.SUMMONER: "card_slime", Boss.Kind.VIRUS: "card_virus", Boss.Kind.TITAN: "card_titan", Boss.Kind.FROST: "card_frost"}
+			Boss.Kind.SUMMONER: "card_slime", Boss.Kind.VIRUS: "card_virus", Boss.Kind.TITAN: "card_titan", Boss.Kind.FROST: "card_frost",
+			Boss.Kind.GUARDIAN: "card_guardian"}
 	for kind: Boss.Kind in Boss.ORDER + [Boss.Kind.FROST]:
 		var info: Dictionary = Boss.INFO[kind]
 		var arena_name := "Village enneigé" if kind == Boss.Kind.FROST else str(FightSetup.ARENA_NAMES[Boss.ORDER.find(kind)])
@@ -59,7 +62,7 @@ func _ready() -> void:
 	for id: String in ARENAS:
 		var arena: Arena = load("res://scenes/arenas/%s.tscn" % id).instantiate()
 		codex.arenas.append({"name": arena.display_name, "text": ARENA_TEXTS[id], "weapon": arena.enemy_weapon,
-				"image": _image("card_" + {"matrix": "matrix_arena", "snow": "snow_village"}.get(id, id))})
+				"image": _image("card_" + {"matrix": "matrix_arena", "snow": "snow_village", "crystal": "crystal_arena", "ruins": "ruins_arena"}.get(id, id))})
 		arena.free()
 	var file := FileAccess.open(out, FileAccess.WRITE)
 	file.store_string(JSON.stringify(codex))

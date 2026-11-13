@@ -45,6 +45,9 @@ var wave := 0
 ## The only boss to come, or -1 for the usual round (Boss.ORDER): the
 ## Christmas waves have the Père Glaçon only.
 var boss_kind := -1
+## Fixed health scale for the bosses (a story mission's: as met the first
+## time); 0 lets it grow each time the bosses come around.
+var boss_health_scale := 0.0
 ## Players in a co-op game: more enemies, and tougher, for each one more.
 var coop_players := 1
 
@@ -237,7 +240,8 @@ func _create_boss() -> Boss:
 	var kinds: Array = Boss.ORDER if boss_kind < 0 else [boss_kind]
 	var boss: Boss = boss_scene.instantiate()
 	@warning_ignore("integer_division")
-	boss.configure(kinds[index % kinds.size()], 1.0 + 0.6 * (index / kinds.size()))
+	var health_scale := boss_health_scale if boss_health_scale > 0.0 else 1.0 + 0.6 * (index / kinds.size())
+	boss.configure(kinds[index % kinds.size()], health_scale)
 	boss.summon_requested.connect(_on_boss_summon_requested)
 	boss.died.connect(boss_killed.emit.bind(boss.kind))
 	return boss

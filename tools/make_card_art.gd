@@ -169,6 +169,11 @@ func _subject(kind: String, reference: String) -> Node3D:
 				mesh.material_override = body
 				mesh.material_overlay = glow
 			return virus
+		"guardian":
+			# The crystal wizard of the portal (see Boss.dress_guardian).
+			var guardian := _character(Boss.MODEL_DIR + str(Boss.INFO[Boss.Kind.GUARDIAN].model), &"idle")
+			Boss.dress_guardian.call_deferred(guardian.get_child(0))
+			return guardian
 		"frost":
 			# The giant skeleton in ice (see Boss._dress_frost).
 			var frost := _character(Boss.MODEL_DIR + str(Boss.INFO[Boss.Kind.FROST].model), &"idle")
@@ -214,7 +219,7 @@ func _frame(subject: Node3D, kind: String) -> void:
 	var center := bounds.get_center()
 	var radius := bounds.size.length() * 0.5
 	# Characters: a little above the middle, so the face is in the picture.
-	if kind in ["hero", "enemy", "elite", "glow", "boss", "titan", "virus", "frost", "dance"]:
+	if kind in ["hero", "enemy", "elite", "glow", "boss", "titan", "virus", "frost", "guardian", "dance"]:
 		center.y += bounds.size.y * 0.02
 		radius *= 0.7
 	else:

@@ -572,8 +572,9 @@ def crystal(b):
 
 def ruins(b):
     """The star ruins: what is left of a civilization that knew Le Créateur. A
-    great portal arch to the north, a temple gallery high up joined by a
-    ramp, rows of columns (some broken, some fallen), glyphs glowing gold.
+    great portal arch to the north, two temple halls high up reached by a
+    ramp each, an alley of columns to the portal, more columns (some broken,
+    some fallen), glyphs glowing gold.
     Stone fragments float overhead (scripts/ruins_fx.gd)."""
     stone = b.m["block"]
     # The portal: two pillars and a lintel, glyphs down the pillars.
@@ -581,14 +582,17 @@ def ruins(b):
         b.block(side * 5, -26, 2.2, 2.2, 9.0, material=stone)
         b.box((0.3, 6.0, 2.3), (side * 5 - side * 1.12, 4.5, -26), b.m["glyph"], collide=False)
     b.box((12.2, 1.6, 2.6), (0, 9.8, -26), stone)
-    # The gallery: two halls and a middle terrace, joined by bridges, one ramp up.
-    b.slab(0, -12, 8, 6, 3.5, gaps=[("s", -1.6, 1.6), ("e", -14, -10), ("w", -14, -10)])
-    b.ramp((0, 0), (0, -9), 0, 3.5, 3.2)
+    # Two temple halls up high, a ramp each.
     for side in (-1, 1):
         x = side * 19
-        b.slab(x, -12, 9, 9, 3.5, gaps=[("w" if side > 0 else "e", -14, -10), ("s", x - 1.6, x + 1.6)], material=stone)
-        b.bridge((side * 4, -12), (side * 14.5, -12), 3.5, 3.6, pillar_every=5.0)
+        b.slab(x, -12, 9, 9, 3.5, gaps=[("s", x - 1.6, x + 1.6)], material=stone)
         b.ramp((x, 6), (x, -7.5), 0, 3.5, 3.0)
+    # An alley of columns leading to the portal, some of them broken.
+    for z, top in [(-5, 6.0), (-11, 4.2), (-17, 6.0)]:
+        for side in (-1, 1):
+            height = top if side < 0 or z != -11 else 2.4
+            b.block(side * 6, z, 1.4, 1.4, height, material=stone)
+            b.box((1.8, 0.3, 1.8), (side * 6, height + 0.15, z), b.m["trim"])
     # Columns: whole, broken, and fallen ones to hide behind.
     for x, z, top in [(-10, 6, 6.0), (10, 6, 3.0), (-10, 16, 2.0), (10, 16, 6.0), (-24, 18, 5.0), (24, 18, 1.6),
                       (-26, -2, 6.0), (26, -2, 4.0)]:
@@ -600,9 +604,9 @@ def ruins(b):
     for x, z, w, d in [(-6, 9, 3.5, 1.0), (6, 9, 3.5, 1.0), (-22, 8, 1.0, 3.5), (22, 8, 1.0, 3.5), (-14, -24, 4, 1.0), (24, -24, 1.0, 4)]:
         b.cover(x, z, w, d, 1.3, material=stone)
     # Glyph stones glowing gold.
-    for x, z in [(-17, 0), (17, 0), (0, -20)]:
+    for x, z in [(-17, 0), (17, 0), (9, -20)]:
         b.box((0.4, 2.4, 1.6), (x, 1.2, z), b.m["glyph"])
-    b.loot += [("pad", (0, 3.55, -12)), ("chest", (-19, 3.5, -14)), ("chest", (19, 3.5, -14))]
+    b.loot += [("pad", (-19, 3.55, -12)), ("chest", (19, 3.5, -14))]
     for x, z, model, height, yaw in [(-26, -16, "rock_largeB", 1.6, 0), (26, -16, "rock_largeE", 1.5, 90), (-26, 26, "rock_tallA", 2.6, 0)]:
         b.prop(NATURE + model + ".glb", x, z, height, yaw)
 

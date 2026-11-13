@@ -124,9 +124,12 @@ func _ready() -> void:
 	_overlay.visible = false
 	add_child(_overlay)
 
-	# The first chapter not won yet (in season 2 once season 1 is done), or
-	# the one just played.
-	_selected = _first_to_play(1 if Story.season_done(0) else 0)
+	# The first chapter not won yet (in the latest season whose one before is
+	# done), or the one just played.
+	var season := 0
+	while season + 1 < Story.seasons() and Story.season_done(season):
+		season += 1
+	_selected = _first_to_play(season)
 	if not Story.last_result.is_empty():
 		_selected = Story.last_result.chapter
 	_refresh()
