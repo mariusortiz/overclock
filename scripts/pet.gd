@@ -13,8 +13,8 @@ const FLY_HEIGHT := 1.5
 const HOP_HEIGHT := 0.18
 ## Seconds between two uses of each perk that acts by itself.
 const PERIODS := {&"echo": 3.0, &"spit": 5.0, &"bite": 3.0, &"jelly": 3.0, &"dive": 6.0, &"turret": 1.5,
-		&"breath": 5.0, &"song": 8.0, &"magnet": 0.2}
-const RANGES := {&"echo": 16.0, &"spit": 14.0, &"bite": 4.0, &"dive": 20.0, &"turret": 18.0, &"breath": 12.0, &"song": 6.0}
+		&"breath": 5.0, &"song": 8.0, &"magnet": 0.2, &"capy": 1.5}
+const RANGES := {&"echo": 16.0, &"spit": 14.0, &"bite": 4.0, &"dive": 20.0, &"turret": 18.0, &"breath": 12.0, &"song": 6.0, &"capy": 25.0}
 const MAGNET_RANGE := 10.0
 const MAGNET_SPEED := 8.0
 
@@ -32,6 +32,7 @@ var _time := 0.0
 var _hop_left := 0.0
 var _perk_left := 1.0
 var _flying := false
+var _capy_beats := 0
 
 
 ## Call before adding it to the scene.
@@ -74,6 +75,8 @@ static func build_model(item: Dictionary) -> Node3D:
 			model = _drone()
 		"shard":
 			model = _shard()
+		"capybara":
+			model = _capybara()
 		_:
 			model = (load(item.model) as PackedScene).instantiate()
 	holder.add_child(model)
@@ -212,6 +215,72 @@ static func _drone() -> Node3D:
 	return drone
 
 
+## Le Créateur's capybara: a brown barrel on short legs, a square head with
+## a blunt muzzle, small ears, a mandarin on its head, and the green glow of
+## his code. Facing -Z.
+static func _capybara() -> Node3D:
+	var capybara := Node3D.new()
+	var fur := StandardMaterial3D.new()
+	fur.albedo_color = Color(0.55, 0.38, 0.24)
+	var dark := StandardMaterial3D.new()
+	dark.albedo_color = Color(0.28, 0.18, 0.12)
+	var muzzle := StandardMaterial3D.new()
+	muzzle.albedo_color = Color(0.45, 0.3, 0.19)
+	var black := StandardMaterial3D.new()
+	black.albedo_color = Color(0.05, 0.05, 0.05)
+	var orange := StandardMaterial3D.new()
+	orange.albedo_color = Color(1.0, 0.55, 0.1)
+	var leaf := StandardMaterial3D.new()
+	leaf.albedo_color = Color(0.2, 0.6, 0.2)
+	var parts := [
+		# [mesh size, position, material]: body, head, muzzle, ears, eyes, nose, legs.
+		[Vector3(0.7, 0.55, 1.1), Vector3(0, 0.5, 0.05), fur],
+		[Vector3(0.46, 0.44, 0.62), Vector3(0, 0.74, -0.66), fur],
+		[Vector3(0.42, 0.36, 0.2), Vector3(0, 0.68, -1.04), muzzle],
+		[Vector3(0.1, 0.09, 0.06), Vector3(-0.18, 1.0, -0.42), dark],
+		[Vector3(0.1, 0.09, 0.06), Vector3(0.18, 1.0, -0.42), dark],
+		[Vector3(0.05, 0.07, 0.06), Vector3(-0.24, 0.86, -0.82), black],
+		[Vector3(0.05, 0.07, 0.06), Vector3(0.24, 0.86, -0.82), black],
+		[Vector3(0.16, 0.05, 0.04), Vector3(0, 0.76, -1.15), black],
+	]
+	for corner in [Vector3(-0.24, 0.13, -0.32), Vector3(0.24, 0.13, -0.32), Vector3(-0.24, 0.13, 0.4), Vector3(0.24, 0.13, 0.4)]:
+		parts.append([Vector3(0.16, 0.26, 0.16), corner, dark])
+	for part: Array in parts:
+		var mesh := MeshInstance3D.new()
+		var box := BoxMesh.new()
+		box.size = part[0]
+		box.material = part[2]
+		mesh.mesh = box
+		mesh.position = part[1]
+		capybara.add_child(mesh)
+	# The mandarin, and its leaf.
+	var fruit := MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.11
+	sphere.height = 0.2
+	sphere.material = orange
+	fruit.mesh = sphere
+	fruit.position = Vector3(0, 1.06, -0.62)
+	capybara.add_child(fruit)
+	var stem := MeshInstance3D.new()
+	var blade := BoxMesh.new()
+	blade.size = Vector3(0.1, 0.02, 0.05)
+	blade.material = leaf
+	stem.mesh = blade
+	stem.position = Vector3(0.05, 1.17, -0.62)
+	stem.rotation.z = 0.4
+	capybara.add_child(stem)
+	# A faint green glow: Le Créateur's code.
+	var glow := StandardMaterial3D.new()
+	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	glow.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	glow.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	glow.albedo_color = Color(0.2, 1.0, 0.45, 0.08)
+	for mesh: MeshInstance3D in capybara.find_children("*", "MeshInstance3D", true, false):
+		mesh.material_overlay = glow
+	return capybara
+
+
 static func _shard() -> Node3D:
 	var shard := Node3D.new()
 	var crystal := StandardMaterial3D.new()
@@ -273,7 +342,7 @@ func _process(delta: float) -> void:
 		var wanted := _move if _moving and _move != "" else _idle
 		if _player.current_animation != wanted:
 			_player.play(wanted, 0.2)
-	if Pets.enabled and Pets.perk() == pet.perk:
+	if pet.perk != &"" and Pets.perk() == pet.perk:
 		_perk_left -= delta
 		if _perk_left <= 0.0:
 			_perk_left = PERIODS.get(pet.perk, 1.0)
@@ -296,6 +365,15 @@ func _use_perk() -> void:
 					var to_player := player.global_position - power_up.global_position
 					if to_player.length() < MAGNET_RANGE:
 						power_up.global_position += to_player.limit_length(MAGNET_SPEED * PERIODS.magnet)
+		&"capy":
+			# Calm, and devastating.
+			_capy_beats += 1
+			if player and _capy_beats % 2 == 0 and player.health < player.max_health:
+				player.heal(2)
+			var target := _nearest(RANGES.capy)
+			if target:
+				var at: Vector3 = target.get_aim_position() if target.has_method("get_aim_position") else target.global_position + Vector3.UP
+				_zap(at, Color(0.2, 1.0, 0.45), 8, target)
 		&"jelly":
 			if player and player.health < player.max_health:
 				player.heal(1)

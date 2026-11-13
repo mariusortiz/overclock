@@ -276,6 +276,7 @@ const HACKER_CARDS := [
 	{"id": "card_ctrl_alt_del", "name": "Ctrl+Alt+Suppr", "series": "Hacker", "rarity": Rarity.HACKER, "art": ["melee", "ctrl_alt_del"], "item": "ctrl_alt_del"},
 	{"id": "card_matrix", "name": "Skin Matrice", "series": "Hacker", "rarity": Rarity.HACKER, "art": ["gun_skin", "heavy:skin_matrix"], "item": "skin_matrix"},
 	{"id": "card_mainframe", "name": "Mainframe", "series": "Hacker", "rarity": Rarity.HACKER, "art": ["ship", "ship_mainframe"], "item": "ship_mainframe"},
+	{"id": "card_capybara", "name": "Capybara", "series": "Hacker", "rarity": Rarity.HACKER, "art": ["pet", "pet_capybara"], "item": "pet_capybara"},
 ]
 
 const SAVE_KEY := "cards"
@@ -594,6 +595,7 @@ static func claim(series: String) -> bool:
 ## The hacker cards of what the player owns of Le Créateur's (for those who
 ## used his code before the cards existed).
 static func sync_hacker() -> void:
+	Pets.sync_creator()
 	for card: Dictionary in HACKER_CARDS:
 		if count(card.id) == 0 and Wallet.owns(card.item):
 			add(card.id)

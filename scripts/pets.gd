@@ -54,6 +54,8 @@ const LIST := [
 	{"id": "pet_dragon", "name": "Dragonnet", "model": MONSTERS + "Dragon.fbx", "height": 0.6, "fly": true, "rarity": 3, "perk": &"breath", "egg": true},
 	{"id": "pet_titan", "name": "Mini-Titan", "model": "res://assets/models/quaternius/mechs/George.fbx", "height": 0.8, "rarity": 3, "perk": &"shield"},
 	{"id": "pet_calf", "name": "Veau", "model": ANIMALS + "Calf.fbx", "height": 0.6, "rarity": 3, "perk": &"ulti", "egg": true},
+	# Le Créateur's: only through his code (PromoCodes), full power everywhere.
+	{"id": "pet_capybara", "name": "Capybara", "build": "capybara", "height": 0.6, "rarity": 4, "perk": &"capy", "code": true},
 	{"id": "pet_shard", "name": "Éclat de cristal", "build": "shard", "height": 0.5, "fly": true, "rarity": 3, "perk": &"song", "egg": true},
 ]
 
@@ -76,13 +78,17 @@ const PERKS := {
 	&"shield": ["Bouclier", "Annule un coup reçu toutes les 20 s."],
 	&"ulti": ["Petit créateur", "La jauge d'ulti se remplit 15 % plus vite."],
 	&"song": ["Chant", "Toutes les 8 s, ralentit les ennemis à moins de 6 m."],
+	&"capy": ["Calme absolu", "Foudroie l'ennemi le plus proche à 25 m (8 dégâts) toutes les 1,5 s, rend 2 PV toutes les 3 s, "
+			+ "dégâts reçus divisés par deux, +15 % de vitesse, ulti, XP, crédits et bonus +30 %. Partout, multijoueur compris."],
 }
-const RARITY_NAMES := ["Commun", "Rare", "Épique", "Légendaire"]
+const RARITY_NAMES := ["Commun", "Rare", "Épique", "Légendaire", "Hacker"]
 ## Battle pass tiers (season 2) of the pets of the pass, for the texts.
 const SHIELD_COOLDOWN := 20.0
 
 ## On while a game where the perks play is running (set by the game scenes).
 static var enabled := false
+## On during any game with a pet (perks or not): the capybara plays anyway.
+static var in_game := false
 static var _shield_ready_at := 0.0
 ## Test option (Main's "--pet="): this pet, owned or not.
 static var forced := {}
@@ -102,12 +108,14 @@ static func is_pet(item: Dictionary) -> bool:
 static func is_owned(pet: Dictionary) -> bool:
 	if pet.id == NONE.id:
 		return true
-	if pet.get("shop", false) or pet.get("egg", false):
+	if pet.get("shop", false) or pet.get("egg", false) or pet.get("code", false):
 		return Wallet.owns(pet.id)
 	return BattlePass.is_unlocked(pet.id)
 
 
 static func unlock_text(pet: Dictionary) -> String:
+	if pet.get("code", false):
+		return "Uniquement avec le code du Créateur"
 	if pet.get("shop", false):
 		return "En vente à la boutique"
 	if pet.get("egg", false):
@@ -126,9 +134,18 @@ static func select(pet: Dictionary) -> void:
 	SaveData.save_value(KEY, pet.id)
 
 
-## The perk playing now: the pet's, while perks are on.
+## The perk playing now: the pet's, while perks are on (the capybara's
+## always, in a game: like Le Créateur, full power everywhere).
 static func perk() -> StringName:
-	return selected().perk if enabled else &""
+	var pet := selected()
+	return pet.perk if enabled or (in_game and pet.perk == &"capy") else &""
+
+
+## The capybara is Le Créateur's: whoever has him gets it too (his code
+## gave it later than him).
+static func sync_creator() -> void:
+	if Wallet.owns("createur"):
+		Wallet.give("pet_capybara")
 
 
 static func perk_text(pet: Dictionary) -> String:
@@ -142,13 +159,15 @@ static func perk_text(pet: Dictionary) -> String:
 
 ## Extra chance of a power-up from an enemy (luck).
 static func drop_bonus() -> float:
-	return 0.1 if perk() == &"luck" else 0.0
+	return 0.1 if perk() == &"luck" else (0.3 if perk() == &"capy" else 0.0)
 
 
 ## A hit on the player, after the pet: lighter (wool), or none at all
 ## (shield, once in a while).
 static func filter_damage(amount: int) -> int:
 	match perk():
+		&"capy":
+			return maxi(roundi(amount * 0.5), 1)
 		&"wool":
 			return maxi(roundi(amount * 0.9), 1)
 		&"shield":
@@ -160,18 +179,26 @@ static func filter_damage(amount: int) -> int:
 
 
 static func speed_factor() -> float:
+	if perk() == &"capy":
+		return 1.15
 	return 1.06 if perk() == &"swift" else 1.0
 
 
 static func charge_factor() -> float:
+	if perk() == &"capy":
+		return 1.3
 	return 1.15 if perk() == &"ulti" else 1.0
 
 
 static func xp_factor() -> float:
+	if perk() == &"capy":
+		return 1.3
 	return 1.1 if perk() == &"xp" else 1.0
 
 
 static func credits_factor() -> float:
+	if perk() == &"capy":
+		return 1.3
 	return 1.1 if perk() == &"piggy" else 1.0
 
 

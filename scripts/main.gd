@@ -147,6 +147,7 @@ func _ready() -> void:
 
 	# The pet: beside the hero, its perk on.
 	Pets.enabled = true
+	Pets.in_game = true
 	player.move_speed *= Pets.speed_factor()
 	if Pets.selected().id != Pets.NONE.id:
 		_pet = Pet.new()
@@ -639,6 +640,7 @@ func _on_enemies_left_changed(count: int) -> void:
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
 	Pets.enabled = false
+	Pets.in_game = false
 
 
 func _on_player_died() -> void:

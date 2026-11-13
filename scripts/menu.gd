@@ -30,6 +30,8 @@ var _mode_panel := Control.new()
 func _ready() -> void:
 	Loadout.fair_play = false
 	Story.leave()
+	# Le Créateur's later gifts (his capybara, its card), for those who have him.
+	Cards.sync_hacker()
 	Events.christmas_run = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Music.play_track(Music.Track.CHRISTMAS if Events.is_christmas() else Music.Track.MAIN)

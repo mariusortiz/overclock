@@ -73,6 +73,7 @@ func _ready() -> void:
 	player.global_position = _bases[&"ally"]
 	# The pet: its perk only against bots (fair play against other players).
 	Pets.enabled = not Net.is_online()
+	Pets.in_game = true
 	player.move_speed *= Pets.speed_factor()
 	if Pets.selected().id != Pets.NONE.id:
 		_pet = Pet.new()
@@ -412,3 +413,4 @@ func _end_story_mission(won: bool) -> void:
 
 func _exit_tree() -> void:
 	Pets.enabled = false
+	Pets.in_game = false

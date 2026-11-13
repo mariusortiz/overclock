@@ -118,6 +118,7 @@ func _ready() -> void:
 	fighters[1].opponent = fighters[0]
 	# The first player's pet watches from behind the line: no perk here.
 	Pets.enabled = false
+	Pets.in_game = true
 	if FightSetup.mode != "online" and Pets.selected().id != Pets.NONE.id:
 		var pet := Pet.new()
 		pet.configure(Pets.selected(), fighters[0])
@@ -143,6 +144,7 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
+	Pets.in_game = false
 
 
 # --- Set-up -------------------------------------------------------------------

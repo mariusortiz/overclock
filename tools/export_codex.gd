@@ -47,7 +47,7 @@ func _ready() -> void:
 	for pet: Dictionary in Pets.LIST.slice(1):
 		var perk: Array = Pets.PERKS[pet.perk]
 		codex.pets.append({"id": pet.id, "name": pet.name, "rarity": Pets.RARITY_NAMES[pet.rarity], "perk": perk[0],
-				"text": perk[1], "how": Pets.unlock_text(pet), "image": _image("card_" + pet.id)})
+				"text": perk[1], "how": Pets.unlock_text(pet), "image": _image(_pet_card(pet.id))})
 	for item: Dictionary in Loadout.SKINS:
 		codex.skins.append(_entry(item, art, {"kill": KILLS.get(item.get("kill", &""), ""), "animated": item.has("fx")}))
 	for item: Dictionary in Loadout.SHIPS:
@@ -104,3 +104,11 @@ func _card_art() -> Dictionary:
 
 func _image(card_id: String) -> String:
 	return "img/cards/%s.jpg" % card_id if FileAccess.file_exists("res://assets/cards/%s.jpg" % card_id) else ""
+
+
+## The card that shows the pet (series Compagnons, or Hacker for the capybara).
+func _pet_card(pet_id: String) -> String:
+	for card: Dictionary in Cards.all_cards():
+		if card.art == ["pet", pet_id]:
+			return card.id
+	return ""

@@ -23,8 +23,8 @@ const CODES := {
 		"boosters": {"standard": 5, "rare": 5}, "pass_complete": true, "christmas": true, "repeat": true},
 	# Le Créateur and all that is his, only through this code.
 	"cd81d6f34c6dc2796f4fc3601ac73a3a45f9f9e57ddff4a905bbf37f3452a469": {
-		"items": ["createur", "source_code", "ctrl_alt_del", "skin_matrix", "ship_mainframe"],
-		"cards": ["card_createur", "card_source_code", "card_ctrl_alt_del", "card_matrix", "card_mainframe"]},
+		"items": ["createur", "source_code", "ctrl_alt_del", "skin_matrix", "ship_mainframe", "pet_capybara"],
+		"cards": ["card_createur", "card_source_code", "card_ctrl_alt_del", "card_matrix", "card_mainframe", "card_capybara"]},
 	# BIENVENUE
 	"6dc420a9ea8e9ba1307c227deeac5e85b59a7afe19a29e96effb926cc79f3c5b": {
 		"gems": 500, "boosters": {"standard": 2}},
