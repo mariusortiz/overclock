@@ -207,7 +207,11 @@ jobs:
           cp tools/remove_service_worker.js "$site/index.service.worker.js"
           # The one-page website (site/), next to the game: https://overclock.randomlabs.dev/site/
           mkdir -p "$site/site"
-          cp -r site/index.html site/boutique.html site/boutique.json site/img site/kenney_mini_square_mono.ttf "$site/site/"
+          cp -r site/index.html site/boutique.html site/boutique.json site/carte.html site/img site/kenney_mini_square_mono.ttf "$site/site/"
+          # The card page (site/carte.html) reads the catalog and the cards' art.
+          godot --headless --quit-after 300 res://scenes/tools/export_cards.tscn -- --out="$site/site/cards.json"
+          mkdir -p "$site/site/img/cards"
+          cp assets/cards/*.jpg "$site/site/img/cards/"
           cd "$site"
           git init -q -b gh-pages
           # The trailer and the anime are published by their own workflows: carry them over.

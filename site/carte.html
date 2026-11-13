@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carte Overclock</title>
+<meta name="description" content="Une carte Overclock à récupérer : tape son code dans le jeu, champ CODE de l'accueil.">
+<link rel="icon" href="../index.icon.png">
+<style>
+  @font-face {
+    font-family: "Kenney Mini Square Mono";
+    src: url("kenney_mini_square_mono.ttf") format("truetype");
+    font-display: swap;
+  }
+  :root {
+    --bg: #060b2a;
+    --panel: #0c1440;
+    --line: #1d2a6b;
+    --text: #e8ecff;
+    --muted: #9aa6d8;
+    --cyan: #29d4ff;
+    --magenta: #ff3df2;
+    --gold: #ffd84d;
+    --title: "Kenney Mini Square Mono", ui-monospace, monospace;
+    --tilt-x: 0;
+    --tilt-y: 0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  a { color: var(--cyan); }
+  h1, h2, .button, .mono { font-family: var(--title); font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; }
+  .wrap { width: min(1040px, 100% - 32px); margin-inline: auto; }
+  header { padding-block: 24px 8px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
+  header svg { width: min(300px, 70vw); height: auto; }
+  main { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 48px; align-items: start; padding-block: 32px 64px; }
+  @media (max-width: 760px) { main { grid-template-columns: 1fr; gap: 32px; } .stage { justify-self: center; } }
+  h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); margin: 0 0 8px; color: var(--cyan); }
+  p { margin: 0 0 16px; }
+  .muted { color: var(--muted); }
+  .button { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 12px 24px; border: 0; cursor: pointer;
+    font-size: 1rem; text-decoration: none; color: var(--bg); background: var(--cyan);
+    clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
+  .button.alt { background: var(--magenta); }
+  .button:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; margin-block: 16px; }
+  form { display: flex; flex-wrap: wrap; gap: 12px; margin-block: 24px 8px; }
+  input { flex: 1 1 240px; min-height: 52px; padding: 10px 14px; font: 1.2rem var(--title); text-transform: uppercase; letter-spacing: 0.06em;
+    background: var(--panel); color: var(--text); border: 2px solid var(--line); }
+  .code { font: 1.6rem var(--title); letter-spacing: 0.08em; color: var(--gold); word-break: break-all; }
+  .steps { padding-left: 1.2em; margin: 0 0 16px; }
+  .error { color: #ff7a7a; min-height: 1.5em; }
+  footer { border-top: 1px solid var(--line); padding-block: 24px; color: var(--muted); font-size: 0.9rem; }
+
+  /* The card: the same layout as in the game, holographic from rare up. */
+  .stage { perspective: 900px; width: min(360px, 100%); }
+  .card { --border: #bfc7d9; position: relative; aspect-ratio: 0.716; border-radius: 16px; padding: 3.5%; background: var(--border);
+    transform: rotateY(calc(var(--tilt-x) * 12deg)) rotateX(calc(var(--tilt-y) * -12deg)); transition: transform 0.08s;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55); overflow: hidden; font-family: var(--title); color: #14141f; }
+  .card .panel { position: relative; height: 100%; border-radius: 10px; background: #efe1a0; padding: 6% 5% 4%;
+    display: flex; flex-direction: column; overflow: hidden; }
+  .card .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 1.05rem; text-transform: uppercase; }
+  .card .power { font-size: 1.4rem; }
+  .card .art { margin: 4% 0; aspect-ratio: 1.42; overflow: hidden; outline: 4px solid rgba(0, 0, 0, 0.25); }
+  .card .art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card .type { font-size: 0.68rem; text-transform: uppercase; opacity: 0.8; }
+  .card .ability { margin-top: 2%; font-size: 0.82rem; text-transform: uppercase; }
+  .card .text { font: 0.82rem/1.35 system-ui, sans-serif; margin-top: 4px; flex: 1; }
+  .card .bottom { flex: 1; display: flex; flex-direction: column; }
+  .card .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 0.65rem; }
+  .card .bolt { color: var(--magenta); font-size: 1rem; }
+  /* Legendary and mythic: the art fills the card, the texts on dark bands. */
+  .card.full .panel { background: #000; color: #fff; }
+  .card.full .art { position: absolute; inset: 0; margin: 0; aspect-ratio: auto; outline: 0; z-index: 0; }
+  .card.full .head, .card.full .bottom { position: relative; z-index: 1; background: rgba(0, 0, 0, 0.5); padding: 4px 6px; }
+  .card.full .bottom { margin-top: auto; }
+  /* The foil: a rainbow wash and bands that follow the tilt, glitter. */
+  .card .foil { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: color-dodge; opacity: 0; border-radius: 16px;
+    background:
+      repeating-linear-gradient(115deg, transparent 0 18%, rgba(255, 255, 255, 0.55) 22%, transparent 26% 40%),
+      linear-gradient(115deg, #ff3df2, #ffd84d, #4dff9a, #29d4ff, #b44dff, #ff3df2);
+    background-size: 220% 220%, 300% 300%;
+    background-position: calc(50% + var(--tilt-x) * 40%) calc(50% + var(--tilt-y) * 40%), calc(50% + var(--tilt-x) * 60%) 50%; }
+  .card .glitter { position: absolute; inset: 0; pointer-events: none; opacity: 0; mix-blend-mode: screen;
+    background-image: radial-gradient(circle, #fff 0 1px, transparent 1.6px); background-size: 13px 17px;
+    background-position: calc(var(--tilt-x) * 20px) calc(var(--tilt-y) * 20px); }
+  .card[data-rarity="1"] .foil { opacity: 0.35; }
+  .card[data-rarity="2"] .foil { opacity: 0.45; } .card[data-rarity="2"] .glitter { opacity: 0.3; }
+  .card[data-rarity="3"] .foil { opacity: 0.55; } .card[data-rarity="3"] .glitter { opacity: 0.45; }
+  .card[data-rarity="4"] .foil { opacity: 0.65; } .card[data-rarity="4"] .glitter { opacity: 0.6; }
+  .card[data-rarity="4"] { background: linear-gradient(135deg, #ff3df2, #ffd84d, #4dff9a, #29d4ff, #b44dff); }
+  @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+  .back { display: grid; place-items: center; aspect-ratio: 0.716; border-radius: 16px; border: 6px solid var(--cyan); background: #0f173f;
+    color: var(--cyan); font: 1.4rem var(--title); text-align: center; padding: 24px; }
+  .back b { display: block; color: var(--magenta); font-size: 4rem; line-height: 1; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<header class="wrap">
+  <a href="./" aria-label="Le site d'Overclock">
+    <svg viewBox="0 0 860 180" role="img" aria-label="Overclock">
+      <polygon points="40,4 856,4 820,176 4,176" fill="#081236" stroke="#29d4ff" stroke-width="8"/>
+      <polygon points="190,140 760,140 756,154 186,154" fill="#ff3df2"/>
+      <polygon points="122,22 76,96 108,96 92,158 156,72 122,72" fill="#ff3df2"/>
+      <text x="200" y="118" fill="#e8ecff" font-family="Kenney Mini Square Mono, monospace" font-size="84" letter-spacing="4">OVERCLOCK</text>
+    </svg>
+  </a>
+  <a class="button" href="../">Jouer</a>
+</header>
+
+<main class="wrap">
+  <div class="stage" id="stage">
+    <div class="back"><div><b>⚡</b>OVERCLOCK</div></div>
+  </div>
+
+  <div>
+    <h1 id="title">Échange de cartes</h1>
+    <div id="details">
+      <p class="muted">Un joueur t'a envoyé une carte ? Tape son code ici pour la voir, puis récupère-la dans le jeu.</p>
+    </div>
+    <form id="form">
+      <label for="code" class="mono" hidden>Code d'échange</label>
+      <input id="code" name="code" autocomplete="off" spellcheck="false" placeholder="OC-XXXX-XXXX-XXXXX" aria-describedby="error">
+      <button class="button" type="submit">Voir la carte</button>
+    </form>
+    <p class="error" id="error" role="status"></p>
+    <h2 class="mono" style="font-size:1.1rem;color:var(--cyan);margin:32px 0 8px">Envoyer une carte</h2>
+    <p class="muted">Dans le jeu : CARTES, touche une carte que tu possèdes, puis ENVOYER. Tu obtiens un code et le lien de cette page : la carte quitte ta collection et va à celui qui tape le code.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">Overclock · <a href="./">le site</a> · <a href="boutique.html">boutique</a> · <a href="../">jouer</a></div>
+</footer>
+
+<script>
+  // Same format as the game (scripts/trade.gd): "OC" and 13 base-32
+  // characters, 8 bytes: card key (2), random (4), check (2).
+  const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+  const SALT = "overclock-trade:";
+  const SYMBOLS = ["●", "◆", "★", "★★", "✪"];
+  let catalog = null;
+
+  function clean(text) {
+    let code = text.trim().toUpperCase().replace(/[\s-]/g, "");
+    if (!code.startsWith("OC") && !code.startsWith("0C")) return null;
+    return code.slice(2).replace(/O/g, "0").replace(/[IL]/g, "1");
+  }
+
+  function unbase32(text) {
+    const bytes = [];
+    let buffer = 0, bits = 0;
+    for (const character of text) {
+      const value = ALPHABET.indexOf(character);
+      if (value < 0) return null;
+      buffer = ((buffer << 5) | value) & 0xffff;
+      bits += 5;
+      if (bits >= 8) { bits -= 8; bytes.push((buffer >> bits) & 255); }
+    }
+    return bytes;
+  }
+
+  const hex = (bytes) => bytes.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  async function sha256(text) {
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return [...new Uint8Array(digest)];
+  }
+
+  async function decode(text) {
+    const body = clean(text);
+    if (!body || body.length !== 13) return null;
+    const bytes = unbase32(body);
+    if (!bytes || bytes.length !== 8) return null;
+    const check = (await sha256(SALT + hex(bytes.slice(0, 6)))).slice(0, 2);
+    if (check[0] !== bytes[6] || check[1] !== bytes[7]) return null;
+    return { key: hex(bytes.slice(0, 2)), code: "OC-" + body.slice(0, 4) + "-" + body.slice(4, 8) + "-" + body.slice(8) };
+  }
+
+  function element(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  function renderCard(card) {
+    const view = element("div", "card" + (card.rarity >= 3 ? " full" : ""));
+    view.dataset.rarity = card.rarity;
+    if (card.rarity < 4) view.style.setProperty("--border", card.rarity >= 2 ? "#f5cf55" : "#" + card.color);
+    const panel = element("div", "panel");
+    const head = element("div", "head");
+    head.append(element("span", "", card.name), element("span", "power", card.power));
+    const art = element("div", "art");
+    const image = element("img");
+    image.src = "img/cards/" + card.id + ".jpg";
+    image.alt = card.name;
+    art.append(image);
+    const bottom = element("div", "bottom");
+    bottom.append(element("div", "type", card.series + " · " + card.rarity_name));
+    if (card.ability[0]) bottom.append(element("div", "ability", card.ability[0]));
+    bottom.append(element("div", "text", card.ability[1]));
+    const foot = element("div", "foot");
+    foot.append(element("span", "", card.number), element("span", "", SYMBOLS[card.rarity]), element("span", "bolt", "⚡"));
+    bottom.append(foot);
+    panel.append(head, art, bottom);
+    view.append(panel, element("div", "foil"), element("div", "glitter"));
+    return view;
+  }
+
+  async function show(text) {
+    const error = document.getElementById("error");
+    error.textContent = "";
+    const decoded = await decode(text);
+    const card = decoded && catalog.find((entry) => entry.key === decoded.key);
+    if (!card) {
+      error.textContent = "Ce code n'est pas un code d'échange Overclock valide.";
+      return;
+    }
+    document.getElementById("stage").replaceChildren(renderCard(card));
+    document.getElementById("title").textContent = card.name;
+    const details = document.getElementById("details");
+    details.replaceChildren();
+    details.append(element("p", "muted", card.series + " · " + card.rarity_name + " · " + card.number));
+    details.append(element("p", "", "Pour la récupérer :"));
+    const steps = element("ol", "steps");
+    for (const step of ["Ouvre Overclock (navigateur ou Android).", "Sur l'accueil, touche CODE.", "Tape ce code, puis VALIDER :"]) {
+      steps.append(element("li", "", step));
+    }
+    details.append(steps, element("p", "code", decoded.code));
+    const row = element("div", "row");
+    const copy = element("button", "button alt", "Copier le code");
+    copy.type = "button";
+    copy.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(decoded.code); copy.textContent = "Code copié"; } catch { copy.textContent = "Copie impossible"; }
+    });
+    const play = element("a", "button", "Jouer");
+    play.href = "../";
+    row.append(copy, play);
+    details.append(row, element("p", "muted", "Un code ne sert qu'une fois : le premier qui le tape reçoit la carte."));
+    document.getElementById("code").value = decoded.code;
+    if (location.hash.slice(1) !== decoded.code) history.replaceState(null, "", "#" + decoded.code);
+  }
+
+  // The light follows the pointer, or the tilt of the phone.
+  function tilt(x, y) {
+    document.documentElement.style.setProperty("--tilt-x", Math.max(-1, Math.min(1, x)).toFixed(3));
+    document.documentElement.style.setProperty("--tilt-y", Math.max(-1, Math.min(1, y)).toFixed(3));
+  }
+  document.getElementById("stage").addEventListener("pointermove", (event) => {
+    const box = event.currentTarget.getBoundingClientRect();
+    tilt((event.clientX - box.left) / box.width * 2 - 1, (event.clientY - box.top) / box.height * 2 - 1);
+  });
+  let sensed = false;
+  window.addEventListener("deviceorientation", (event) => {
+    if (event.gamma === null) return;
+    sensed = true;
+    tilt(event.gamma / 30, (event.beta - 45) / 30);
+  });
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const start = performance.now();
+    const idle = (now) => {
+      if (!sensed && !document.getElementById("stage").matches(":hover")) {
+        const t = (now - start) / 1000;
+        tilt(Math.sin(t * 0.7) * 0.5, Math.cos(t * 0.5) * 0.4);
+      }
+      requestAnimationFrame(idle);
+    };
+    requestAnimationFrame(idle);
+  }
+
+  document.getElementById("form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    show(document.getElementById("code").value);
+  });
+
+  fetch("cards.json")
+    .then((response) => response.json())
+    .then((cards) => {
+      catalog = cards;
+      if (location.hash.length > 1) show(decodeURIComponent(location.hash.slice(1)));
+    })
+    .catch(() => { document.getElementById("error").textContent = "Impossible de charger les cartes. Recharge la page."; });
+</script>
+</body>
+</html>

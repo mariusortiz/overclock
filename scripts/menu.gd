@@ -182,7 +182,7 @@ func _open_code_panel() -> void:
 	title.add_theme_color_override("font_color", Color(0.16, 0.83, 1.0))
 	box.add_child(title)
 	var field := LineEdit.new()
-	field.placeholder_text = "Entre ton code"
+	field.placeholder_text = "Code promo ou d'échange"
 	field.custom_minimum_size = Vector2(520, 72)
 	field.add_theme_font_size_override("font_size", 30)
 	field.alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -198,7 +198,7 @@ func _open_code_panel() -> void:
 	row.add_theme_constant_override("separation", 12)
 	box.add_child(row)
 	var submit := func() -> void:
-		var result := PromoCodes.redeem(field.text)
+		var result := Trade.receive(field.text) if Trade.is_code(field.text) else PromoCodes.redeem(field.text)
 		message.text = ("Obtenu : " + result[1]) if result[0] else result[1]
 		message.add_theme_color_override("font_color", Color(1.0, 0.8, 0.25) if result[0] else Color(1.0, 0.4, 0.4))
 		if result[0]:

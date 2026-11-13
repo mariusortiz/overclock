@@ -204,6 +204,62 @@ func _show_card(card: Dictionary) -> void:
 			if Cards.craft(card.id):
 				_show_card(card), GOLD)
 		craft.disabled = Cards.dust() < Cards.craft_cost(card.id)
+	else:
+		_button(row, "ENVOYER", _confirm_send.bind(card), MAGENTA)
+	_button(row, "FERMER", _close_overlay)
+
+
+## Sending takes the card out of the collection: ask first.
+func _confirm_send(card: Dictionary) -> void:
+	var box := _open_overlay()
+	var text := Label.new()
+	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text.custom_minimum_size.x = 620
+	text.add_theme_font_size_override("font_size", 22)
+	var left := Cards.count(card.id) - 1
+	text.text = "Envoyer %s ?\nTu obtiens un code à donner : la carte quitte ta collection (il t'en restera %d), et celui qui tape le code dans CODE, sur l'accueil, la reçoit." % [card.name, left]
+	box.add_child(text)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 12)
+	box.add_child(row)
+	_button(row, "ENVOYER", func() -> void: _show_sent(card, Trade.send(card.id)), MAGENTA)
+	_button(row, "ANNULER", _show_card.bind(card))
+
+
+## The code of a card just sent, with buttons to copy it or its web page.
+func _show_sent(card: Dictionary, code: String) -> void:
+	var box := _open_overlay()
+	var title := Label.new()
+	title.text = "%s ENVOYÉE" % str(card.name).to_upper()
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_color_override("font_color", MAGENTA)
+	box.add_child(title)
+	var field := LineEdit.new()
+	field.text = code
+	field.editable = false
+	field.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	field.custom_minimum_size = Vector2(560, 72)
+	field.add_theme_font_size_override("font_size", 34)
+	field.add_theme_color_override("font_uneditable_color", GOLD)
+	box.add_child(field)
+	var hint := Label.new()
+	hint.text = "Donne ce code (ou le lien de sa page web) à qui tu veux.\nGarde-le bien : il n'est affiché qu'une fois."
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_font_size_override("font_size", 18)
+	box.add_child(hint)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 12)
+	box.add_child(row)
+	_button(row, "COPIER LE CODE", func() -> void:
+		DisplayServer.clipboard_set(code)
+		_flash_message("Code copié"), GOLD)
+	_button(row, "COPIER LE LIEN", func() -> void:
+		DisplayServer.clipboard_set(Trade.link(code))
+		_flash_message("Lien copié"), CYAN)
 	_button(row, "FERMER", _close_overlay)
 
 

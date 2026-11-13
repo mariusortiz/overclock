@@ -303,6 +303,10 @@ Le code est prêt (`scripts/billing.gd`), mais l'achat de gemmes reste inactif t
 
 Limite : les achats sont vérifiés par Google sur le téléphone, sans serveur de vérification. C'est suffisant pour un jeu solo, mais un joueur déterminé peut tricher sur sa propre sauvegarde.
 
+## Échanger des cartes
+
+Sans serveur, par codes. Dans CARTES, touche une carte que tu possèdes, puis ENVOYER : la carte quitte ta collection et le jeu donne un code (`OC-XXXX-XXXX-XXXXX`) et le lien de sa page web (`site/carte.html#OC-…`), qui montre la carte en holographique. Celui qui tape le code dans CODE, sur l'accueil, reçoit la carte. Un code ne sert qu'une fois par appareil et jamais sur celui qui l'a créé ; il contient la carte, une partie aléatoire et un contrôle qui attrape les fautes de frappe (`scripts/trade.gd`). Limite assumée : sans serveur, un joueur qui lit le code source peut fabriquer de faux codes, et un même code peut servir sur plusieurs appareils. La page web lit le catalogue exporté par `scenes/tools/export_cards.tscn` (fait par la CI à chaque publication).
+
 ## Codes
 
 Le bouton CODE de l'accueil ouvre un champ : un code valide donne des récompenses (gemmes, crédits, héros, armes et skins de la boutique, cartes, boosters, passe de combat). Chaque code ne sert qu'une fois par sauvegarde, sauf le code de test. Majuscules et espaces ne comptent pas.
