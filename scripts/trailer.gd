@@ -9,7 +9,7 @@ extends Node
 ## The music is laid over the picture afterwards, by the same workflow.
 
 const URL := "overclock.randomlabs.dev"
-const DURATION := 203.0
+const DURATION := 215.0
 ## The heroes of the story mode, for its shot.
 const STORY_HEROES := ["kunoichi", "soldier", "sand_ghost", "ronin", "captain", "cowgirl"]
 ## The ships flown on the circuits: the ultra ones lead.
@@ -29,9 +29,10 @@ const ARENAS := [
 	{"scene": "desert", "enemies": "ASSASSINS DES SABLES", "boss": Boss.Kind.BRUTE},
 	{"scene": "jungle", "enemies": "GOBELINS", "boss": Boss.Kind.ARTILLERY},
 	{"scene": "volcano", "enemies": "ZOMBIES", "boss": Boss.Kind.SUMMONER},
+	{"scene": "matrix", "enemies": "PROGRAMMES CORROMPUS", "boss": Boss.Kind.VIRUS},
 	{"scene": "city", "enemies": "HOMMES EN COSTUME", "boss": Boss.Kind.TITAN},
 ]
-const CITY := 4
+const CITY := 5
 ## Bosses are shown twice the size of their model, as in the game.
 const BOSS_SCALE := 2.0
 ## Where the parades take place: the clear ground around the player's spawn.
@@ -188,13 +189,13 @@ func _run() -> void:
 	_show_title("SHOOTER D'ARÈNE · 3D LOW-POLY", 5.0)
 	await _until(7.0)
 
-	# Five arenas at a glance.
+	# Every arena at a glance.
 	for index in ARENAS.size():
 		_load_arena(index)
 		_orbit(Vector3(0, 1, 0), 30.0, 8.0 + index, 1.1 * index, 0.3)
 		_blink()
 		_show_caption("ARÈNE %d / %d" % [index + 1, ARENAS.size()], _arena().display_name, 1.5)
-		await _until(7.0 + 1.8 * (index + 1))
+		await _until(7.0 + 1.5 * (index + 1))
 
 	# Each arena again, slowly, with those who live there. The city keeps its
 	# boss for the end.
@@ -228,12 +229,12 @@ func _run() -> void:
 	_release_bats()
 	_dolly(Vector3(-5, 1.2, 15), Vector3(5, 2.2, 12), Vector3(0, 6, 0), Vector3(0, 6.5, 0), 5.0)
 	_show_caption("DANS LES AIRS AUSSI", "CHAUVES-SOURIS", 4.0)
-	await _until(77.0)
+	await _until(89.0)
 
-	# 77 s: thirteen skins, thirteen ways to fall.
-	await _kill_montage(77.0)
+	# 89 s: thirteen skins, thirteen ways to fall.
+	await _kill_montage(89.0)
 
-	# 88 s: the armory.
+	# 100 s: the armory.
 	_build_showroom()
 	_flash()
 	var guns := _base(Loadout.WEAPONS)
@@ -242,9 +243,9 @@ func _run() -> void:
 	_dolly(Vector3(-1.5, 1.2, 3.3), Vector3(last_gun + 1.5, 1.2, 3.3),
 			Vector3(-1.5, 1.05, 0), Vector3(last_gun + 1.5, 1.05, 0), 15.0)
 	_show_caption("ARSENAL", "%%d ARMES · %d SKINS" % _base(Loadout.SKINS).size(), 13.5, guns.size())
-	await _until(103.0)
+	await _until(115.0)
 
-	# 103 s: the blades, then the butterfly knife flipping in the hand.
+	# 115 s: the blades, then the butterfly knife flipping in the hand.
 	_build_showroom()
 	_flash()
 	_line_up_blades()
@@ -252,16 +253,16 @@ func _run() -> void:
 	_dolly(Vector3(-1.2, 1.25, 3.4), Vector3(last_blade + 1.2, 1.25, 3.4),
 			Vector3(-1.2, 1.15, 0), Vector3(last_blade + 1.2, 1.15, 0), 7.0)
 	_show_caption("CORPS À CORPS", "%%d LAMES · %d SKINS" % _base(Loadout.SKINS).size(), 6.0, _base(Loadout.MELEE).size())
-	await _until(110.0)
+	await _until(122.0)
 	_build_showroom()
 	_blink()
 	_dolly(Vector3(0, 1.3, 3.0), Vector3(0, 1.3, 2.6), Vector3(0, 1.3, 0), Vector3(0, 1.3, 0), 3.6)
 	_inspection.start_melee(Loadout.find("butterfly").item, Loadout.find("skin_neon").item)
 	_show_caption("NOUVEAU", "INSPECTE TES ARMES", 3.0)
-	await _until(113.6)
+	await _until(125.6)
 	_inspection.cancel()
 
-	# 113.6 s: the heroes, dancing.
+	# 125.6 s: the heroes, dancing.
 	_build_showroom()
 	_flash()
 	var heroes := _base(Loadout.CHARACTERS)
@@ -270,9 +271,9 @@ func _run() -> void:
 	_dolly(Vector3(-1.0, 1.5, 4.9), Vector3(last_hero + 1.0, 1.5, 4.9),
 			Vector3(-1.0, 1.45, 0), Vector3(last_hero + 1.0, 1.45, 0), 12.0)
 	_show_caption("CHACUN SON ULTI · ET SES DANSES", "%d HÉROS", 10.5, heroes.size())
-	await _until(125.6)
+	await _until(137.6)
 
-	# 125.6 s: the shop. Exotic guns in animated finishes, then the exclusive
+	# 137.6 s: the shop. Exotic guns in animated finishes, then the exclusive
 	# heroes, showered with gold.
 	_build_showroom()
 	_flash()
@@ -283,7 +284,7 @@ func _run() -> void:
 	_dolly(Vector3(-1.2, 1.25, 3.0), Vector3(last_exotic + 1.2, 1.25, 3.0),
 			Vector3(-1.2, 1.1, 0), Vector3(last_exotic + 1.2, 1.1, 0), 5.0)
 	_show_caption("NOUVEAU · BOUTIQUE", "%%d ARMES · %d SKINS ANIMÉS" % animated.size(), 4.6, exotic.size())
-	await _until(130.6)
+	await _until(142.6)
 	_build_showroom()
 	_blink()
 	var exclusive := _shop(Loadout.CHARACTERS)
@@ -294,9 +295,9 @@ func _run() -> void:
 	_dolly(Vector3(-0.8, 1.5, 4.6), Vector3(last_exclusive + 0.8, 1.5, 4.6),
 			Vector3(-0.8, 1.45, 0), Vector3(last_exclusive + 0.8, 1.45, 0), 5.0)
 	_show_caption("%d HÉROS EXCLUSIFS" % exclusive.size(), "ULTIS BOOSTÉES", 4.6)
-	await _until(135.6)
+	await _until(147.6)
 
-	# 135.6 s: the shop's dances, one hero dancing each.
+	# 147.6 s: the shop's dances, one hero dancing each.
 	_build_showroom()
 	_flash()
 	var shop_dances := _shop(Dances.LIST)
@@ -308,27 +309,27 @@ func _run() -> void:
 	_dolly(Vector3(-0.8, 1.5, 4.8), Vector3(last_dancer + 0.8, 1.5, 4.8),
 			Vector3(-0.8, 1.45, 0), Vector3(last_dancer + 0.8, 1.45, 0), 5.0)
 	_show_caption("NOUVEAU · BOUTIQUE", "%d DANSES", 4.6, shop_dances.size())
-	await _until(140.6)
+	await _until(152.6)
 
-	# 140.6 s: Le Créateur, his gun, his sword, his card.
+	# 152.6 s: Le Créateur, his gun, his sword, his card.
 	_build_showroom()
 	_flash()
 	_present_creator()
 	_show_caption("LE CRÉATEUR · SAISON 2 DE L'ANIME", "RARETÉ HACKER", 6.6)
-	await _until(147.6)
+	await _until(159.6)
 	for child in _cards_layer.get_children():
 		child.queue_free()
 
-	# 147.6 s: the fight mode, two fighters of the computer in the Matrice.
+	# 159.6 s: the fight mode, two fighters of the computer in the Matrice.
 	_clear()
 	_flash()
 	_show_caption("NOUVEAU · MODE COMBAT", "SPÉCIAUX · ARCADE", 6.6)
 	var fight := _start_fight()
-	await _until(154.6)
+	await _until(166.6)
 	fight.queue_free()
 	_camera.make_current()
 
-	# 154.6 s: the story mode, the season's heroes.
+	# 166.6 s: the story mode, the season's heroes.
 	_build_showroom()
 	_flash()
 	var cast: Array = []
@@ -341,9 +342,9 @@ func _run() -> void:
 	_dolly(Vector3(last_cast + 0.8, 1.5, 4.8), Vector3(-0.8, 1.5, 4.6),
 			Vector3(last_cast + 0.8, 1.45, 0), Vector3(-0.8, 1.45, 0), 7.6)
 	_show_caption("NOUVEAU · MODE HISTOIRE", "2 SAISONS · %d CHAPITRES", 7.0, Story.CHAPTERS.size())
-	await _until(162.6)
+	await _until(174.6)
 
-	# 162.6 s: the five circuits, their item boxes, the ultra ships.
+	# 174.6 s: the five circuits, their item boxes, the ultra ships.
 	for index in RaceTrack.CIRCUITS.size():
 		_load_circuit(index)
 		if index == 0:
@@ -359,23 +360,23 @@ func _run() -> void:
 				_show_caption("VAISSEAUX ULTRA", "OMÉGA · FAUCHEUSE · AURORE", CIRCUIT_SHOT)
 			_:
 				_show_caption("CIRCUIT", RaceTrack.CIRCUITS[index].name.to_upper(), CIRCUIT_SHOT)
-		await _until(162.6 + CIRCUIT_SHOT * (index + 1))
+		await _until(174.6 + CIRCUIT_SHOT * (index + 1))
 	_clear()
 
-	# 175.6 s: the collectible cards, then a booster torn open.
+	# 187.6 s: the collectible cards, then a booster torn open.
 	_build_showroom()
 	_flash()
 	_dolly(Vector3(0, 1.4, 6), Vector3(0, 1.4, 5.5), Vector3(0, 1.2, 0), Vector3(0, 1.2, 0), 7.0)
 	_show_cards()
 	_show_caption("CARTES À COLLECTIONNER", "%d CARTES · 6 RARETÉS", 3.8, Cards.CATALOG.size())
-	await _until(179.6)
+	await _until(191.6)
 	_tear_booster()
 	_show_caption("BOOSTER LÉGENDAIRE", "%d CARTES · 50 %% LÉGENDAIRE", 2.8, Cards.cards_in("legend"))
-	await _until(182.6)
+	await _until(194.6)
 	for child in _cards_layer.get_children():
 		child.queue_free()
 
-	# 182.6 s: Christmas, the snow village and its Père Glaçon.
+	# 194.6 s: Christmas, the snow village and its Père Glaçon.
 	_clear()
 	var village: Node3D = load("res://scenes/arenas/snow.tscn").instantiate()
 	village.name = "Arena"
@@ -384,23 +385,23 @@ func _run() -> void:
 	_present_boss(Boss.Kind.FROST, 5.6)
 	_set_embers(false)
 	_show_caption("NOËL · DU 1ER DÉCEMBRE AU 6 JANVIER", "LE PÈRE GLAÇON", 5.2)
-	await _until(188.6)
+	await _until(200.6)
 
-	# 188.6 s: the last boss, and what beating it earns.
+	# 200.6 s: the last boss, and what beating it earns.
 	_load_arena(CITY)
 	_flash()
 	_present_boss(Boss.Kind.TITAN, 4.6)
 	_show_caption("AU BOUT DE LA VILLE", "LE TITAN", 3.8)
-	await _until(193.2)
+	await _until(205.2)
 	_clear_actors()
 	_blink()
 	_celebrate()
 	_show_caption("BATS-LE", "GAGNE LE SKIN CHAMPION", 3.8)
-	await _until(197.6)
+	await _until(209.6)
 
 	# End card.
 	_fade_shade(1.0, 0.9)
-	await _until(198.7)
+	await _until(210.7)
 	_end_sparks.emitting = true
 	_show_title("%s\nSUR ANDROID ET DANS LE NAVIGATEUR\n\nHISTOIRE · COMBAT · COOP WI-FI · 6 ARÈNES\n%d ARMES · %d HÉROS · %d CARTES" % [
 			URL, Loadout.WEAPONS.size(), Loadout.CHARACTERS.size(), Cards.CATALOG.size()], 4.3, true)
@@ -719,6 +720,8 @@ func _parade(arena: Arena) -> void:
 	for offset in FORMATION:
 		var enemy := _actor(arena.enemy_model, 1.75, 0.0, PARADE + offset, PI, &"walk")
 		_walkers.append(enemy.get_parent() as Node3D)
+		if arena.corrupted:
+			Loadout.glow(enemy, Enemy.VIRUS_COLOR)
 		if found.is_empty():
 			continue
 		var item: Dictionary = found.item
@@ -744,6 +747,13 @@ func _present_boss(kind: Boss.Kind, seconds: float) -> void:
 		material.albedo_texture = load(Boss.TITAN_TEXTURE)
 		for mesh: MeshInstance3D in boss.find_children("*", "MeshInstance3D", true, false):
 			mesh.material_override = material
+	if kind == Boss.Kind.VIRUS:
+		var body := StandardMaterial3D.new()
+		body.albedo_color = Color(0.08, 0.12, 0.09)
+		body.albedo_texture = load(Boss.TITAN_TEXTURE)
+		for mesh: MeshInstance3D in boss.find_children("*", "MeshInstance3D", true, false):
+			mesh.material_override = body
+		Loadout.glow(boss, Boss.VIRUS_COLOR)
 	if kind == Boss.Kind.FROST:
 		Boss.dress_frost(boss)
 	var look := BOSS_SPOT + Vector3.UP * (hover + height * 0.55)

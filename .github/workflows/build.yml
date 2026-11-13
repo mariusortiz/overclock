@@ -139,7 +139,7 @@ jobs:
           done
           rm "$save_dir/save.cfg"
           # The trailer's whole timeline, without drawing it.
-          godot --headless --fixed-fps 30 --quit-after 6300 res://scenes/tools/trailer.tscn 2>&1 | tee -a run.log
+          godot --headless --fixed-fps 30 --quit-after 6650 res://scenes/tools/trailer.tscn 2>&1 | tee -a run.log
           # The same for each anime episode.
           for scene in scenes/tools/anime/ep*.tscn; do
             godot --headless --fixed-fps 30 --quit-after 3800 "res://$scene" 2>&1 | tee -a run.log
