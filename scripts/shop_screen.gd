@@ -13,10 +13,10 @@ const BUTTON_HEIGHT := 64
 const GOLD := Color(1.0, 0.85, 0.3)
 const DEAL := Color(0.3, 1.0, 0.5)
 
-const TABS := ["JOUR", "HÉROS", "ARMES", "SKINS", "VAISSEAUX", "CARTES", "GEMMES"]
-const KINDS := ["", "Personnage", "Arme", "Skin d'arme", "Vaisseau", "", ""]
-const CARDS_TAB := 5
-const GEMS_TAB := 6
+const TABS := ["JOUR", "HÉROS", "ARMES", "SKINS", "VAISSEAUX", "DANSES", "CARTES", "GEMMES"]
+const KINDS := ["", "Personnage", "Arme", "Skin d'arme", "Vaisseau", "Danse", "", ""]
+const CARDS_TAB := 6
+const GEMS_TAB := 7
 ## Overpowered items stand out in this color, with "ULTRA" in their detail.
 const ULTRA := Color(1.0, 0.24, 0.95)
 ## Booster packs of collectible cards (see Cards), bought again and again.
@@ -154,6 +154,7 @@ func _on_card_pressed(offer: Dictionary) -> void:
 
 ## Shows the viewed item on the stage: the hero, or the gun with its finish.
 func _preview() -> void:
+	_stage.preview_pose = -1
 	if _viewed.is_empty() or _viewed.has("product") or _viewed.has("booster"):
 		_stage.focus(CharacterStage.Focus.CHARACTER)
 		_stage.show_loadout()
@@ -171,6 +172,11 @@ func _preview() -> void:
 		"Vaisseau":
 			_stage.focus(CharacterStage.Focus.SHIP)
 			_stage.show_ship(_viewed.item)
+		"Danse":
+			# The hero dances it, on the spot.
+			_stage.focus(CharacterStage.Focus.CHARACTER)
+			_stage.show_loadout()
+			_stage.preview_pose = Dances.LIST.find(_viewed.item)
 
 
 func _show_detail() -> void:
@@ -204,8 +210,13 @@ func _show_detail() -> void:
 	var item: Dictionary = _viewed.item
 	_name.text = item.name
 	_info.text = "%s exclusif" % _viewed.kind.to_lower() if _viewed.kind != "Arme" else "Arme exotique"
+	if _viewed.kind == "Danse":
+		_info.text = "Danse exclusive"
 	_info.text += "\n" + _description(item, _viewed.kind)
 	if Wallet.owns(item.id):
+		if _viewed.kind == "Danse":
+			_add_button("POSSÉDÉE · DANS LA ROUE", Color.WHITE).disabled = true
+			return
 		_add_button("POSSÉDÉ · ÉQUIPÉ" if _is_equipped(item) else "ÉQUIPER", Color.WHITE).pressed.connect(_equip.bind(item))
 		return
 	var by_credits := _add_button("%d CRÉDITS" % _viewed.credits, GOLD)
@@ -245,6 +256,8 @@ func _traits(item: Dictionary, kind: String) -> String:
 				traits.append("%d projectiles par tir" % item.pellets)
 			traits.append("cadence %s/s · dégâts %d · chargeur %d" % [str(item.fire_rate).trim_suffix(".0"), item.damage, item.magazine])
 			return ", ".join(traits)
+		"Danse":
+			return "Se lance en jeu avec DANSE (touche B), dans la roue des danses."
 		"Vaisseau":
 			var special: Array = Loadout.SHIP_SPECIALS[item.special]
 			return "%s : %s · vitesse %d %%, maniabilité %d %%, bouclier %d, tir x%s" % [special[0], special[1],
@@ -274,7 +287,7 @@ func _buy_booster(currency: String) -> void:
 
 func _buy(currency: String, price: int) -> void:
 	var item: Dictionary = _viewed.item
-	if Wallet.buy(item.id, price, currency):
+	if Wallet.buy(item.id, price, currency) and _viewed.kind != "Danse":
 		_equip(item)
 	else:
 		_refresh.call_deferred()

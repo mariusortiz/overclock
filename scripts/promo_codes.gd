@@ -91,7 +91,7 @@ static func redeem(code: String) -> Array:
 
 static func _shop_ids() -> Array:
 	var ids := []
-	for group: Array in [Loadout.CHARACTERS, Loadout.WEAPONS, Loadout.SKINS, Loadout.SHIPS]:
+	for group: Array in [Loadout.CHARACTERS, Loadout.WEAPONS, Loadout.SKINS, Loadout.SHIPS, Dances.LIST]:
 		for item: Dictionary in group:
 			if item.get("shop", false):
 				ids.append(item.id)

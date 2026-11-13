@@ -370,14 +370,18 @@ func _build_dance_wheel() -> void:
 	title.size = Vector2(140, 40)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	middle.add_child(title)
-	var count := Dances.LIST.size()
-	for index in count:
-		var angle := -PI / 2.0 + TAU * index / count
+	# Everyone's dances and those bought in the shop; a wider wheel for more.
+	var dances := Dances.available()
+	var count := dances.size()
+	var spread := maxf(1.0, count / 7.0)
+	for slot in count:
+		var index := dances[slot]
+		var angle := -PI / 2.0 + TAU * slot / count
 		var button := Button.new()
 		button.text = Dances.LIST[index].name
 		button.add_theme_font_size_override("font_size", 20)
 		button.size = BUTTON_SIZE
-		button.position = Vector2(cos(angle), sin(angle)) * RADIUS * Vector2(1.5, 1.0) - BUTTON_SIZE / 2.0
+		button.position = Vector2(cos(angle), sin(angle)) * RADIUS * spread * Vector2(1.5, 1.0) - BUTTON_SIZE / 2.0
 		button.pressed.connect(_on_dance_button_pressed.bind(index))
 		middle.add_child(button)
 
