@@ -35,12 +35,15 @@ const ARENAS: Array[PackedScene] = [
 	preload("res://scenes/arenas/jungle.tscn"),
 	preload("res://scenes/arenas/volcano.tscn"),
 	preload("res://scenes/arenas/matrix.tscn"),
+	preload("res://scenes/arenas/crystal.tscn"),
 	preload("res://scenes/arenas/city.tscn"),
+	# Season 3's star ruins: story mode only, never in the usual round.
+	preload("res://scenes/arenas/ruins.tscn"),
 	# Christmas only (Events.SNOW_ARENA): never in the usual round of arenas.
 	preload("res://scenes/arenas/snow.tscn"),
 ]
 ## The arenas that follow one another in a game.
-const ROTATION := 6
+const ROTATION := 7
 
 var score := 0
 
@@ -211,12 +214,13 @@ func _load_arena(index: int) -> void:
 	# Projectiles, power-ups and other leftovers of the previous arena.
 	get_tree().call_group("transient", "queue_free")
 
-	_arena_index = index if index == Events.SNOW_ARENA else index % ROTATION
+	_arena_index = index if index >= ROTATION and index < ARENAS.size() else index % ROTATION
 	_arena = ARENAS[_arena_index].instantiate()
 	add_child(_arena)
 	move_child(_arena, 0)
 	# The Matrice's enemies, and those of season 2's story, are the Virus'.
 	Enemy.corrupted = _arena.corrupted or (Story.is_active() and Story.mission().get("virus", false))
+	Enemy.arena_glow = _arena.enemy_glow
 	player.global_position = _arena.player_spawn_position()
 	player.velocity = Vector3.ZERO
 	_apply_quality()

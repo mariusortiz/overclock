@@ -14,7 +14,9 @@ const ARENAS: Array[PackedScene] = [
 	preload("res://scenes/arenas/jungle.tscn"),
 	preload("res://scenes/arenas/volcano.tscn"),
 	preload("res://scenes/arenas/matrix.tscn"),
+	preload("res://scenes/arenas/crystal.tscn"),
 	preload("res://scenes/arenas/city.tscn"),
+	preload("res://scenes/arenas/ruins.tscn"),
 	preload("res://scenes/arenas/snow.tscn"),
 ]
 ## Where the line runs in each arena: its middle (from the boss spawn point,
@@ -26,7 +28,10 @@ const LANES := [
 	{"offset": Vector3.ZERO, "axis": Vector3.RIGHT},
 	{"offset": Vector3.ZERO, "axis": Vector3.RIGHT},
 	{"offset": Vector3.ZERO, "axis": Vector3.RIGHT},
+	# The crystal planet and the ruins: in front of their clusters and columns.
+	{"offset": Vector3(-13, 0, 9), "axis": Vector3.RIGHT},
 	{"offset": Vector3.ZERO, "axis": Vector3.RIGHT},
+	{"offset": Vector3(0, 0, 8), "axis": Vector3.RIGHT},
 	{"offset": Vector3.ZERO, "axis": Vector3.RIGHT},
 ]
 const STAGE_HALF := 8.0

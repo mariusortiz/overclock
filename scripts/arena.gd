@@ -13,6 +13,9 @@ extends NavigationRegion3D
 @export var music_track := 0
 ## Its enemies are taken by the Virus (a green glow, see Enemy.corrupted).
 @export var corrupted := false
+## A glow over its enemies, of this color (none when transparent): the crystal
+## planet's sentinels, for one.
+@export var enemy_glow := Color(0, 0, 0, 0)
 
 ## The navigation mesh is baked and in use.
 signal navigation_ready

@@ -4,7 +4,7 @@ extends AudioStreamPlayer
 
 ## CAPTURE and RACE are the zone capture and the ship race modes (RACE for
 ## the first circuit, then one track per circuit); STORY the story mode.
-enum Track { MAIN, BOSS, DEATH, DESERT, JUNGLE, VOLCANO, CITY, CAPTURE, RACE, STORY, NEBULA, ASTEROIDS, RED_SUN, ICE, STORY_2, MATRIX, SHOP, ARMORY, PASS, CARDS, FIGHT_MENU, LOBBY, CHRISTMAS, CHRISTMAS_WAVES }
+enum Track { MAIN, BOSS, DEATH, DESERT, JUNGLE, VOLCANO, CITY, CAPTURE, RACE, STORY, NEBULA, ASTEROIDS, RED_SUN, ICE, STORY_2, MATRIX, SHOP, ARMORY, PASS, CARDS, FIGHT_MENU, LOBBY, CHRISTMAS, CHRISTMAS_WAVES, CRYSTAL, RUINS, STORY_3 }
 
 # Loaded on demand rather than preloaded, so this script still compiles
 # before the audio files have been imported for the first time.
@@ -35,6 +35,10 @@ const PATHS := {
 	# The Christmas event: the home screen, and the Christmas waves.
 	Track.CHRISTMAS: "res://assets/audio/music/cheerful_christmas.ogg",
 	Track.CHRISTMAS_WAVES: "res://assets/audio/music/christmas_synths.ogg",
+	# Season 3: the crystal planet, the star ruins, and the story mode's chapters.
+	Track.CRYSTAL: "res://assets/audio/music/crystal_cave.ogg",
+	Track.RUINS: "res://assets/audio/music/galactic_temple.ogg",
+	Track.STORY_3: "res://assets/audio/music/alien_world.ogg",
 }
 
 var _current := -1

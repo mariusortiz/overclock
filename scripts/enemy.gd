@@ -53,6 +53,8 @@ static var HIT_FLASH := _make_hit_flash()
 ## Set by a story mission of season 2: the enemies are corrupted by the
 ## Virus, a green glow over them (looks only).
 static var corrupted := false
+## The arena's glow over its enemies (Arena.enemy_glow), none when transparent.
+static var arena_glow := Color(0, 0, 0, 0)
 ## Co-op waves (WavesNet): the enemies go after the nearest player, theirs
 ## or one of the other devices' (group "coop_players").
 static var coop := false
@@ -162,6 +164,8 @@ func _ready() -> void:
 		_glow(KAMIKAZE_COLOR, 0.45, true)
 	elif corrupted and team != &"ally" and not elite:
 		_glow(VIRUS_COLOR, 0.3)
+	elif arena_glow.a > 0.0 and team != &"ally" and not elite:
+		_glow(Color(arena_glow, 1.0), arena_glow.a)
 	_fire_cooldown = fire_interval
 	_status_material.emission_enabled = true
 	_status_material.emission_energy_multiplier = 2.0

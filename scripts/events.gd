@@ -9,8 +9,8 @@ class_name Events
 const FORCE_KEY := "event_christmas_forced"
 const GIFT_KEY := "event_christmas_gift"
 const CLEARED_KEY := "event_christmas_cleared"
-## The snow village (see scenes/arenas/snow.tscn), after the six arenas.
-const SNOW_ARENA := 6
+## The snow village (see scenes/arenas/snow.tscn), the last of Main.ARENAS.
+const SNOW_ARENA := 8
 ## Christmas waves: a boss every five, the second one ends the game.
 const CHRISTMAS_WAVES := 10
 const CLEAR_GEMS := 300

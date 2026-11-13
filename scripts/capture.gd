@@ -5,7 +5,7 @@ extends Node3D
 ## at their base after a few seconds.
 
 const MENU_SCENE := "res://scenes/menu.tscn"
-const ARENAS := ["station", "desert", "jungle", "volcano", "matrix", "city", "snow"]
+const ARENAS := ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow"]
 const ENEMY_SCENE := preload("res://scenes/enemy.tscn")
 const TEAM_SIZE := 4
 const WIN_SCORE := 150
@@ -49,6 +49,7 @@ func _ready() -> void:
 		index = Story.mission().arena
 	_arena = load("res://scenes/arenas/%s.tscn" % ARENAS[index]).instantiate()
 	Enemy.corrupted = _arena.corrupted
+	Enemy.arena_glow = _arena.enemy_glow
 	add_child(_arena)
 	move_child(_arena, 0)
 	Music.play_track(Music.Track.CAPTURE)

@@ -8,10 +8,11 @@ signal summon_requested(count: int)
 ## TITAN is the final boss, met in the last arena; VIRUS guards the Matrice,
 ## just before (it was added last, hence its place in the list: see ORDER).
 ## FROST, the Père Glaçon, only comes in the Christmas waves (see Events).
-enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER, TITAN, VIRUS, FROST }
+## GUARDIAN, the portal's guardian of season 3, guards the crystal planet.
+enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER, TITAN, VIRUS, FROST, GUARDIAN }
 
 ## The bosses in the order of the arenas.
-const ORDER: Array[Kind] = [Kind.COLOSSUS, Kind.BRUTE, Kind.ARTILLERY, Kind.SUMMONER, Kind.VIRUS, Kind.TITAN]
+const ORDER: Array[Kind] = [Kind.COLOSSUS, Kind.BRUTE, Kind.ARTILLERY, Kind.SUMMONER, Kind.VIRUS, Kind.GUARDIAN, Kind.TITAN]
 
 const MODEL_DIR := "res://assets/models/quaternius/"
 ## "height" is the model's height before the boss scene doubles it, and
@@ -23,6 +24,7 @@ const INFO := {
 	Kind.SUMMONER: {"name": "SLIME ROYAL", "model": "monsters/Slime.fbx", "height": 1.3, "hover": 0.0, "health": 70, "speed": 3.0, "fire_interval": 1.3, "range": 13.0},
 	Kind.TITAN: {"name": "TITAN", "model": "mechs/George.fbx", "height": 2.6, "hover": 0.0, "health": 220, "speed": 2.6, "fire_interval": 1.7, "range": 20.0},
 	Kind.FROST: {"name": "PÈRE GLAÇON", "model": "monsters/Skeleton.fbx", "height": 2.2, "hover": 0.0, "health": 90, "speed": 3.4, "fire_interval": 1.3, "range": 16.0},
+	Kind.GUARDIAN: {"name": "LE GARDIEN", "model": "characters/Wizard.fbx", "height": 3.0, "hover": 0.0, "health": 180, "speed": 2.4, "fire_interval": 1.5, "range": 20.0},
 	Kind.VIRUS: {"name": "LE VIRUS", "model": "mechs/George.fbx", "height": 2.3, "hover": 0.0, "health": 150, "speed": 3.2, "fire_interval": 1.2, "range": 18.0},
 }
 ## The Virus jumps next to the player now and then (more often when hurt),
@@ -39,6 +41,12 @@ const TITAN_TEXTURE := "res://assets/models/quaternius/mechs/George_Texture.jpg"
 const TITAN_SUMMON_INTERVAL := 11.0
 const TITAN_SHOCKWAVE_INTERVAL := 6.0
 const TITAN_MORTAR_SPREAD := 5.0
+## The Gardien sings: a ring of crystal shards all around it, more often as it
+## weakens; crystals burst out of the ground under the player from its second
+## phase on, and sentinels come to its call in the third.
+const GUARDIAN_SONG_INTERVAL := 7.0
+const GUARDIAN_SONG_SHARDS := 14
+const CRYSTAL_COLOR := Color(0.45, 0.85, 1.0)
 
 var kind := Kind.COLOSSUS
 
@@ -49,6 +57,7 @@ var _shield: MeshInstance3D
 var _shockwave_left := TITAN_SHOCKWAVE_INTERVAL
 var _attack_count := 0
 var _jump_left := VIRUS_JUMP_INTERVAL
+var _song_left := GUARDIAN_SONG_INTERVAL
 
 
 ## Call before adding the boss to the scene. `health_scale` grows each time
@@ -85,6 +94,8 @@ func _ready() -> void:
 		_dress_virus()
 	if kind == Kind.FROST:
 		_dress_frost()
+	if kind == Kind.GUARDIAN:
+		dress_guardian(_model)
 
 
 ## Bosses are too heavy to be pushed around.
@@ -113,6 +124,8 @@ func _physics_process(delta: float) -> void:
 			_update_titan(delta)
 		Kind.VIRUS:
 			_update_virus(delta)
+		Kind.GUARDIAN:
+			_update_guardian(delta)
 
 
 func _update_summoner(delta: float) -> void:
@@ -146,6 +159,11 @@ func _attack() -> void:
 				for i in 2 if _phase() == 1 else 4:
 					var spread := Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * 4.0
 					_call_mortar(_player.global_position + (spread if i > 0 else Vector3.ZERO))
+		Kind.GUARDIAN:
+			_attack_count += 1
+			_shoot_fan()
+			if _phase() >= 2 and _attack_count % 2 == 0:
+				_call_mortar(_player.global_position)
 		Kind.VIRUS:
 			_attack_count += 1
 			_shoot_fan()
@@ -208,6 +226,74 @@ func _update_virus(delta: float) -> void:
 		if _summon_left <= 0.0:
 			_summon_left = SUMMON_INTERVAL
 			summon_requested.emit(SUMMON_COUNT)
+
+
+func _update_guardian(delta: float) -> void:
+	var phase := _phase()
+	_song_left -= delta
+	if _song_left <= 0.0:
+		_song_left = GUARDIAN_SONG_INTERVAL * (1.0 if phase == 1 else (0.75 if phase == 2 else 0.5))
+		_sing()
+	if phase == 3:
+		_summon_left -= delta
+		if _summon_left <= 0.0:
+			_summon_left = SUMMON_INTERVAL
+			summon_requested.emit(SUMMON_COUNT)
+
+
+## The song: shards fly out all around, level with the player's chest.
+func _sing() -> void:
+	Effects.burst(get_tree().current_scene, global_position + Vector3.UP * 3.0, CRYSTAL_COLOR, 40)
+	_model.play(&"shoot", true)
+	_shoot_animation_left = 0.6
+	var offset := randf() * TAU
+	for i in GUARDIAN_SONG_SHARDS:
+		var angle := offset + TAU * i / GUARDIAN_SONG_SHARDS
+		_spawn_projectile(Vector3(cos(angle), 0.0, sin(angle)))
+
+
+## Glowing crystal all over: the Gardien's look, here and on its card and in
+## the trailer.
+static func dress_guardian(model: Node3D) -> void:
+	var crystal := StandardMaterial3D.new()
+	crystal.albedo_color = Color(0.55, 0.8, 1.0, 0.85)
+	crystal.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	crystal.metallic = 0.5
+	crystal.roughness = 0.08
+	crystal.emission_enabled = true
+	crystal.emission = Color(0.5, 0.6, 1.0)
+	crystal.emission_energy_multiplier = 0.6
+	var shine := StandardMaterial3D.new()
+	shine.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	shine.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	shine.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	shine.albedo_color = Color(0.95, 0.45, 1.0, 0.18)
+	for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		mesh.material_override = crystal
+		mesh.material_overlay = shine
+	# A crown of shards turning above its head, placed once it stands.
+	for i in 2:
+		await model.get_tree().process_frame
+	if not is_instance_valid(model):
+		return
+	var bounds := AABB()
+	var first := true
+	for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		var box := mesh.global_transform * mesh.get_aabb()
+		bounds = box if first else bounds.merge(box)
+		first = false
+	var crown := Node3D.new()
+	model.add_child(crown)
+	crown.global_position = Vector3(bounds.get_center().x, bounds.end.y + bounds.size.y * 0.08, bounds.get_center().z)
+	var size := bounds.size.y
+	for i in 8:
+		var shard := _part(PrismMesh.new(), crystal)
+		(shard.mesh as PrismMesh).size = Vector3(size * 0.04, size * 0.11, size * 0.04)
+		crown.add_child(shard)
+		var angle := TAU * i / 8.0
+		shard.global_position = crown.global_position + Vector3(cos(angle), 0, sin(angle)) * size * 0.16
+	var turn := crown.create_tween().set_loops()
+	turn.tween_property(crown, "rotation:y", TAU, 6.0).from(0.0)
 
 
 ## Vanishes in a burst of green and comes back somewhere near the player.

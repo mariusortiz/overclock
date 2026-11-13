@@ -86,15 +86,15 @@ jobs:
           # Elites, snipers and kamikazes (from waves 2, 4 and 6).
           godot --headless --fixed-fps 60 --quit-after 1500 res://scenes/main.tscn -- --start-wave=7 2>&1 | tee -a run.log
           # Each of the other arenas, 5 s of game time.
-          for arena in 1 2 3 4 5; do
+          for arena in 1 2 3 4 5 6 7; do
             godot --headless --fixed-fps 60 --quit-after 300 res://scenes/main.tscn -- --arena=$arena 2>&1 | tee -a run.log
           done
           # Each boss wave, 20 s of game time.
-          for wave in 5 10 15 20 25 30; do
+          for wave in 5 10 15 20 25 30 35; do
             godot --headless --fixed-fps 60 --quit-after 1200 res://scenes/main.tscn -- --start-wave=$wave 2>&1 | tee -a run.log
           done
           # Zone capture: a whole match's first minute on two arenas.
-          for arena in 0 3; do
+          for arena in 0 3 7; do
             godot --headless --fixed-fps 60 --quit-after 3600 res://scenes/capture.tscn -- --arena=$arena 2>&1 | tee -a run.log
           done
           # The Christmas waves: the snow village, its two Père Glaçon waves.

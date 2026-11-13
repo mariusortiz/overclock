@@ -518,7 +518,97 @@ def snow(b):
         b.prop(NATURE + model + ".glb", x, z, height, yaw)
 
 
-LAYOUTS = {"station": station, "desert": desert, "jungle": jungle, "volcano": volcano, "matrix": matrix, "city": city, "snow": snow}
+def crystal_cluster(b, x, z, height, yaw=0, cover=True):
+    """A cluster of glowing crystals leaning out of the ground; its base is a
+    low rock to hide behind (the points themselves don't collide)."""
+    for i, (dx, dz, scale, lean) in enumerate([(0, 0, 1.0, 0), (0.7, 0.3, 0.7, 18), (-0.6, 0.4, 0.6, -20), (0.2, -0.6, 0.55, 14)]):
+        h = height * scale
+        w = max(0.35, h * 0.22)
+        basis = rot_y(yaw + i * 37)
+        tilt = rot_z(lean) if i % 2 else rot_x(lean)
+        # rotate: yaw first, then the lean
+        m = [sum(basis[r * 3 + k] * tilt[k * 3 + c] for k in range(3)) for r in range(3) for c in range(3)]
+        b.box((w, h, w), (x + dx, h / 2 - 0.1, z + dz), b.m["crystal" if i % 3 else "crystal_pink"], tuple(m), collide=False)
+    if cover:
+        b.cover(x, z, 2.2, 2.2, 1.0, material=b.m["rock"])
+
+
+def crystal(b):
+    """The crystal planet: a raised mesa in the middle, two rock plateaus
+    joined to it by stone bridges, glowing crystal clusters all over (they sing
+    in season 3), a luminous pool. Sparks drift in the air (scripts/crystal_fx.gd)."""
+    rock = b.m["rock"]
+    # The mesa, reached from the north and by the two bridges.
+    b.block(0, -2, 10, 10, 3.5, material=rock, roof_rails="nesw",
+            gaps=[("n", -1.6, 1.6), ("e", -3.6, -0.4), ("w", -3.6, -0.4)], check=True)
+    b.ramp((0, -16), (0, -7), 0, 3.5, 3.2, material=rock)
+    for side in (-1, 1):
+        x = side * 20
+        b.block(x, -6, 9, 9, 3.5, material=rock, roof_rails="nesw",
+                gaps=[("w" if side > 0 else "e", -3.6, -0.4), ("s", x - 1.6, x + 1.6)], check=True)
+        b.bridge((side * 5, -2), (side * 15.5, -2), 3.5, 3.0, pillar_every=99, material=rock)
+        b.ramp((x, 8), (x, -1.5), 0, 3.5, 3.0, material=rock)
+    # The glowing pool.
+    b.water.append((-14, 14, 7, 5))
+    # Crystal clusters: tall ones near the walls, small ones to hide behind.
+    for x, z, h, yaw in [(-26, -26, 9.5, 10), (25, -25, 11.0, 40), (-27, 2, 7.0, 70), (27, 4, 8.0, 20), (-25, 25, 7.5, 0),
+                         (26, 26, 9.0, 55), (0, -27, 12.0, 30), (12, -20, 4.5, 15), (-12, -21, 4.0, 80), (-27, -14, 5.5, 25),
+                         (27, -14, 6.0, 65), (-14, 26, 5.0, 35), (14, 27, 6.5, 5)]:
+        crystal_cluster(b, x, z, h, yaw)
+    # Giant spires beyond the walls, on the horizon.
+    for x, z, h, yaw in [(-40, -38, 26, 0), (-12, -44, 34, 30), (18, -42, 28, 60), (42, -30, 22, 15), (44, 8, 18, 45),
+                         (-44, 0, 20, 70), (-38, 30, 16, 20), (36, 38, 20, 50)]:
+        crystal_cluster(b, x, z, h, yaw, cover=False)
+    for x, z, h, yaw in [(-8, 8, 2.2, 0), (9, 7, 2.4, 45), (-20, 13, 2.0, 20), (19, 14, 2.6, 70), (-6, -12, 2.0, 10), (7, -12, 2.2, 60)]:
+        crystal_cluster(b, x, z, h, yaw)
+    # Crystals glowing on the mesa's roof (no collision).
+    for x, z in [(-3.8, -5.8), (3.8, 1.8)]:
+        crystal_cluster(b, x, z, 2.0, 30, cover=False)
+    b.loot += [("pad", (0, 3.55, -2)), ("chest", (-20, 3.5, -8)), ("chest", (20, 3.5, -8))]
+    for x, z, model, height, yaw in [(-18, 22, "rock_largeA", 1.6, 0), (16, 22, "rock_largeC", 1.4, 90), (24, -12, "rock_tallB", 3.0, 0),
+                                      (-24, -12, "rock_tallD", 2.8, 40)]:
+        b.prop(NATURE + model + ".glb", x, z, height, yaw)
+
+
+def ruins(b):
+    """The star ruins: what is left of a civilization that knew Le Créateur. A
+    great portal arch to the north, a temple gallery high up joined by a
+    ramp, rows of columns (some broken, some fallen), glyphs glowing gold.
+    Stone fragments float overhead (scripts/ruins_fx.gd)."""
+    stone = b.m["block"]
+    # The portal: two pillars and a lintel, glyphs down the pillars.
+    for side in (-1, 1):
+        b.block(side * 5, -26, 2.2, 2.2, 9.0, material=stone)
+        b.box((0.3, 6.0, 2.3), (side * 5 - side * 1.12, 4.5, -26), b.m["glyph"], collide=False)
+    b.box((12.2, 1.6, 2.6), (0, 9.8, -26), stone)
+    # The gallery: two halls and a middle terrace, joined by bridges, one ramp up.
+    b.slab(0, -12, 8, 6, 3.5, gaps=[("s", -1.6, 1.6), ("e", -14, -10), ("w", -14, -10)])
+    b.ramp((0, 0), (0, -9), 0, 3.5, 3.2)
+    for side in (-1, 1):
+        x = side * 19
+        b.slab(x, -12, 9, 9, 3.5, gaps=[("w" if side > 0 else "e", -14, -10), ("s", x - 1.6, x + 1.6)], material=stone)
+        b.bridge((side * 4, -12), (side * 14.5, -12), 3.5, 3.6, pillar_every=5.0)
+        b.ramp((x, 6), (x, -7.5), 0, 3.5, 3.0)
+    # Columns: whole, broken, and fallen ones to hide behind.
+    for x, z, top in [(-10, 6, 6.0), (10, 6, 3.0), (-10, 16, 2.0), (10, 16, 6.0), (-24, 18, 5.0), (24, 18, 1.6),
+                      (-26, -2, 6.0), (26, -2, 4.0)]:
+        b.block(x, z, 1.4, 1.4, top, material=stone)
+        b.box((1.8, 0.3, 1.8), (x, top + 0.15, z), b.m["trim"])
+    for x, z, yaw in [(-16, 22, 20), (17, 24, -30), (-4, 26, 80), (14, -22, 60)]:
+        b.box((5.0, 1.2, 1.2), (x, 0.6, z), stone, rot_y(yaw))
+        b._footprint(x - 2.5, z - 2.5, x + 2.5, z + 2.5, 0.5)
+    for x, z, w, d in [(-6, 9, 3.5, 1.0), (6, 9, 3.5, 1.0), (-22, 8, 1.0, 3.5), (22, 8, 1.0, 3.5), (-14, -24, 4, 1.0), (24, -24, 1.0, 4)]:
+        b.cover(x, z, w, d, 1.3, material=stone)
+    # Glyph stones glowing gold.
+    for x, z in [(-17, 0), (17, 0), (0, -20)]:
+        b.box((0.4, 2.4, 1.6), (x, 1.2, z), b.m["glyph"])
+    b.loot += [("pad", (0, 3.55, -12)), ("chest", (-19, 3.5, -14)), ("chest", (19, 3.5, -14))]
+    for x, z, model, height, yaw in [(-26, -16, "rock_largeB", 1.6, 0), (26, -16, "rock_largeE", 1.5, 90), (-26, 26, "rock_tallA", 2.6, 0)]:
+        b.prop(NATURE + model + ".glb", x, z, height, yaw)
+
+
+LAYOUTS = {"station": station, "desert": desert, "jungle": jungle, "volcano": volcano, "matrix": matrix, "city": city, "snow": snow,
+           "crystal": crystal, "ruins": ruins}
 
 ARENAS = {
     "station": {
@@ -589,8 +679,30 @@ ARENAS = {
         "spawns": [(-12, 0.1, -27), (12, 0.1, -27), (-27, 0.1, -12), (27, 0.1, -12), (-27, 0.1, 6), (27, 0.1, 8), (-14, 0.1, 24)],
         "boss": (10, 0.1, 4),
     },
+    # Season 3: the crystal planet (in the waves, the Gardien's arena) and the
+    # star ruins (story, capture, fight).
+    "crystal": {
+        "name": "PLANÈTE DE CRISTAL", "music": 24, "enemy": "Knight_Male.fbx", "enemy_weapon": "rifle_3",
+        "enemy_glow": (0.45, 0.8, 1.0, 0.35), "fx": "res://scripts/crystal_fx.gd",
+        "sky_top": (0.04, 0.02, 0.14), "sky_horizon": (0.5, 0.3, 0.75), "ambient": (0.55, 0.5, 0.85), "ambient_energy": 0.5,
+        "sun": (0.8, 0.85, 1), "sun_energy": 0.9, "floor": "basalt", "floor_tint": (0.5, 0.44, 0.7), "wall": ("basalt", (0.36, 0.3, 0.52)),
+        "materials": {"struct": ("basalt", (0.55, 0.5, 0.75)), "block": ("basalt", (0.5, 0.45, 0.7)), "rock": ("basalt", (0.5, 0.45, 0.7)),
+                      "trim": ("basalt", (0.38, 0.33, 0.55)), "rail": ("@crystal", (0.45, 0.85, 1.0)),
+                      "crystal": ("@crystal", (0.45, 0.85, 1.0)), "crystal_pink": ("@crystal", (0.95, 0.45, 1.0))},
+        "spawns": [(-12, 0.1, -26), (12, 0.1, -26), (-27, 0.1, -16), (27, 0.1, -16), (-27, 0.1, 18), (27, 0.1, 18), (8, 0.1, 26)],
+        "boss": (13, 0.1, 3),
+    },
+    "ruins": {
+        "name": "RUINES STELLAIRES", "music": 25, "enemy": "Pirate_Male.fbx", "enemy_weapon": "shotgun_2", "fx": "res://scripts/ruins_fx.gd",
+        "sky_top": (0.01, 0.01, 0.05), "sky_horizon": (0.28, 0.16, 0.42), "ambient": (0.6, 0.55, 0.75), "ambient_energy": 0.55,
+        "sun": (1, 0.9, 0.75), "sun_energy": 0.9, "floor": "sand", "floor_tint": (0.42, 0.45, 0.62), "wall": ("panel_dark", (0.5, 0.48, 0.62)),
+        "materials": {"struct": ("panel_light", (0.72, 0.7, 0.8)), "block": ("panel_light", (0.64, 0.62, 0.74)),
+                      "trim": ("panel_dark", (0.6, 0.58, 0.7)), "rail": ("panel_dark", (0.7, 0.68, 0.8)), "glyph": ("@glow", (1.0, 0.75, 0.3))},
+        "spawns": [(-12, 0.1, -27), (12, 0.1, -27), (-27, 0.1, -20), (27, 0.1, -20), (-27, 0.1, 12), (27, 0.1, 12), (-10, 0.1, 26)],
+        "boss": (0, 0.1, 5),
+    },
 }
-ORDER = ["station", "desert", "jungle", "volcano", "matrix", "city", "snow"]
+ORDER = ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow"]
 
 
 def sun_basis():
@@ -662,6 +774,14 @@ def build(arena_id, arena):
             sub += [f'[sub_resource type="StandardMaterial3D" id="m_{key}"]', "transparency = 1",
                     "albedo_color = Color(1, 0.3, 0.2, 0.55)", "emission_enabled = true", "emission = Color(1, 0.25, 0.15, 1)",
                     "emission_energy_multiplier = 1.2", ""]
+        elif isinstance(value, tuple) and value[0] == "@crystal":
+            # Glowing crystal, half see-through.
+            sub += [f'[sub_resource type="StandardMaterial3D" id="m_{key}"]', "transparency = 1",
+                    f"albedo_color = Color({value[1][0]}, {value[1][1]}, {value[1][2]}, 0.7)", "metallic = 0.4", "roughness = 0.1",
+                    "emission_enabled = true", f"emission = {color(value[1])}", "emission_energy_multiplier = 0.9", ""]
+        elif isinstance(value, tuple) and value[0] == "@glow":
+            sub += [f'[sub_resource type="StandardMaterial3D" id="m_{key}"]', f"albedo_color = {color(value[1])}",
+                    "emission_enabled = true", f"emission = {color(value[1])}", "emission_energy_multiplier = 1.6", ""]
         elif value == "accent":
             stripes = ext_resource("Texture2D", "res://assets/textures/stripes_emission.png")
             panel = ext_resource("Texture2D", "res://assets/textures/panel_dark.png")
@@ -688,7 +808,8 @@ def build(arena_id, arena):
               f"script = {script}", f'display_name = "{arena["name"]}"',
               f'enemy_model = {ext_resource("PackedScene", CHARACTERS + arena["enemy"])}',
               f'enemy_weapon = "{arena["enemy_weapon"]}"', f'music_track = {arena["music"]}',
-              *(["corrupted = true"] if arena.get("corrupted") else []), "",
+              *(["corrupted = true"] if arena.get("corrupted") else []),
+              *([f'enemy_glow = Color({", ".join(str(v) for v in arena["enemy_glow"])})'] if arena.get("enemy_glow") else []), "",
               '[node name="WorldEnvironment" type="WorldEnvironment" parent="."]', 'environment = SubResource("environment")', "",
               '[node name="Sun" type="DirectionalLight3D" parent="."]', f"transform = {transform((0, 10, 0), sun_basis())}",
               f'light_color = {color(arena["sun"])}', f'light_energy = {arena["sun_energy"]}', "shadow_enabled = true", ""]

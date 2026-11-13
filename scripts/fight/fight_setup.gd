@@ -8,7 +8,7 @@ class_name FightSetup
 
 const SCENE := "res://scenes/fight.tscn"
 const MENU := "res://scenes/fight_menu.tscn"
-const ARENA_NAMES := ["Station", "Désert", "Jungle", "Volcan", "Matrice", "Ville", "Village"]
+const ARENA_NAMES := ["Station", "Désert", "Jungle", "Volcan", "Matrice", "Cristal", "Ville", "Ruines", "Village"]
 ## Heroes met in the arcade before the Titan.
 const ARCADE_FIGHTS := 5
 const ARCADE_KEY := "fight_arcade_cleared"
@@ -71,7 +71,7 @@ static func next_arcade_fight() -> bool:
 static func arcade_arena() -> int:
 	# The Titan waits in the city.
 	if arcade_opponents[arcade_stage] == "titan":
-		return 5
+		return 6
 	return arcade_stage % ARENA_NAMES.size()
 
 

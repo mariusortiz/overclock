@@ -31,6 +31,9 @@ Tous les fichiers externes du jeu sont sous licence [CC0 1.0](https://creativeco
 | Musique du mode histoire | [Destiny Formation](https://opengameart.org/content/destiny-formation) | Bobjt | `assets/audio/music/destiny_formation.ogg` (réencodée en Ogg) |
 | Musique du mode histoire, saison 2 | [Cyberpunk Moonlight Sonata](https://opengameart.org/content/cyberpunk-moonlight-sonata) | Joth | `assets/audio/music/cyberpunk_moonlight_sonata.ogg` (réencodée en Ogg) |
 | Musique de la Matrice | [Xenocity - Digital Acid](https://opengameart.org/content/xenocity-digital-acid-glitch-hop) | Deva | `assets/audio/music/digital_acid.ogg` (réencodée en Ogg) |
+| Musique de la Planète de cristal | [Crystal Cave (song18)](https://opengameart.org/content/crystal-cave-song18) | cynicmusic | `assets/audio/music/crystal_cave.ogg` (réencodée en Ogg) |
+| Musique des Ruines stellaires | [Galactic Temple](https://opengameart.org/content/galactic-temple) | yd | `assets/audio/music/galactic_temple.ogg` |
+| Musique du mode histoire, saison 3 | [Alien World](https://opengameart.org/content/alien-world) | Tsorthan Grove | `assets/audio/music/alien_world.ogg` |
 | Musique de la boutique | [Bossa Shop Theme](https://opengameart.org/content/bossa-shop-theme-in-low-fi-and-hd) | Spring Spring | `assets/audio/music/bossa_shop.ogg` (réencodée en Ogg) |
 | Musique de l'arsenal | [80's Mysterywave](https://opengameart.org/content/80s-mysterywave-music) | Dese | `assets/audio/music/mysterywave.ogg` (3 premières minutes, réencodée en Ogg) |
 | Musique du passe de combat | [Calm Relax 1 (Synthwave 421k)](https://opengameart.org/content/calm-relax-1-synthwave-421k) | cyn | `assets/audio/music/synthwave_421k.ogg` (3 premières minutes, réencodée en Ogg) |
