@@ -108,6 +108,7 @@ func _ready() -> void:
 		if _host:
 			fighter.super_used.connect(_run_super)
 			fighter.shot_fired.connect(_on_shot)
+			fighter.signature_used.connect(_run_signature)
 	fighters[0].opponent = fighters[1]
 	fighters[1].opponent = fighters[0]
 	add_child(_camera)
@@ -181,6 +182,16 @@ func _setup_sources() -> void:
 				var keys: Array[int] = [i]
 				var gamepads: Array[int] = [i]
 				_sources[i] = FightInput.new(keys, gamepads, pad)
+		"training":
+			var pad: FightPad = _add_pad(0, COLORS[0]) if touch else null
+			var keys: Array[int] = [0, 1]
+			var gamepads: Array[int] = [0, 1, 2, 3]
+			_sources[0] = FightInput.new(keys, gamepads, pad)
+			var dummy := FightDummy.new(fighters[1])
+			_sources[1] = dummy
+			var training := FightTraining.new()
+			training.setup(fighters[0], fighters[1], dummy)
+			_layer.add_child(training)
 		"online":
 			var pad: FightPad = _add_pad(0, COLORS[_mine]) if touch else null
 			var keys: Array[int] = [0, 1]
@@ -229,13 +240,14 @@ func _build_overlay() -> void:
 
 func _start_round() -> void:
 	_phase = Phase.INTRO
-	_clock = ROUND_TIME
+	# Training has no clock (the HUD hides it).
+	_clock = 999.0 if FightSetup.mode == "training" else ROUND_TIME
 	for i in 2:
 		fighters[i].reset(-START_GAP if i == 0 else START_GAP)
 		fighters[i].facing = 1 if i == 0 else -1
 	_clear_shots()
 	var last := fighters[0].rounds_won == ROUNDS_TO_WIN - 1 and fighters[1].rounds_won == ROUNDS_TO_WIN - 1
-	_announce("MANCHE FINALE" if last else "ROUND %d" % _round, 1.0, "%s  CONTRE  %s" % [
+	_announce("ENTRAÎNEMENT" if FightSetup.mode == "training" else ("MANCHE FINALE" if last else "ROUND %d" % _round), 1.0, "%s  CONTRE  %s" % [
 			str(fighters[0].hero.name).to_upper(), str(fighters[1].hero.name).to_upper()], GOLD)
 	await _wait(1.5)
 	_announce("COMBAT !", 0.6, "", Color.WHITE)
@@ -362,7 +374,8 @@ func _toggle_pause() -> void:
 
 
 func _controls_text() -> String:
-	return "Garde : recule (ou bas + recule).\nBas + POING : uppercut · Bas + ARME : tir\nAvant + PIED : coup de pied sauté · SUPER quand la jauge est pleine.\nClavier : ZQSD + F G H, R pour le super (joueur 2 : flèches + J K L, I)."
+	var mine := fighters[_mine if _online else 0]
+	return "Garde : recule (ou bas + recule).\nBas + POING : uppercut · Bas + ARME : tir · Bas + PIED : " + str(FightSupers.signature(mine).name).to_upper() + "\nAvant + PIED : coup de pied sauté · SUPER quand la jauge est pleine.\nClavier : ZQSD + F G H, R pour le super (joueur 2 : flèches + J K L, I)."
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -429,7 +442,7 @@ func _physics_process(delta: float) -> void:
 	if _hit_pause > 0.0:
 		_hit_pause -= delta
 		return
-	if _phase == Phase.FIGHT:
+	if _phase == Phase.FIGHT and FightSetup.mode != "training":
 		_clock -= delta
 	for i in 2:
 		var input := {"x": 0, "up": false, "down": false}
@@ -447,6 +460,12 @@ func _physics_process(delta: float) -> void:
 		if entry[0] <= 0.0:
 			_later.erase(entry)
 			(entry[1] as Callable).call()
+	# Training: nobody falls for good, health comes back.
+	if FightSetup.mode == "training":
+		for fighter in fighters:
+			if fighter.state == Fighter.State.KO or fighter.health < 1.0:
+				fighter.health = fighter.max_health
+				fighter.state = Fighter.State.IDLE
 	if _phase == Phase.FIGHT:
 		for i in 2:
 			if fighters[i].state == Fighter.State.KO:
@@ -465,6 +484,8 @@ func _read(index: int, delta: float) -> Dictionary:
 		return (source as FightInput).read()
 	if source is FightAI:
 		return (source as FightAI).read(delta)
+	if source is FightDummy:
+		return (source as FightDummy).read(delta)
 	var input := FightInput.presses(_remote_held, _remote_before)
 	_remote_before = _remote_held
 	return input
@@ -672,6 +693,57 @@ func _run_super(fighter: Fighter) -> void:
 						"color": color, "kind": "orb", "curse": float(info.seconds)}))
 
 
+## The hero's special move (FightSupers.SIGNATURES), smaller than its super.
+func _run_signature(fighter: Fighter) -> void:
+	var info := FightSupers.signature(fighter)
+	var target := fighter.opponent
+	var color: Color = info.get("color", fighter.color)
+	var damage := float(info.get("damage", 0)) * fighter.damage_scale()
+	_emit("label", [_world(fighter.x, fighter.height + 2.4), str(info.name).to_upper(), color])
+	match info.kind:
+		"shot":
+			for i in int(info.get("count", 1)):
+				_after(0.12 * i, func() -> void:
+					_spawn_projectile(fighter, {"y": info.get("y", 1.1), "speed": info.speed, "damage": damage, "size": info.get("size", 0.15),
+							"color": color, "kind": "bomb" if info.get("arc", false) else "orb", "arc": info.get("arc", false),
+							"knockdown": info.get("arc", false), "curse": info.get("curse", 0.0)})
+					_emit("sound", ["shot"]))
+		"strike":
+			var count := int(info.get("count", 1))
+			for i in count:
+				var spread := (i - (count - 1) / 2.0) * 1.2
+				_strike(fighter, target.x + spread, 0.5 + 0.2 * i, damage, color)
+		"slam":
+			_strike(fighter, fighter.x + fighter.facing * 1.2, 0.15, damage, color)
+		"beam":
+			_after(float(info.get("delay", 0.3)), func() -> void: _beam(fighter, damage, color))
+		"dash":
+			fighter.state = Fighter.State.IDLE
+			fighter.start_super_move(info.move, damage)
+		"freeze":
+			if absf(target.x - fighter.x) <= float(info.range) and target.state != Fighter.State.KO:
+				if damage > 0.0:
+					target.take_hit(damage, 0.2, 1.0, fighter.x, false, false, false)
+				if target.state != Fighter.State.KO:
+					target.freeze(float(info.seconds))
+				_emit("burst", [_world(target.x, 1.2), color, 30])
+		"heal":
+			fighter.health = minf(fighter.health + float(info.amount), fighter.max_health)
+			_emit("burst", [_world(fighter.x, 1.2), color, 30])
+		"blink":
+			_emit("burst", [_world(fighter.x, 1.0), color, 24])
+			fighter.x = clampf(target.x - fighter.facing * 0.9, -STAGE_HALF, STAGE_HALF)
+			fighter.facing = -fighter.facing
+			_emit("burst", [_world(fighter.x, 1.0), color, 24])
+		"pull":
+			if absf(target.x - fighter.x) <= float(info.range) and target.state != Fighter.State.KO:
+				_emit("beam_short", [_world(fighter.x, 1.2), _world(target.x, 1.2), color])
+				target.x = fighter.x + fighter.facing * (fighter.body_width() + target.body_width() + 0.1)
+				target.take_hit(damage, 0.5, 0.0, fighter.x, false, false, false)
+		"clone":
+			_spawn_projectile(fighter, {"y": 0.0, "speed": 11.0, "damage": damage, "size": 0.5, "color": color, "kind": "clone"})
+
+
 func _after(seconds: float, action: Callable) -> void:
 	_later.append([seconds, action])
 
@@ -738,6 +810,10 @@ func _fx(kind: String, args: Array) -> void:
 			_make_strike(args[0], args[1], args[2])
 		"beam":
 			_make_beam(args[0], args[1], args[2])
+		"beam_short":
+			Effects.tracer(self, args[0], args[1], args[2])
+		"label":
+			_make_label(args[0], args[1], args[2])
 
 
 func _make_shot_node(id: int, kind: String, color: Color, size: float, hero_id: String) -> void:
@@ -809,6 +885,25 @@ func _make_strike(at: Vector3, color: Color, seconds: float) -> void:
 	tween.tween_property(bomb, "global_position", at, seconds).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	tween.tween_callback(bomb.queue_free)
 	tween.tween_callback(ring.queue_free)
+
+
+## The name of a special, floating over the fighter.
+func _make_label(at: Vector3, text: String, color: Color) -> void:
+	var label := Label3D.new()
+	label.text = text
+	label.font = FONT
+	label.font_size = 48
+	label.pixel_size = 0.004
+	label.modulate = color
+	label.outline_size = 12
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	add_child(label)
+	label.global_position = at
+	var tween := create_tween()
+	tween.tween_property(label, "global_position", at + Vector3.UP * 0.8, 1.0)
+	tween.parallel().tween_property(label, "modulate:a", 0.0, 1.0).set_delay(0.5)
+	tween.tween_callback(label.queue_free)
 
 
 func _make_beam(from: Vector3, direction: Vector3, color: Color) -> void:

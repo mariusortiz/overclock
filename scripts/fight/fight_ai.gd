@@ -60,6 +60,12 @@ func _plan(enemy: Fighter, distance: float, toward: int) -> void:
 	if me.meter >= Fighter.METER_MAX and distance < 6.0 and randf() < 0.6:
 		_press = "super"
 		return
+	# The hero's special, now and then.
+	if me.signature_left <= 0.0 and distance < 7.0 and randf() < 0.18:
+		_down = true
+		_press = "kick"
+		_x = 0
+		return
 	# A jump coming in: uppercut it.
 	if not enemy.on_ground() and distance < 1.8 and randf() < level.anti_air:
 		_down = true

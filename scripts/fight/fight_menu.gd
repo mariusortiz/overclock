@@ -11,7 +11,7 @@ const LOBBY_SCENE := "res://scenes/lobby.tscn"
 const CYAN := Color(0.16, 0.83, 1.0)
 const MAGENTA := Color(1.0, 0.3, 0.85)
 const GOLD := Color(1.0, 0.8, 0.25)
-const MODES := [["ai", "CONTRE L'IA"], ["versus", "2 JOUEURS"], ["arcade", "ARCADE"], ["online", "WI-FI"]]
+const MODES := [["ai", "VS IA"], ["versus", "2 JOUEURS"], ["arcade", "ARCADE"], ["training", "ENTRAÎNEMENT"], ["online", "WI-FI"]]
 const DIFFICULTIES := ["FACILE", "NORMAL", "DIFFICILE"]
 const RANDOM := ""
 
@@ -23,7 +23,7 @@ var _stages: Array[CharacterStage] = []
 var _modes := HBoxContainer.new()
 var _pickers := HBoxContainer.new()
 var _grid := GridContainer.new()
-var _arenas := HBoxContainer.new()
+var _arenas := HFlowContainer.new()
 var _levels := HBoxContainer.new()
 var _hint := Label.new()
 var _go := Button.new()
@@ -99,7 +99,8 @@ func _ready() -> void:
 	var settings := VBoxContainer.new()
 	settings.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bottom.add_child(settings)
-	_arenas.add_theme_constant_override("separation", 6)
+	_arenas.add_theme_constant_override("h_separation", 6)
+	_arenas.add_theme_constant_override("v_separation", 6)
 	settings.add_child(_arenas)
 	_levels.add_theme_constant_override("separation", 6)
 	settings.add_child(_levels)
@@ -129,6 +130,7 @@ func _refresh() -> void:
 			FightSetup.mode = id
 			_picking = 0
 			_refresh(), mode == id)
+		button.add_theme_font_size_override("font_size", 15)
 		if id == "online" and not Net.is_supported():
 			button.disabled = true
 			button.tooltip_text = "Pas dans le navigateur : avec l'application."
@@ -138,10 +140,10 @@ func _refresh() -> void:
 		_pickers.add_child(_button("JOUEUR 1", func() -> void:
 			_picking = 0
 			_refresh(), _picking == 0, CYAN))
-		_pickers.add_child(_button("JOUEUR 2" if mode == "versus" else "ADVERSAIRE", func() -> void:
+		_pickers.add_child(_button("JOUEUR 2" if mode == "versus" else ("MANNEQUIN" if mode == "training" else "ADVERSAIRE"), func() -> void:
 			_picking = 1
 			_refresh(), _picking == 1, MAGENTA))
-	if _picking == 1 and mode == "ai":
+	if _picking == 1 and mode in ["ai", "training"]:
 		var random := _button("AU HASARD", func() -> void:
 			_opponent = RANDOM
 			_refresh(), _opponent == RANDOM, MAGENTA)
@@ -151,7 +153,7 @@ func _refresh() -> void:
 	for item: Dictionary in Loadout.CHARACTERS:
 		var id: String = item.id
 		var open := Loadout.is_unlocked(item)
-		if _picking == 1 and mode == "ai":
+		if _picking == 1 and mode in ["ai", "training"]:
 			open = not item.get("code", false)
 		var chosen := FightSetup.heroes[0] == id if _picking == 0 else (FightSetup.heroes[1] == id if mode == "versus" else _opponent == id)
 		var button := _button(str(item.name).to_upper(), func() -> void:
@@ -186,6 +188,8 @@ func _refresh() -> void:
 	match mode:
 		"versus":
 			_hint.text = "Deux joueurs sur cet appareil : clavier (ZQSD + F G H, R / flèches + J K L, I), deux manettes, ou l'écran partagé en deux."
+		"training":
+			_hint.text = "Un mannequin qui ne tombe jamais, un tutoriel en 8 étapes (la première fois : %d gemmes et un booster), un compteur de combo." % FightTraining.REWARD_GEMS
 		"arcade":
 			_hint.text = "%d combats contre l'ordinateur, de plus en plus durs, puis le Titan Mk II dans la ville. Première victoire : %d gemmes et un booster rare." % [
 					FightSetup.ARCADE_FIGHTS, FightSetup.ARCADE_GEMS]
@@ -202,7 +206,7 @@ func _start() -> void:
 	match FightSetup.mode:
 		"arcade":
 			FightSetup.start_arcade(FightSetup.heroes[0])
-		"ai":
+		"ai", "training":
 			var pool := FightSetup.computer_heroes()
 			FightSetup.heroes[1] = _opponent if _opponent != RANDOM else pool.pick_random()
 	get_tree().change_scene_to_file.call_deferred(FightSetup.SCENE)

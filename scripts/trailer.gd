@@ -737,7 +737,8 @@ func _present_boss(kind: Boss.Kind, seconds: float) -> void:
 	var scene: PackedScene = load(Boss.MODEL_DIR + str(info.model))
 	var height: float = float(info.height) * BOSS_SCALE
 	var hover: float = float(info.hover) * BOSS_SCALE
-	var boss := _actor(scene, height, hover, BOSS_SPOT, PI, &"idle")
+	# The skeleton's face is on its other side: the Père Glaçon turns to the camera.
+	var boss := _actor(scene, height, hover, BOSS_SPOT, 0.0 if kind == Boss.Kind.FROST else PI, &"idle")
 	if kind == Boss.Kind.TITAN:
 		var material := StandardMaterial3D.new()
 		material.albedo_texture = load(Boss.TITAN_TEXTURE)

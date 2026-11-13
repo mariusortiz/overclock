@@ -102,7 +102,9 @@ func _draw() -> void:
 		var label := "SUPER PRÊT !" if ready else "SUPER"
 		var label_x := meter_left if index == 0 else meter_left + meter_width - _text_width(label, 18)
 		_text(label, Vector2(label_x, meter_top - 8), 18, GOLD if ready else Color(1, 1, 1, 0.7))
-	# The clock.
+	# The clock (none in training).
+	if clock > 900.0:
+		return
 	var seconds := str(ceili(maxf(clock, 0.0)))
 	_text(seconds, Vector2(width / 2.0 - _text_width(seconds, 52) / 2.0, top + 46), 52, Color.WHITE)
 

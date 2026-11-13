@@ -19,6 +19,9 @@ extends Node3D
 
 signal super_used(fighter: Fighter)
 signal shot_fired(fighter: Fighter)
+signal signature_used(fighter: Fighter)
+## A move just started (the training's tutorial follows them).
+signal move_started(fighter: Fighter, name: String)
 
 enum State { IDLE, WALK, JUMP, CROUCH, ATTACK, HITSTUN, BLOCKSTUN, KNOCKDOWN, KO, VICTORY, FROZEN, SUPER }
 
@@ -45,6 +48,8 @@ const MOVES := {
 	"dashkick": {"startup": 0.1, "active": 0.25, "recovery": 0.3, "damage": 10, "reach": 0.9, "stun": 0.5, "push": 5.0, "look": "kick", "dash": 9.0, "knockdown": true},
 	"airkick": {"startup": 0.05, "active": 0.35, "recovery": 0.0, "damage": 7, "reach": 0.9, "stun": 0.36, "push": 2.5, "look": "kick", "air": true},
 	"shot": {"startup": 0.2, "active": 0.0, "recovery": 0.3, "damage": 0, "reach": 0.0, "stun": 0.0, "push": 0.0, "look": "shoot", "shot": true},
+	# The hero's special (down + kick, see FightSupers.SIGNATURES), played by Fight.
+	"signature": {"startup": 0.15, "active": 0.0, "recovery": 0.3, "damage": 0, "reach": 0.0, "stun": 0.0, "push": 0.0, "look": "super", "signature": true},
 	# Supers that move the fighter itself (see FightSupers).
 	"whirl": {"startup": 0.1, "active": 0.8, "recovery": 0.25, "damage": 4, "reach": 0.9, "stun": 0.3, "push": 1.0, "look": "whirl", "dash": 7.0, "multi": 0.14},
 	"charge": {"startup": 0.15, "active": 0.4, "recovery": 0.3, "damage": 20, "reach": 1.0, "stun": 0.6, "push": 7.0, "look": "weapon", "dash": 10.0, "knockdown": true},
@@ -94,6 +99,7 @@ var move_hit := false
 var state_left := 0.0
 var invulnerable_left := 0.0
 var shot_left := 0.0
+var signature_left := 0.0
 var frozen_left := 0.0
 var rage_left := 0.0
 var curse_left := 0.0
@@ -192,6 +198,7 @@ func step(input: Dictionary, delta: float) -> void:
 	last_input = input
 	invulnerable_left = maxf(invulnerable_left - delta, 0.0)
 	shot_left = maxf(shot_left - delta, 0.0)
+	signature_left = maxf(signature_left - delta, 0.0)
 	rage_left = maxf(rage_left - delta, 0.0)
 	if curse_left > 0.0:
 		curse_left = maxf(curse_left - delta, 0.0)
@@ -248,7 +255,9 @@ func step(input: Dictionary, delta: float) -> void:
 		_set_visual("jump")
 		return
 	move = {}
-	if input.get("down", false) and input.get("punch", false):
+	if input.get("down", false) and input.get("kick", false) and signature_left <= 0.0:
+		_start("signature")
+	elif input.get("down", false) and input.get("punch", false):
 		_start("uppercut")
 	elif input.get("down", false) and input.get("weapon", false) and shot_left <= 0.0:
 		_start("shot")
@@ -296,6 +305,7 @@ func _start(name: String) -> void:
 		move.damage = float(move.damage) * 1.3
 	move_time = 0.0
 	move_hit = false
+	move_started.emit(self, name)
 	if not move.get("air", false):
 		state = State.ATTACK
 		velocity.x = 0.0
@@ -323,6 +333,10 @@ func _run_move(delta: float) -> void:
 		move_hit = true
 		shot_left = SHOT_COOLDOWN
 		shot_fired.emit(self)
+	if move.get("signature", false) and move_time >= startup and not move_hit:
+		move_hit = true
+		signature_left = FightSupers.SIGNATURE_COOLDOWN
+		signature_used.emit(self)
 	_gravity(delta)
 	if move_time >= total:
 		move = {}
@@ -350,7 +364,7 @@ func _face_opponent() -> void:
 
 ## Is the current move's blow out now (and has not landed yet)?
 func is_hitting() -> bool:
-	if move.is_empty() or move_hit or move.get("shot", false):
+	if move.is_empty() or move_hit or move.get("shot", false) or move.get("signature", false):
 		return false
 	return move_time >= float(move.startup) and move_time < float(move.startup) + float(move.active)
 
@@ -425,6 +439,7 @@ func reset(at: float) -> void:
 	rage_left = 0.0
 	curse_left = 0.0
 	shot_left = 0.0
+	signature_left = 0.0
 	_set_visual("idle")
 
 
