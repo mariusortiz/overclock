@@ -28,9 +28,9 @@ func _story() -> void:
 	await _title_card(5.0)
 
 	# 13 s: the fragment, guarded.
-	var fragment := STAGE + Vector3(0, 1.4, -10)
+	var fragment := STAGE + Vector3(0, 1.4, -5)
 	_ring(fragment, VIRUS, 2.0, 2.5)
-	_dolly(STAGE + Vector3(0, 2.0, -4), STAGE + Vector3(0, 2.2, -5), fragment, fragment, 4.0, true)
+	_dolly(STAGE + Vector3(2.6, 1.8, -1.0), STAGE + Vector3(2.2, 1.8, -1.6), fragment, fragment, 4.0, true)
 	_narrate("Le fragment : une ligne de code propre, qui brille.", 3.0)
 	await _until(16.4)
 	_glitch(1.0)
@@ -40,11 +40,11 @@ func _story() -> void:
 		var goblin := _corrupted(STAGE + Vector3(cos(angle) * 6.0, 0, -6.0 + sin(angle) * 4.0), 0.0, &"walk")
 		_appear(goblin, 0.4)
 		goblins.append(goblin)
-	var slime := _spawn_boss(Boss.Kind.SUMMONER, STAGE + Vector3(0, 0, -13), 3.0)
+	var slime := _spawn_boss(Boss.Kind.SUMMONER, STAGE + Vector3(0, 0, -9), 3.0)
 	_corrupt(slime)
 	for hero in [ronin, kunoichi]:
 		hero.play(&"aim")
-	_dolly(STAGE + Vector3(0, 7, 6), STAGE + Vector3(0, 8, 5), STAGE + Vector3(0, 0, -6), STAGE + Vector3(0, 0, -7), 4.0, true)
+	_dolly(STAGE + Vector3(-5, 2.4, 7), STAGE + Vector3(-4.5, 2.6, 6.4), STAGE + Vector3(0, 0.8, -4), STAGE + Vector3(0, 0.8, -5), 4.0, true)
 	await _until(18.4)
 	_say(ronin, "Des gobelins. Et le slime royal... corrompu.", 2.8, -1.0)
 	await _until(21.6)
@@ -89,7 +89,7 @@ func _story() -> void:
 		if is_instance_valid(goblin):
 			_kill(goblin, &"pixelate", VIRUS)
 	_glitch(0.8)
-	_dolly(STAGE + Vector3(0, 6, 8), STAGE + Vector3(0, 7, 7), STAGE + Vector3(0, 1, -8), STAGE + Vector3(0, 2, -12), 4.0, true)
+	_dolly(STAGE + Vector3(-5, 2.2, 6), STAGE + Vector3(-4.5, 2.4, 5.5), STAGE + Vector3(0, 1, -5), STAGE + Vector3(0, 1.6, -8), 4.0, true)
 	await _until(37.0)
 	_fall(slime, 1.4)
 	await _until(40.0)
@@ -114,9 +114,9 @@ func _story() -> void:
 	await _until(58.6)
 
 	# 58.6 s: the fragment.
-	_dolly(STAGE + Vector3(0, 1.6, -6.5), STAGE + Vector3(0, 1.6, -7.4), fragment, fragment, 6.0, true)
+	_dolly(STAGE + Vector3(3.0, 1.8, -0.5), STAGE + Vector3(2.6, 1.8, -1.0), fragment, fragment, 6.0, true)
 	kunoichi.play(&"walk", true)
-	_move(kunoichi.get_parent() as Node3D, Vector3(0, 0, -1.6))
+	_move(kunoichi.get_parent() as Node3D, Vector3(0, 0, -1.4))
 	await _until(62.0)
 	_movers.clear()
 	kunoichi.play(&"victory", true)

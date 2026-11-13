@@ -110,7 +110,7 @@ func _story() -> void:
 	# 54 s: the second fragment.
 	for hero in team:
 		hero.play(&"idle")
-	_dolly(STAGE + Vector3(3, 1.6, 4.0), STAGE + Vector3(2.6, 1.6, 3.6), STAGE + Vector3(0, 1.4, 0.4), STAGE + Vector3(0, 1.4, 0.4), 10.0, true)
+	_dolly(STAGE + Vector3(5.0, 2.0, 6.5), STAGE + Vector3(4.4, 2.0, 6.0), STAGE + Vector3(0, 1.3, 0.4), STAGE + Vector3(0, 1.3, 0.4), 10.0, true)
 	_face(soldier, creator)
 	_face(creator, soldier)
 	_say(soldier, "Le deuxième fragment ?", 1.8, -1.0)

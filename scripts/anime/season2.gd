@@ -38,6 +38,13 @@ func _process(delta: float) -> void:
 			band.color = Color([VIRUS, MAGENTA, Color.BLACK, Color.WHITE].pick_random(), randf_range(0.25, 0.6))
 
 
+## An arena after space: the camera's reach back to an arena's, or the
+## ground can drop out of the picture.
+func _load_arena(index: int) -> void:
+	super(index)
+	_camera.far = 400.0
+
+
 ## The picture tears and jumps for `seconds`: the Virus is near.
 func _glitch(seconds: float) -> void:
 	_glitch_left = seconds

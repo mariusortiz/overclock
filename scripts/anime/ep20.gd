@@ -82,7 +82,7 @@ func _story() -> void:
 	# 40 s: Le Créateur, with the three fragments.
 	var creator := _creator(STAGE + Vector3(0, 0, 0.5), 0.0, "source_code")
 	_appear(creator)
-	_dolly(STAGE + Vector3(-2.4, 1.0, 4.0), STAGE + Vector3(-2.0, 1.2, 3.4), STAGE + Vector3(0, 1.6, 0.5), STAGE + Vector3(0, 1.6, 0.5), 5.0, true)
+	_dolly(STAGE + Vector3(-3.0, 1.6, -2.5), STAGE + Vector3(-2.6, 1.6, -2.0), STAGE + Vector3(0, 1.6, 0.5), STAGE + Vector3(0, 1.6, 0.5), 5.0, true)
 	await _until(41.6)
 	for index in 3:
 		var at := creator.global_position + Vector3(-1.2 + 1.2 * index, 2.6, 0)
@@ -131,7 +131,7 @@ func _story() -> void:
 		_face(hero, creator)
 		(hero as CharacterModel).play(&"idle")
 	_face(creator, heroes.soldier)
-	_dolly(STAGE + Vector3(2.6, 1.6, 4.4), STAGE + Vector3(2.2, 1.6, 4.0), STAGE + Vector3(0, 1.5, 1.4), STAGE + Vector3(0, 1.5, 1.4), 14.0, true)
+	_dolly(STAGE + Vector3(3.0, 1.8, -2.2), STAGE + Vector3(2.6, 1.8, -1.8), STAGE + Vector3(0, 1.5, 1.4), STAGE + Vector3(0, 1.5, 1.4), 14.0, true)
 	_say(creator, "Mon monde est entre de bonnes mains.", 2.6, -1.0)
 	await _until(66.6)
 	_say(heroes.soldier, "Tu pars ?", 1.6, 1.0)
