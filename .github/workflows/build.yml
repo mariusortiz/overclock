@@ -100,7 +100,9 @@ jobs:
           for mode in race capture; do
             timeout 60 godot --headless --fixed-fps 60 res://scenes/lobby.tscn -- --host=$mode > host.log 2>&1 &
             sleep 3
-            timeout 55 godot --headless --fixed-fps 60 res://scenes/lobby.tscn -- --join=127.0.0.1 > guest.log 2>&1 || true
+            # The guest gets its own home, hence its own save file: two games
+  # writing one save at the same time can read it half written.
+  HOME="$PWD/guest_home" timeout 55 godot --headless --fixed-fps 60 res://scenes/lobby.tscn -- --join=127.0.0.1 > guest.log 2>&1 || true
             wait
             cat host.log guest.log | tee -a run.log > /dev/null
           done
