@@ -18,7 +18,7 @@ const SERIES_TINT := {
 	"Vaisseaux": Color(0.6, 0.8, 0.95), "Armes": Color(0.78, 0.78, 0.85), "Mêlée": Color(0.85, 0.75, 0.65), "Skins": Color(0.8, 0.7, 0.95),
 	"Arènes": Color(0.6, 0.85, 0.75), "Anime": Color(0.9, 0.65, 0.85), "Mythiques": Color(0.2, 0.15, 0.35), "Hacker": Color(0.04, 0.12, 0.06),
 	"Matrice": Color(0.45, 0.85, 0.55), "Anime S2": Color(0.75, 0.6, 0.95), "Combat": Color(0.95, 0.6, 0.45), "Boutique": Color(0.95, 0.75, 0.9),
-	"Noël": Color(0.95, 0.55, 0.55),
+	"Noël": Color(0.95, 0.55, 0.55), "Passe S2": Color(0.55, 0.9, 0.75),
 }
 ## The holographic foil, laid over the whole card: a faint rainbow wash,
 ## brighter rainbow bands that slide with the tilt and time, and glitter.

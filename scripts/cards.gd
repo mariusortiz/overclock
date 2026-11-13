@@ -30,7 +30,7 @@ const SERIES := [
 	["Armes", 2000, 80], ["Mêlée", 1200, 40], ["Skins", 1500, 60], ["Arènes", 1200, 40], ["Anime", 2500, 100],
 	["Mythiques", 5000, 250],
 	# The "Saison 2" expansion (EXPANSION): its own numbers, outside the 99.
-	["Matrice", 1500, 60], ["Anime S2", 2500, 100], ["Combat", 1500, 60], ["Boutique", 1800, 70], ["Noël", 1500, 80],
+	["Matrice", 1500, 60], ["Anime S2", 2500, 100], ["Combat", 1500, 60], ["Boutique", 1800, 70], ["Noël", 1500, 80], ["Passe S2", 2000, 90],
 	# Le Créateur's: only through his code, outside the album's count.
 	["Hacker", 10000, 500],
 ]
@@ -194,6 +194,17 @@ const EXPANSION := [
 	{"id": "card_dance_spin", "name": "Danse Toupie", "series": "Boutique", "rarity": E, "art": ["dance", "dance_spin:paladin"]},
 	{"id": "card_annihilator", "name": "Annihilateur", "series": "Boutique", "rarity": E, "art": ["gun", "annihilator"]},
 	{"id": "card_golden_gun", "name": "Pistolet d'or", "series": "Boutique", "rarity": L, "art": ["gun", "golden_gun"]},
+	# Season 2 of the battle pass, and the Platine skin of the achievements.
+	{"id": "card_skin_data", "name": "Skin Données", "series": "Passe S2", "rarity": C, "art": ["gun_skin", "heavy:skin_data"]},
+	{"id": "card_skin_firewall", "name": "Skin Pare-feu", "series": "Passe S2", "rarity": C, "art": ["gun_skin", "heavy:skin_firewall"]},
+	{"id": "card_skin_corruption", "name": "Skin Corruption", "series": "Passe S2", "rarity": R, "art": ["gun_skin", "heavy:skin_corruption"]},
+	{"id": "card_skin_binary", "name": "Skin Binaire", "series": "Passe S2", "rarity": R, "art": ["gun_skin", "heavy:skin_binary"]},
+	{"id": "card_skin_kernel", "name": "Skin Noyau", "series": "Passe S2", "rarity": E, "art": ["gun_skin", "heavy:skin_kernel"]},
+	{"id": "card_dance_glitch", "name": "Danse Glitch", "series": "Passe S2", "rarity": R, "art": ["dance", "dance_glitch:programme"]},
+	{"id": "card_dance_reboot", "name": "Danse Redémarrage", "series": "Passe S2", "rarity": E, "art": ["dance", "dance_reboot:soldier_female"]},
+	{"id": "card_ship_firewall", "name": "Pare-feu", "series": "Passe S2", "rarity": E, "art": ["ship", "ship_firewall"]},
+	{"id": "card_programme", "name": "Programme", "series": "Passe S2", "rarity": L, "art": ["hero", "programme"]},
+	{"id": "card_skin_platinum", "name": "Skin Platine", "series": "Passe S2", "rarity": M, "art": ["gun_skin", "heavy:skin_platinum"]},
 	# Christmas: drawn during the event only ("event"), crafted all year.
 	{"id": "card_snow_village", "name": "Village enneigé", "series": "Noël", "rarity": E, "art": ["image", "snow_village"], "event": "christmas"},
 	{"id": "card_elf_enemy", "name": "Lutin", "series": "Noël", "rarity": C, "art": ["enemy", "Elf.fbx"], "event": "christmas"},
@@ -348,6 +359,12 @@ const FLAVOR := {
 	"card_fight_titan": "Le dernier combat de l'arcade, dans la ville.",
 	"card_annihilator": "Le canon plasma de la boutique, en version ultra.",
 	"card_golden_gun": "99 dégâts. Six balles. Pas de seconde chance.",
+	"card_skin_data": "Une pluie de données bleues sur l'arme.",
+	"card_skin_firewall": "Rouge et brûlant. Les ennemis se consument.",
+	"card_skin_corruption": "Des blocs verts qui sautent, comme le Virus.",
+	"card_skin_binary": "Des 0 et des 1 qui défilent en lignes de lumière.",
+	"card_skin_kernel": "Le cœur du système : un anneau vert qui tourne.",
+	"card_skin_platinum": "Pour qui a tout débloqué. Les 50 succès.",
 	"card_snow_village": "Chalets, lac gelé et le grand sapin. Seulement à Noël.",
 	"card_elf_enemy": "Petit, rapide, et il ne fait pas de cadeaux.",
 	"card_frost": "Un squelette géant changé en glace. Son bonnet est rouge.",

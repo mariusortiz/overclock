@@ -93,7 +93,10 @@ func _subject(kind: String, reference: String) -> Node3D:
 	match kind:
 		"hero":
 			var item: Dictionary = Loadout.find(reference).item
-			return _character(Loadout.CHARACTER_DIR + str(item.model), &"victory")
+			var hero := _character(Loadout.CHARACTER_DIR + str(item.model), &"victory")
+			if item.has("glow"):
+				Loadout.glow(hero, item.glow)
+			return hero
 		"enemy":
 			return _character(Loadout.CHARACTER_DIR + reference, &"idle")
 		"elite":
@@ -179,6 +182,8 @@ func _subject(kind: String, reference: String) -> Node3D:
 			var dance := Dances.find(parts[0])
 			var item: Dictionary = Loadout.find(parts[1]).item
 			var holder := _character(Loadout.CHARACTER_DIR + str(item.model), dance.get("animation", &"idle"))
+			if item.has("glow"):
+				Loadout.glow(holder, item.glow)
 			var dancer := holder.get_child(0) as CharacterModel
 			var poses: Array = dance.get("poses", [{}])
 			dancer.pose.targets = poses[mini(1, poses.size() - 1)]
