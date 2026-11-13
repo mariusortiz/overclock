@@ -143,3 +143,11 @@ static func pose_at(dance: Dictionary, time: float) -> Dictionary:
 ## Height of the bounce at `time`, in meters: one hop per beat.
 static func bounce_at(dance: Dictionary, time: float) -> float:
 	return dance.bounce * absf(sin(PI * time / BEAT))
+
+
+## The dance with this "id" (the shop's), or {}.
+static func find(id: String) -> Dictionary:
+	for dance in LIST:
+		if dance.get("id", "") == id:
+			return dance
+	return {}

@@ -66,7 +66,7 @@ static func redeem(code: String) -> Array:
 		given.append(Loadout.find(items[0]).item.name if items.size() == 1 else "%d objets" % new_items)
 	var cards: Array = []
 	if str(reward.get("cards", "")) == "all":
-		for card: Dictionary in Cards.CATALOG:
+		for card: Dictionary in Cards.CATALOG + Cards.EXPANSION:
 			cards.append(card.id)
 	else:
 		cards = reward.get("cards", [])

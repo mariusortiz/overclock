@@ -29,6 +29,8 @@ const SERIES := [
 	["Héros", 3000, 100], ["Ennemis", 1500, 50], ["Boss", 2000, 80], ["Vaisseaux", 2000, 80],
 	["Armes", 2000, 80], ["Mêlée", 1200, 40], ["Skins", 1500, 60], ["Arènes", 1200, 40], ["Anime", 2500, 100],
 	["Mythiques", 5000, 250],
+	# The "Saison 2" expansion (EXPANSION): its own numbers, outside the 99.
+	["Matrice", 1500, 60], ["Anime S2", 2500, 100], ["Combat", 1500, 60], ["Boutique", 1800, 70],
 	# Le Créateur's: only through his code, outside the album's count.
 	["Hacker", 10000, 500],
 ]
@@ -152,6 +154,63 @@ const CATALOG := [
 	{"id": "card_titan_city", "name": "Le Titan sur la ville", "series": "Mythiques", "rarity": M, "art": ["image", "titan_city"]},
 ]
 
+## The "Saison 2" expansion: what came after the 99 (the Matrice and its
+## Virus, the anime's season 2, the fight mode, the shop's latest). Drawn from
+## the same boosters, recycled and crafted like the others, numbered apart
+## (S01/S31); the album of 99 does not need them.
+const EXPANSION := [
+	# The Matrice.
+	{"id": "card_matrix_arena", "name": "La Matrice", "series": "Matrice", "rarity": E, "art": ["image", "matrix_arena"]},
+	{"id": "card_program", "name": "Programme corrompu", "series": "Matrice", "rarity": C, "art": ["glow", "Ninja_Male.fbx:33ff73"]},
+	{"id": "card_firewall", "name": "Pare-feu", "series": "Matrice", "rarity": C, "art": ["image", "firewall"]},
+	{"id": "card_code_rain", "name": "Pluie de code", "series": "Matrice", "rarity": R, "art": ["image", "code_rain"]},
+	{"id": "card_virus", "name": "Le Virus", "series": "Matrice", "rarity": L, "art": ["virus", ""]},
+	{"id": "card_virus_unleashed", "name": "Le Virus déchaîné", "series": "Matrice", "rarity": M, "art": ["image", "virus_unleashed"]},
+	# The anime's season 2.
+	{"id": "card_ep11", "name": "Le glitch", "series": "Anime S2", "rarity": E, "art": ["image", "ep11"]},
+	{"id": "card_ep12", "name": "Le message", "series": "Anime S2", "rarity": E, "art": ["image", "ep12"]},
+	{"id": "card_ep13", "name": "La course corrompue", "series": "Anime S2", "rarity": E, "art": ["image", "ep13"]},
+	{"id": "card_ep14", "name": "Le Virus", "series": "Anime S2", "rarity": E, "art": ["image", "ep14"]},
+	{"id": "card_ep15", "name": "Le Créateur", "series": "Anime S2", "rarity": E, "art": ["image", "ep15"]},
+	{"id": "card_ep16", "name": "Code source", "series": "Anime S2", "rarity": E, "art": ["image", "ep16"]},
+	{"id": "card_ep17", "name": "Mise à jour", "series": "Anime S2", "rarity": E, "art": ["image", "ep17"]},
+	{"id": "card_ep18", "name": "Écran noir", "series": "Anime S2", "rarity": E, "art": ["image", "ep18"]},
+	{"id": "card_ep19", "name": "Ctrl+Z", "series": "Anime S2", "rarity": L, "art": ["image", "ep19"]},
+	{"id": "card_ep20", "name": "Redémarrage", "series": "Anime S2", "rarity": L, "art": ["image", "ep20"]},
+	# The fight mode.
+	{"id": "card_fight", "name": "Un contre un", "series": "Combat", "rarity": R, "art": ["image", "fight"]},
+	{"id": "card_fight_uppercut", "name": "Uppercut", "series": "Combat", "rarity": C, "art": ["image", "fight_uppercut"]},
+	{"id": "card_fight_kick", "name": "Coup de pied sauté", "series": "Combat", "rarity": C, "art": ["image", "fight_kick"]},
+	{"id": "card_fight_guard", "name": "Garde", "series": "Combat", "rarity": C, "art": ["image", "fight_guard"]},
+	{"id": "card_fight_clones", "name": "Super : Clones", "series": "Combat", "rarity": R, "art": ["image", "fight_clones"]},
+	{"id": "card_fight_timestop", "name": "Super : Arrêt du temps", "series": "Combat", "rarity": E, "art": ["image", "fight_timestop"]},
+	{"id": "card_fight_titan", "name": "Le Titan d'arcade", "series": "Combat", "rarity": L, "art": ["image", "fight_titan"]},
+	# The shop's latest.
+	{"id": "card_dance_loser", "name": "Danse Loser", "series": "Boutique", "rarity": C, "art": ["dance", "dance_loser:soldier"]},
+	{"id": "card_dance_easy", "name": "Danse Tout doux", "series": "Boutique", "rarity": C, "art": ["dance", "dance_easy:cowgirl"]},
+	{"id": "card_dance_dab", "name": "Danse Dab", "series": "Boutique", "rarity": R, "art": ["dance", "dance_dab:ninja"]},
+	{"id": "card_dance_chicken", "name": "Danse Poulet", "series": "Boutique", "rarity": R, "art": ["dance", "dance_chicken:viking"]},
+	{"id": "card_dance_windmill", "name": "Danse Moulinet", "series": "Boutique", "rarity": E, "art": ["dance", "dance_windmill:kunoichi"]},
+	{"id": "card_dance_spin", "name": "Danse Toupie", "series": "Boutique", "rarity": E, "art": ["dance", "dance_spin:paladin"]},
+	{"id": "card_annihilator", "name": "Annihilateur", "series": "Boutique", "rarity": E, "art": ["gun", "annihilator"]},
+	{"id": "card_golden_gun", "name": "Pistolet d'or", "series": "Boutique", "rarity": L, "art": ["gun", "golden_gun"]},
+]
+
+## Every card there is: the album, the expansion, Le Créateur's.
+static func all_cards() -> Array:
+	return CATALOG + EXPANSION + HACKER_CARDS
+
+
+static func is_expansion(card: Dictionary) -> bool:
+	return card in EXPANSION
+
+
+## The expansion's cards owned.
+static func expansion_owned() -> int:
+	var cards := owned()
+	return EXPANSION.filter(func(card: Dictionary) -> bool: return int(cards.get(card.id, 0)) > 0).size()
+
+
 ## Cards above the album: not in CATALOG (they are not counted, numbered,
 ## drawn or needed to complete it), only given by a code (see PromoCodes).
 ## "item": what of Le Créateur's the card stands for; owning it gives the card
@@ -215,10 +274,14 @@ static func ability(card: Dictionary) -> Array:
 		"melee":
 			var blade: Dictionary = Loadout.find(reference).item
 			return ["FRAPPE", "Dégâts %d · portée %s m." % [blade.damage, str(blade.range).trim_suffix(".0")]]
-		"boss", "titan":
+		"boss", "titan", "virus":
 			return ["BOSS", FLAVOR.get(card.id, "Garde la fin d'une arène.")]
+		"dance":
+			var dance: Dictionary = Dances.find(reference.split(":")[0])
+			return ["DANSE · " + str(dance.get("name", "")), FLAVOR.get(card.id, "Vendue en boutique, à danser en pleine partie.")]
 	if str(card.id).begins_with("card_ep"):
-		return ["ÉPISODE %d" % str(card.id).trim_prefix("card_ep").to_int(), "L'anime Overclock, saison 1."]
+		var episode := str(card.id).trim_prefix("card_ep").to_int()
+		return ["ÉPISODE %d" % episode, "L'anime Overclock, saison %d." % (1 if episode <= 10 else 2)]
 	return ["", FLAVOR.get(card.id, "")]
 
 
@@ -263,6 +326,21 @@ const FLAVOR := {
 	"card_directeur": "A construit les Titans. Doit de l'argent au Parrain.",
 	"card_trophy": "Pour qui bat le Titan.",
 	"card_champion": "Le skin de la victoire, or et magenta.",
+	"card_matrix_arena": "Un noyau, des ponts de données, une pluie de code.",
+	"card_program": "Un garde du système, pris par le Virus.",
+	"card_firewall": "Rouge, translucide. Arrête les balles, pas le Virus.",
+	"card_code_rain": "Chaque colonne tombe à son rythme.",
+	"card_virus": "Disparaît dans un grésillement, réapparaît dans ton dos.",
+	"card_virus_unleashed": "Il a grandi au-dessus de la ville. Il fallait trois fragments.",
+	"card_fight": "Deux manches gagnantes, de profil, sur les arènes du jeu.",
+	"card_fight_uppercut": "Bas + POING. Le meilleur ami contre les sauts.",
+	"card_fight_kick": "Avant + PIED : fait tomber l'adversaire.",
+	"card_fight_guard": "Recule : un coup gardé ne fait presque rien.",
+	"card_fight_clones": "Deux fantômes foncent sur l'adversaire.",
+	"card_fight_timestop": "L'adversaire gèle. À toi de jouer.",
+	"card_fight_titan": "Le dernier combat de l'arcade, dans la ville.",
+	"card_annihilator": "Le canon plasma de la boutique, en version ultra.",
+	"card_golden_gun": "99 dégâts. Six balles. Pas de seconde chance.",
 }
 
 
@@ -270,6 +348,8 @@ const FLAVOR := {
 static func number(card: Dictionary) -> String:
 	if card.rarity == Rarity.HACKER:
 		return "H%02d/H%02d" % [HACKER_CARDS.find(card) + 1, HACKER_CARDS.size()]
+	if is_expansion(card):
+		return "S%02d/S%02d" % [EXPANSION.find(card) + 1, EXPANSION.size()]
 	return "%03d/%03d" % [CATALOG.find(card) + 1, CATALOG.size()]
 
 
@@ -280,14 +360,14 @@ static func power(card: Dictionary) -> int:
 
 
 static func find(id: String) -> Dictionary:
-	for card: Dictionary in CATALOG + HACKER_CARDS:
+	for card: Dictionary in all_cards():
 		if card.id == id:
 			return card
 	return {}
 
 
 static func in_series(series: String) -> Array:
-	return (CATALOG + HACKER_CARDS).filter(func(card: Dictionary) -> bool: return card.series == series)
+	return all_cards().filter(func(card: Dictionary) -> bool: return card.series == series)
 
 
 ## How many of each card the player has: id -> count.
@@ -376,9 +456,10 @@ static func _draw(lowest: Rarity, highest := Rarity.MYTHIC) -> Dictionary:
 		if roll <= 0.0:
 			chosen = rarity
 			break
-	var pool := CATALOG.filter(func(card: Dictionary) -> bool: return card.rarity == chosen)
+	var drawable := CATALOG + EXPANSION
+	var pool := drawable.filter(func(card: Dictionary) -> bool: return card.rarity == chosen)
 	if pool.is_empty():
-		pool = CATALOG.filter(func(card: Dictionary) -> bool: return card.rarity == lowest)
+		pool = drawable.filter(func(card: Dictionary) -> bool: return card.rarity == lowest)
 	return pool.pick_random()
 
 

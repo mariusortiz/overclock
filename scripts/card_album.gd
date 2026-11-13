@@ -93,7 +93,8 @@ func _refresh() -> void:
 			child.queue_free()
 	_button(_top, "< RETOUR", func() -> void: get_tree().change_scene_to_file.call_deferred(MENU_SCENE))
 	var title := Label.new()
-	title.text = "CARTES  %d / %d  ·  POUSSIÈRE %d" % [Cards.owned_total(), Cards.CATALOG.size(), Cards.dust()]
+	title.text = "CARTES  %d / %d  ·  SAISON 2  %d / %d  ·  POUSSIÈRE %d" % [Cards.owned_total(), Cards.CATALOG.size(),
+			Cards.expansion_owned(), Cards.EXPANSION.size(), Cards.dust()]
 	title.add_theme_font_size_override("font_size", 26)
 	title.add_theme_color_override("font_color", CYAN)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL

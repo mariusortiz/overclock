@@ -60,7 +60,7 @@ func _render_all() -> void:
 		elif argument == "--wide":
 			_wide = true
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
-	for card: Dictionary in Cards.CATALOG + Cards.HACKER_CARDS:
+	for card: Dictionary in Cards.all_cards():
 		if card.art[0] == "image" or (only != "" and card.id != only):
 			continue
 		await _render(card)
@@ -151,6 +151,32 @@ func _subject(kind: String, reference: String) -> Node3D:
 			return holder
 		"trophy":
 			return Trophy.new()
+		"virus":
+			# The Titan's body in black, glowing green (see Boss._dress_virus).
+			var virus := _character(Boss.MODEL_DIR + str(Boss.INFO[Boss.Kind.VIRUS].model), &"idle")
+			var body := StandardMaterial3D.new()
+			body.albedo_color = Color(0.08, 0.12, 0.09)
+			body.albedo_texture = load(Boss.TITAN_TEXTURE)
+			var glow := StandardMaterial3D.new()
+			glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			glow.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+			glow.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			glow.albedo_color = Color(0.2, 1.0, 0.45, 0.12)
+			for mesh: MeshInstance3D in virus.find_children("*", "MeshInstance3D", true, false):
+				mesh.material_override = body
+				mesh.material_overlay = glow
+			return virus
+		"dance":
+			# A hero caught in the dance's most telling pose.
+			var parts := reference.split(":")
+			var dance := Dances.find(parts[0])
+			var item: Dictionary = Loadout.find(parts[1]).item
+			var holder := _character(Loadout.CHARACTER_DIR + str(item.model), dance.get("animation", &"idle"))
+			var dancer := holder.get_child(0) as CharacterModel
+			var poses: Array = dance.get("poses", [{}])
+			dancer.pose.targets = poses[mini(1, poses.size() - 1)]
+			dancer.pose.weight = 1.0
+			return holder
 	return null
 
 
@@ -176,7 +202,7 @@ func _frame(subject: Node3D, kind: String) -> void:
 	var center := bounds.get_center()
 	var radius := bounds.size.length() * 0.5
 	# Characters: a little above the middle, so the face is in the picture.
-	if kind in ["hero", "enemy", "elite", "glow", "boss", "titan"]:
+	if kind in ["hero", "enemy", "elite", "glow", "boss", "titan", "virus", "dance"]:
 		center.y += bounds.size.y * 0.02
 		radius *= 0.7
 	else:
