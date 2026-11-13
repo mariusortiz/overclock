@@ -1,5 +1,5 @@
 extends Node
-## Directs the two-minute trailer: a showcase, with no fighting. It visits the
+## Directs the three-minute trailer: a showcase, with no fighting. It visits the
 ## arenas, parades their enemies and bosses, then scrolls past every weapon and
 ## every hero, then the shop's exclusive guns and heroes, with title cards on top. Nothing of the game itself runs here:
 ## the director only borrows its scenes and models.
@@ -9,7 +9,12 @@ extends Node
 ## The music is laid over the picture afterwards, by the same workflow.
 
 const URL := "overclock.randomlabs.dev"
-const DURATION := 151.0
+const DURATION := 178.0
+## The heroes of the story mode, for its shot.
+const STORY_HEROES := ["kunoichi", "soldier", "sand_ghost", "ronin", "captain", "cowgirl"]
+## The ships flown on the circuits: the ultra ones lead.
+const RACE_SHIPS := ["ship_omega", "ship_reaper", "ship_aurora", "ship_falcon", "ship_hornet"]
+const CIRCUIT_SHOT := 2.6
 const TEXT_COLOR := Color(0.16, 0.9, 1.0)
 const ACCENT := Color(1.0, 0.24, 0.95)
 const FONT := preload("res://assets/ui/fonts/kenney_mini_square_mono.ttf")
@@ -86,9 +91,15 @@ const GLINT_SPEED := 4.5
 const EMBER_COLOR := Color(1.0, 0.55, 0.15)
 const COUNT_TIME := 0.8
 
-enum Shot { ORBIT, DOLLY }
+enum Shot { ORBIT, DOLLY, RIDE }
 
 var _clock := 0.0
+## The circuit on stage, its ships flying, and the one the camera rides behind.
+var _circuit: RaceTrack
+var _racers: Array[RaceShip] = []
+var _ride: RaceShip
+## The collectible cards and the booster, over the picture.
+var _cards_layer := CanvasLayer.new()
 ## Everything on screen for the current chapter: freed when the next one starts.
 var _set := Node3D.new()
 var _camera := Camera3D.new()
@@ -159,6 +170,8 @@ func _ready() -> void:
 	glint_shader.code = GLINT_SHADER
 	_glint.shader = glint_shader
 	_build_embers()
+	_cards_layer.layer = 50
+	add_child(_cards_layer)
 	_build_overlay()
 	_run.call_deferred()
 
@@ -283,26 +296,157 @@ func _run() -> void:
 	_show_caption("%d HÉROS EXCLUSIFS" % exclusive.size(), "ULTIS BOOSTÉES", 4.6)
 	await _until(135.6)
 
-	# 135.6 s: the last boss, and what beating it earns.
+	# 135.6 s: the story mode, the season's heroes.
+	_build_showroom()
+	_flash()
+	var cast: Array = []
+	for id: String in STORY_HEROES:
+		cast.append(Loadout.find(id).item)
+	_line_up_heroes(cast)
+	for index in cast.size():
+		_add_sparkles(Vector3(index * HERO_SPACING, 0.1, 0))
+	var last_cast := (cast.size() - 1) * HERO_SPACING
+	_dolly(Vector3(last_cast + 0.8, 1.5, 4.8), Vector3(-0.8, 1.5, 4.6),
+			Vector3(last_cast + 0.8, 1.45, 0), Vector3(-0.8, 1.45, 0), 7.6)
+	_show_caption("NOUVEAU · MODE HISTOIRE", "LA SAISON 1 DE L'ANIME · %d CHAPITRES", 7.0, Story.CHAPTERS.size())
+	await _until(143.6)
+
+	# 143.6 s: the five circuits, their item boxes, the ultra ships.
+	for index in RaceTrack.CIRCUITS.size():
+		_load_circuit(index)
+		if index == 0:
+			_flash()
+		else:
+			_blink()
+		match index:
+			0:
+				_show_caption("NOUVEAU · %d CIRCUITS" % RaceTrack.CIRCUITS.size(), RaceTrack.CIRCUITS[0].name.to_upper(), CIRCUIT_SHOT)
+			3:
+				_show_caption("POWER-UPS SUR LA PISTE", "TURBO · MISSILE · BOUCLIER · MINES", CIRCUIT_SHOT)
+			4:
+				_show_caption("VAISSEAUX ULTRA", "OMÉGA · FAUCHEUSE · AURORE", CIRCUIT_SHOT)
+			_:
+				_show_caption("CIRCUIT", RaceTrack.CIRCUITS[index].name.to_upper(), CIRCUIT_SHOT)
+		await _until(143.6 + CIRCUIT_SHOT * (index + 1))
+	_clear()
+
+	# 156.6 s: the collectible cards, then a booster torn open.
+	_build_showroom()
+	_flash()
+	_dolly(Vector3(0, 1.4, 6), Vector3(0, 1.4, 5.5), Vector3(0, 1.2, 0), Vector3(0, 1.2, 0), 7.0)
+	_show_cards()
+	_show_caption("CARTES À COLLECTIONNER", "%d CARTES · 5 RARETÉS · HOLOGRAPHIQUES", 6.6, Cards.CATALOG.size())
+	await _until(160.6)
+	_tear_booster()
+	await _until(163.6)
+	for child in _cards_layer.get_children():
+		child.queue_free()
+
+	# 163.6 s: the last boss, and what beating it earns.
 	_load_arena(CITY)
 	_flash()
 	_present_boss(Boss.Kind.TITAN, 4.6)
 	_show_caption("AU BOUT DE LA VILLE", "LE TITAN", 3.8)
-	await _until(140.2)
+	await _until(168.2)
 	_clear_actors()
 	_blink()
 	_celebrate()
 	_show_caption("BATS-LE", "GAGNE LE SKIN CHAMPION", 3.8)
-	await _until(144.6)
+	await _until(172.6)
 
 	# End card.
 	_fade_shade(1.0, 0.9)
-	await _until(145.7)
+	await _until(173.7)
 	_end_sparks.emitting = true
-	_show_title("%s\nSUR ANDROID ET DANS LE NAVIGATEUR\n\n5 ARÈNES · 5 BOSS · %d ARMES · %d LAMES · %d HÉROS" % [
-			URL, Loadout.WEAPONS.size(), Loadout.MELEE.size(), Loadout.CHARACTERS.size()], 5.1, true)
+	_show_title("%s\nSUR ANDROID ET DANS LE NAVIGATEUR\n\nMODE HISTOIRE · 5 ARÈNES · 5 CIRCUITS · %d ARMES · %d HÉROS · %d CARTES" % [
+			URL, Loadout.WEAPONS.size(), Loadout.CHARACTERS.size(), Cards.CATALOG.size()], 4.3, true)
 	await _until(DURATION)
 	get_tree().quit()
+
+
+## Circuit `index` of the races, ships flying on it, the camera riding
+## behind the first one.
+func _load_circuit(index: int) -> void:
+	_clear()
+	var environment := Environment.new()
+	environment.background_mode = Environment.BG_COLOR
+	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.ambient_light_color = Color(0.6, 0.6, 0.8)
+	environment.ambient_light_energy = 0.9
+	environment.glow_enabled = true
+	var world := WorldEnvironment.new()
+	world.environment = environment
+	_set.add_child(world)
+	var sun := DirectionalLight3D.new()
+	sun.rotation_degrees = Vector3(-35, 40, 0)
+	_set.add_child(sun)
+	_circuit = RaceTrack.new()
+	_circuit.build(index)
+	_set.add_child(_circuit)
+	environment.background_color = _circuit.circuit.sky
+	if _circuit.circuit.has("fog"):
+		environment.fog_enabled = true
+		environment.fog_light_color = _circuit.circuit.fog
+		environment.fog_density = 0.0015
+	_camera.far = 2500.0
+	# Start a little before a row of item boxes, so that they fly through it.
+	var start: float = _circuit.boxes[0][0] - 60.0 if not _circuit.boxes.is_empty() else 0.0
+	for i in RACE_SHIPS.size():
+		var ship := RaceShip.new()
+		ship.configure(Loadout.find(RACE_SHIPS[(i + index) % RACE_SHIPS.size()]).item)
+		ship.distance = start - 4.0 * i
+		ship.offset = Vector2((i % 3 - 1) * 4.0, 0)
+		_set.add_child(ship)
+		ship.speed = RaceShip.BASE_SPEED
+		ship.fly(0.0, Vector2.ZERO, _circuit)
+		_racers.append(ship)
+	_racers[0].boost(CIRCUIT_SHOT)
+	_ride = _racers[1]
+	_shot = Shot.RIDE
+	_reset_lens()
+	_camera.fov = 72.0
+
+
+## Five cards, one per rarity, fanned out over the picture, shimmering.
+func _show_cards() -> void:
+	var picks := {}
+	for card: Dictionary in Cards.CATALOG:
+		if not picks.has(card.rarity) or card.id in ["card_kunoichi", "card_ship_nova", "card_volcano", "card_paladin", "card_titan_mk2"]:
+			picks[card.rarity] = card
+	var screen := get_viewport().get_visible_rect().size
+	var card_size := Vector2(300, 300 / CardView.ASPECT)
+	for rarity in 5:
+		var view := CardView.new(picks[rarity], true, 0)
+		view.size = card_size
+		view.pivot_offset = card_size / 2.0
+		var slot := rarity - 2
+		view.position = Vector2(screen.x / 2.0 - card_size.x / 2.0 + slot * 250.0, screen.y * 0.47 - card_size.y / 2.0 + absf(slot) * 30.0)
+		view.rotation = slot * 0.12
+		view.modulate.a = 0.0
+		_cards_layer.add_child(view)
+		var tween := view.create_tween()
+		tween.tween_interval(0.15 * rarity)
+		tween.tween_property(view, "modulate:a", 1.0, 0.3)
+		tween.parallel().tween_property(view, "position:y", view.position.y, 0.4).from(view.position.y + 120.0) \
+				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+## The cards make way for a booster, which tears open.
+func _tear_booster() -> void:
+	for child in _cards_layer.get_children():
+		var out := (child as Control).create_tween()
+		out.tween_property(child, "modulate:a", 0.0, 0.3)
+	var screen := get_viewport().get_visible_rect().size
+	var pack := BoosterPack.new("rare")
+	pack.size = Vector2(320, 450)
+	pack.position = (screen - pack.size) / 2.0
+	_cards_layer.add_child(pack)
+	await get_tree().create_timer(1.0).timeout
+	if is_instance_valid(pack):
+		pack._set_progress(0.4)
+		await get_tree().create_timer(0.35).timeout
+	if is_instance_valid(pack):
+		pack._tear()
 
 
 ## The items of `items` earned by playing (the battle pass), and those sold
@@ -328,6 +472,10 @@ func _clear() -> void:
 	_clear_actors()
 	for child in _set.get_children():
 		child.queue_free()
+	_circuit = null
+	_racers.clear()
+	_ride = null
+	_camera.far = 400.0
 
 
 ## Frees the models on stage and keeps the set.
@@ -916,6 +1064,10 @@ func _reset_lens() -> void:
 func _place_camera() -> void:
 	var at := Vector3.ZERO
 	var look := _center
+	if _shot == Shot.RIDE and is_instance_valid(_ride):
+		var frame := _ride.global_transform
+		_camera.look_at_from_position(frame * Vector3(1.2, 2.2, 7.5), frame * Vector3(0, 0.4, -18.0), frame.basis.y)
+		return
 	if _shot == Shot.ORBIT:
 		at = _center + Vector3(cos(_angle), 0, sin(_angle)) * _radius + Vector3.UP * _height
 	else:
@@ -981,6 +1133,12 @@ func _process(delta: float) -> void:
 			character.place_in_hand(entry[1] as Node3D, "R", entry[2] as bool)
 	if _shot == Shot.ORBIT:
 		_angle += _speed * delta
+	for index in _racers.size():
+		var ship := _racers[index]
+		if is_instance_valid(ship) and _circuit:
+			# They weave a little, each its own way.
+			var goal := Vector2(sin(_clock * 0.8 + index * 1.7) * RaceTrack.HALF_WIDTH * 0.6, cos(_clock * 0.6 + index) * 1.5)
+			ship.fly(delta, (goal - ship.offset).limit_length(1.0), _circuit)
 	_place_camera()
 
 
