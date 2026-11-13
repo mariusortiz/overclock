@@ -169,12 +169,9 @@ func _subject(kind: String, reference: String) -> Node3D:
 		"frost":
 			# The giant skeleton in ice (see Boss._dress_frost).
 			var frost := _character(Boss.MODEL_DIR + str(Boss.INFO[Boss.Kind.FROST].model), &"idle")
-			var ice := StandardMaterial3D.new()
-			ice.albedo_color = Color(0.75, 0.9, 1.0)
-			ice.metallic = 0.3
-			ice.roughness = 0.15
-			for mesh: MeshInstance3D in frost.find_children("*", "MeshInstance3D", true, false):
-				mesh.material_override = ice
+			Boss.dress_frost.call_deferred(frost.get_child(0))
+			# The skeleton's face is on its other side: turn it to the camera.
+			frost.rotation.y += PI
 			return frost
 		"dance":
 			# A hero caught in the dance's most telling pose.

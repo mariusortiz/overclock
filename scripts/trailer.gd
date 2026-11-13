@@ -744,12 +744,7 @@ func _present_boss(kind: Boss.Kind, seconds: float) -> void:
 		for mesh: MeshInstance3D in boss.find_children("*", "MeshInstance3D", true, false):
 			mesh.material_override = material
 	if kind == Boss.Kind.FROST:
-		var ice := StandardMaterial3D.new()
-		ice.albedo_color = Color(0.75, 0.9, 1.0)
-		ice.metallic = 0.3
-		ice.roughness = 0.15
-		for mesh: MeshInstance3D in boss.find_children("*", "MeshInstance3D", true, false):
-			mesh.material_override = ice
+		Boss.dress_frost(boss)
 	var look := BOSS_SPOT + Vector3.UP * (hover + height * 0.55)
 	_dolly(BOSS_SPOT + Vector3(-height * 1.1, height * 0.25, height * 2.1),
 			BOSS_SPOT + Vector3(height * 1.0, height * 0.4, height * 1.7), look, look, seconds, true)

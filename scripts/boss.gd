@@ -231,6 +231,15 @@ func _glitch_jump() -> void:
 
 ## The giant skeleton turned to ice, a red bonnet on its head.
 func _dress_frost() -> void:
+	dress_frost(_model)
+
+
+## The Père Glaçon's look on any model of the skeleton (the boss, its card,
+## the trailer): ice all over, a red bonnet with a white pompom, and a big
+## white beard with a moustache. The bonnet and the beard follow the head;
+## they are placed once the model stands in its first pose, sized from its
+## height, in front of its face (a CharacterModel looks along -Z).
+static func dress_frost(model: Node3D) -> void:
 	var ice := StandardMaterial3D.new()
 	ice.albedo_color = Color(0.75, 0.9, 1.0)
 	ice.metallic = 0.3
@@ -238,36 +247,82 @@ func _dress_frost() -> void:
 	ice.emission_enabled = true
 	ice.emission = Color(0.4, 0.7, 1.0)
 	ice.emission_energy_multiplier = 0.25
-	for mesh: MeshInstance3D in _model.find_children("*", "MeshInstance3D", true, false):
+	for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
 		mesh.material_override = ice
-	var bonnet := MeshInstance3D.new()
-	var cone := CylinderMesh.new()
-	cone.top_radius = 0.0
-	cone.bottom_radius = 0.45
-	cone.height = 0.9
+	var skeleton: Skeleton3D = model.find_child("Skeleton3D", true, false)
+	if skeleton == null or skeleton.find_bone("Head") == -1:
+		return
+	var head := BoneAttachment3D.new()
+	head.bone_name = "Head"
+	skeleton.add_child(head)
+	for i in 3:
+		await model.get_tree().process_frame
+	if not is_instance_valid(head):
+		return
+	var bounds := AABB()
+	var first := true
+	for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		var box := mesh.global_transform * mesh.get_aabb()
+		bounds = box if first else bounds.merge(box)
+		first = false
+	# About the radius of the skull, whose middle is a little above the head bone.
+	var r := bounds.size.y * 0.11
+	var facing := model.global_basis.orthonormalized()
+	var up := facing.y
+	# The skeleton's face is on the model's +Z side.
+	var front := facing.z
+	var white := StandardMaterial3D.new()
+	white.albedo_color = Color(0.97, 0.98, 1.0)
+	white.roughness = 0.9
 	var red := StandardMaterial3D.new()
 	red.albedo_color = Color(0.85, 0.08, 0.1)
-	cone.material = red
-	bonnet.mesh = cone
-	var pompom := MeshInstance3D.new()
-	var ball := SphereMesh.new()
-	ball.radius = 0.14
-	ball.height = 0.28
-	var white := StandardMaterial3D.new()
-	white.albedo_color = Color.WHITE
-	ball.material = white
-	pompom.mesh = ball
-	pompom.position.y = 0.48
-	bonnet.add_child(pompom)
-	var head := BoneAttachment3D.new()
-	var skeleton: Skeleton3D = _model.find_child("Skeleton3D", true, false)
-	if skeleton and skeleton.find_bone("Head") != -1:
-		head.bone_name = "Head"
-		skeleton.add_child(head)
-		head.add_child(bonnet)
-		bonnet.position.y = 0.35
-		# The skeleton's own scale: the bonnet keeps its size in meters.
-		bonnet.scale = Vector3.ONE / maxf(skeleton.global_basis.get_scale().x, 0.001)
+	var top := head.global_position + up * r * 1.1
+	# The bonnet, leaning back a little, its pompom at the tip.
+	var bonnet := _part(CylinderMesh.new(), red)
+	(bonnet.mesh as CylinderMesh).top_radius = 0.0
+	(bonnet.mesh as CylinderMesh).bottom_radius = r * 1.15
+	(bonnet.mesh as CylinderMesh).height = r * 2.2
+	_attach(head, bonnet, top + up * r * 1.6 - front * r * 0.2, facing.rotated(facing.x, -0.35))
+	var pompom := _part(SphereMesh.new(), white)
+	(pompom.mesh as SphereMesh).radius = r * 0.32
+	(pompom.mesh as SphereMesh).height = r * 0.64
+	_attach(head, pompom, top + up * r * 2.65 - front * r * 0.6, facing)
+	var brim := _part(CylinderMesh.new(), white)
+	(brim.mesh as CylinderMesh).top_radius = r * 1.25
+	(brim.mesh as CylinderMesh).bottom_radius = r * 1.25
+	(brim.mesh as CylinderMesh).height = r * 0.35
+	_attach(head, brim, top + up * r * 0.6 - front * r * 0.05, facing)
+	# The beard: a long rounded point under the jaw, puffs along the cheeks.
+	var beard := _part(CylinderMesh.new(), white)
+	(beard.mesh as CylinderMesh).top_radius = r * 0.95
+	(beard.mesh as CylinderMesh).bottom_radius = r * 0.12
+	(beard.mesh as CylinderMesh).height = r * 2.2
+	_attach(head, beard, top - up * r * 1.85 + front * r * 0.75, facing.rotated(facing.x, -0.25))
+	for side in [-1.0, 0.0, 1.0]:
+		var puff := _part(SphereMesh.new(), white)
+		(puff.mesh as SphereMesh).radius = r * 0.5
+		(puff.mesh as SphereMesh).height = r * 1.0
+		_attach(head, puff, top - up * r * 1.05 + front * r * 0.8 + facing.x * side * r * 0.7, facing)
+	# The moustache: two curls under the nose.
+	for side in [-1.0, 1.0]:
+		var curl := _part(CapsuleMesh.new(), white)
+		(curl.mesh as CapsuleMesh).radius = r * 0.2
+		(curl.mesh as CapsuleMesh).height = r * 1.0
+		_attach(head, curl, top - up * r * 0.65 + front * r * 1.1 + facing.x * side * r * 0.42,
+				facing.rotated(front, side * 1.2))
+
+
+static func _part(mesh: Mesh, material: Material) -> MeshInstance3D:
+	var part := MeshInstance3D.new()
+	part.mesh = mesh
+	part.material_override = material
+	return part
+
+
+## Puts `part` under the head at `at`, turned by `basis` (world space, unscaled).
+static func _attach(head: Node3D, part: Node3D, at: Vector3, basis: Basis) -> void:
+	head.add_child(part)
+	part.global_transform = Transform3D(basis, at)
 
 
 ## The Titan's body, black, with a green glow: the Virus in a body.
