@@ -309,7 +309,7 @@ Sans serveur, par codes. Dans CARTES, touche une carte que tu possèdes, puis EN
 
 ## Le Créateur
 
-Le personnage du créateur du jeu, à tête de vache, et le plus puissant de tous : 300 PV, 30 % plus rapide, et l'ulti **Accès root** (×3) qui efface tous les ennemis, entame les boss d'un tiers et rend toute la vie. Il vient avec son arme à feu (**Code source** : 40 dégâts, 8 tirs/s, rayon qui transperce, chargeur 200), sa lame (**Ctrl+Alt+Suppr** : 99 dégâts, 4 m, large balayage), son skin **Matrice** (pluie de code verte, pour l'arme et la lame), son vaisseau **Mainframe** (vitesse 140 %, maniabilité 170 %, bouclier 10, tir ×3, capacité **Accès admin**) et sa carte, la seule de rareté **Hacker** (au-dessus de mythique : jamais en booster, hors album, numéro 000). Il reste à pleine puissance partout, multijoueur compris. On ne l'obtient qu'avec un code secret (ni boutique, ni passe, ni code de test).
+Le personnage du créateur du jeu, à tête de vache, et le plus puissant de tous : 300 PV, 30 % plus rapide, et l'ulti **Accès root** (×3) qui efface tous les ennemis, entame les boss d'un tiers et rend toute la vie. Il vient avec son arme à feu (**Code source** : 40 dégâts, 8 tirs/s, rayon qui transperce, chargeur 200), sa lame (**Ctrl+Alt+Suppr**, une épée longue : 99 dégâts, 4 m, large balayage), son skin **Matrice** (pluie de code verte, pour l'arme et la lame), son vaisseau **Mainframe** (vitesse 140 %, maniabilité 170 %, bouclier 10, tir ×3, capacité **Accès admin**) et sa carte, la seule de rareté **Hacker** (au-dessus de mythique : jamais en booster, hors album, numéro 000). Il reste à pleine puissance partout, multijoueur compris. On ne l'obtient qu'avec un code secret (ni boutique, ni passe, ni code de test).
 
 ## Codes
 

@@ -273,6 +273,18 @@ def spear():
     m.save("spear", 1.2)
 
 
+def sword():
+    """A straight, double-edged long sword: a cross guard, a wrapped grip, a
+    pommel (Le Créateur's blade)."""
+    m = Model()
+    m.tube("Wrap", [(0, -0.17), (0, 0.0), (0, 0.12)], [0.018, 0.02, 0.018], 0.016)
+    m.box("Brass", (0, -0.19, 0), (0.036, 0.036, 0.03))
+    m.tube("Guard", [(-0.11, 0.135), (0.11, 0.135)], 0.018, 0.016)
+    m.tube("Accent", [(-0.022, 0.135), (0.022, 0.135)], 0.028, 0.024)
+    m.dagger([(0.15, 0.034), (0.5, 0.031), (0.85, 0.025), (0.99, 0.012), (1.06, 0.0)], 0.012)
+    m.save("sword", 1.15)
+
+
 # --- Material textures (tileable) ----------------------------------------------
 
 SIZE = 128
@@ -315,7 +327,7 @@ def crosshatch(base, line, step, width):
 
 os.makedirs(MODEL_DIR, exist_ok=True)
 os.makedirs(TEXTURE_DIR, exist_ok=True)
-for build in (knife, kunai, butterfly, karambit, katana, machete, axe, mace, spear):
+for build in (knife, kunai, butterfly, karambit, katana, machete, axe, mace, spear, sword):
     build()
 steel().save(TEXTURE_DIR + "steel.png")
 wood().save(TEXTURE_DIR + "wood.png")

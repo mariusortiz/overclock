@@ -209,7 +209,10 @@ const SILENCER_LENGTH := 0.78  # in model units
 ## The scope and the silencer are drawn for the Quaternius guns. On an exotic
 ## gun (another kit, at another scale) they get the size they have on an
 ## assault rifle, a little smaller on a short gun.
-const ACCESSORY_SCALE := 0.19
+## Scopes and silencers: smaller than the gun's own scale (ACCESSORY_SHRINK),
+## and for the exotic guns, whose models are drawn bigger, a fixed size.
+const ACCESSORY_SCALE := 0.13
+const ACCESSORY_SHRINK := 0.65
 const RIFLE_LENGTH := 0.95
 ## Parts of a gun that a skin leaves alone (material names of the models).
 const UNPAINTED_PARTS: Array[String] = ["Black", "Black2", "Glass", "DarkMetal"]
@@ -244,7 +247,7 @@ const MELEE := [
 	{"id": "katana", "name": "Katana", "model": "katana",
 		"damage": 7, "range": 3.2, "cooldown": 0.7, "sweep": true, "cone": 80.0, "knockback": 0.0},
 	# Le Créateur's blade, only with a code.
-	{"id": "ctrl_alt_del", "name": "Ctrl+Alt+Suppr", "model": "katana", "code": true,
+	{"id": "ctrl_alt_del", "name": "Ctrl+Alt+Suppr", "model": "sword", "code": true,
 		"damage": 99, "range": 4.0, "cooldown": 0.35, "sweep": true, "cone": 120.0, "knockback": 6.0},
 ]
 
@@ -370,7 +373,9 @@ static func weapon_layout(item: Dictionary, skin: Dictionary) -> Dictionary:
 		"muzzle": Vector3(0, data.barrel_y, -high.x) * s,
 		"scope": Vector3(0, data.top_y, -(low.x + high.x) / 2.0) * s,
 	}
-	var a := s if not item.get("shop", false) else ACCESSORY_SCALE * clampf(item.length / RIFLE_LENGTH, 0.65, 1.0)
+	# The exotic "Blaster" models are drawn bigger than the pack's guns.
+	var exotic := str(item.model).begins_with("Blaster")
+	var a := s * ACCESSORY_SHRINK if not exotic else ACCESSORY_SCALE * clampf(item.length / RIFLE_LENGTH, 0.65, 1.0)
 	layout.accessory_basis = Basis(Vector3(0, 0, -a), Vector3(0, a, 0), Vector3(a, 0, 0))
 	if skin.silencer:
 		layout.silencer = layout.muzzle
