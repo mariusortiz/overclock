@@ -287,6 +287,18 @@ Le code est prêt (`scripts/billing.gd`), mais l'achat de gemmes reste inactif t
 
 Limite : les achats sont vérifiés par Google sur le téléphone, sans serveur de vérification. C'est suffisant pour un jeu solo, mais un joueur déterminé peut tricher sur sa propre sauvegarde.
 
+## Codes
+
+Le bouton CODE de l'accueil ouvre un champ : un code valide donne des récompenses (gemmes, crédits, héros, armes et skins de la boutique, cartes, boosters, passe de combat). Chaque code ne sert qu'une fois par sauvegarde, sauf le code de test. Majuscules et espaces ne comptent pas.
+
+Les codes ne sont pas écrits dans le dépôt (il est public) : `scripts/promo_codes.gd` ne garde que leur empreinte SHA-256, avec la récompense. Pour en ajouter un, calculer l'empreinte du code en majuscules sans espaces :
+
+```bash
+python3 -c "import hashlib; print(hashlib.sha256('MONCODE'.encode()).hexdigest())"
+```
+
+puis ajouter une ligne à `CODES` avec la récompense (`gems`, `credits`, `items`, `cards`, `boosters`, `pass_complete`). Le code reste valable tant que la ligne existe : la retirer le désactive à la prochaine version. Tout se passe sur le téléphone, sans serveur : un code partagé publiquement peut être utilisé par tout le monde, une fois chacun.
+
 ## Boutique du site (produits dérivés)
 
 La page `site/boutique.html` (publiée sur https://overclock.randomlabs.dev/site/boutique.html) présente 7 articles : deux t-shirts, un sweat, une affiche, un mug, une planche d'autocollants et un tote bag. Le site ne vend rien lui-même : chaque bouton mène vers un service d'impression à la demande, qui gère paiement, fabrication et livraison. Tant qu'aucun lien n'est renseigné, les boutons affichent « Bientôt disponible ».

@@ -47,6 +47,16 @@ static func buy(id: String, price: int, currency: String) -> bool:
 	return true
 
 
+## Adds `id` to what the player owns, for free (a code). False if already owned.
+static func give(id: String) -> bool:
+	if owns(id):
+		return false
+	var owned := _owned()
+	owned.append(id)
+	SaveData.save_progress(OWNED_KEY, owned)
+	return true
+
+
 ## Pays `price` for something used up (a booster). False if too poor.
 static func spend(price: int, currency: String) -> bool:
 	var balance := credits() if currency == CREDITS_KEY else gems()

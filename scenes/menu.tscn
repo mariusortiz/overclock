@@ -99,14 +99,21 @@ theme_override_constants/separation = 12
 [node name="Profile" type="Button" parent="Right/Box/Row"]
 custom_minimum_size = Vector2(0, 84)
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 24
 text = "DÉFIS · STATS"
 
 [node name="Settings" type="Button" parent="Right/Box/Row"]
 custom_minimum_size = Vector2(0, 84)
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 24
 text = "RÉGLAGES"
+
+[node name="Code" type="Button" parent="Right/Box/Row"]
+custom_minimum_size = Vector2(0, 84)
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.85
+theme_override_font_sizes/font_size = 24
+text = "CODE"
 
 [node name="SettingsPanel" type="Control" parent="."]
 visible = false

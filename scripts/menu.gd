@@ -57,6 +57,7 @@ func _ready() -> void:
 	$Right/Box/Row/Settings.pressed.connect(func() -> void: _settings_panel.visible = true)
 	$Right/Box/Row/Profile.pressed.connect(_profile_panel.open)
 	$SettingsPanel/Center/Panel/Box/Close.pressed.connect(func() -> void: _settings_panel.visible = false)
+	$Right/Box/Row/Code.pressed.connect(_open_code_panel)
 
 
 ## Under the hero: what is equipped. Bottom right: the version.
@@ -150,3 +151,67 @@ func _build_mode_panel() -> void:
 	back.pressed.connect(func() -> void: _mode_panel.visible = false)
 	box.add_child(back)
 	move_child(_mode_panel, -1)
+
+
+## The code field: a code typed here gives its rewards (see PromoCodes).
+func _open_code_panel() -> void:
+	var panel_root := Control.new()
+	panel_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(panel_root)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.7)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	panel_root.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	panel_root.add_child(center)
+	var panel := PanelContainer.new()
+	center.add_child(panel)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 14)
+	panel.add_child(box)
+	var title := Label.new()
+	title.text = "CODE"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 36)
+	title.add_theme_color_override("font_color", Color(0.16, 0.83, 1.0))
+	box.add_child(title)
+	var field := LineEdit.new()
+	field.placeholder_text = "Entre ton code"
+	field.custom_minimum_size = Vector2(520, 72)
+	field.add_theme_font_size_override("font_size", 30)
+	field.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	field.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_DEFAULT
+	box.add_child(field)
+	var message := Label.new()
+	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	message.custom_minimum_size.x = 520
+	message.add_theme_font_size_override("font_size", 22)
+	box.add_child(message)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	box.add_child(row)
+	var submit := func() -> void:
+		var result := PromoCodes.redeem(field.text)
+		message.text = ("Obtenu : " + result[1]) if result[0] else result[1]
+		message.add_theme_color_override("font_color", Color(1.0, 0.8, 0.25) if result[0] else Color(1.0, 0.4, 0.4))
+		if result[0]:
+			field.text = ""
+	var validate := Button.new()
+	validate.text = "VALIDER"
+	validate.custom_minimum_size = Vector2(0, 64)
+	validate.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	validate.add_theme_font_size_override("font_size", 24)
+	validate.pressed.connect(submit)
+	row.add_child(validate)
+	field.text_submitted.connect(func(_text: String) -> void: submit.call())
+	var close := Button.new()
+	close.text = "FERMER"
+	close.custom_minimum_size = Vector2(0, 64)
+	close.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	close.add_theme_font_size_override("font_size", 24)
+	# Reloads the home screen, so its credits, gems and boosters are up to date.
+	close.pressed.connect(get_tree().reload_current_scene, CONNECT_DEFERRED)
+	row.add_child(close)
+	field.grab_focus()
