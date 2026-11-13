@@ -190,10 +190,12 @@ jobs:
           site="$RUNNER_TEMP/site"
           cp -r build/web "$site"
           touch "$site/.nojekyll"
+          # Custom domain (a CNAME record points it to mariusortiz.github.io).
+          echo "overclock.randomlabs.dev" > "$site/CNAME"
           # Earlier builds installed a caching service worker: this file takes its
           # place and removes it (see tools/remove_service_worker.js).
           cp tools/remove_service_worker.js "$site/index.service.worker.js"
-          # The one-page website (site/), next to the game: .../overclock-builds/site/
+          # The one-page website (site/), next to the game: https://overclock.randomlabs.dev/site/
           mkdir -p "$site/site"
           cp -r site/index.html site/boutique.html site/boutique.json site/img site/kenney_mini_square_mono.ttf "$site/site/"
           cd "$site"

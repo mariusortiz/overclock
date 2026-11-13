@@ -8,7 +8,7 @@ extends Node
 ##   godot --write-movie trailer.avi --fixed-fps 30 res://scenes/tools/trailer.tscn
 ## The music is laid over the picture afterwards, by the same workflow.
 
-const URL := "mariusortiz.github.io/overclock-builds"
+const URL := "overclock.randomlabs.dev"
 const DURATION := 151.0
 const TEXT_COLOR := Color(0.16, 0.9, 1.0)
 const ACCENT := Color(1.0, 0.24, 0.95)

@@ -4,7 +4,7 @@ Shooter sci-fi en 3D low-poly pour Android, en vue à la troisième personne. Tu
 
 ## Tester le jeu
 
-https://mariusortiz.github.io/overclock-builds/
+https://overclock.randomlabs.dev/
 
 Cette version web est mise à jour à chaque push sur `main`. Elle s'ouvre aussi dans le navigateur d'un téléphone.
 
@@ -20,14 +20,14 @@ Ouvre-le sur le téléphone, puis installe l'APK (il faut autoriser le navigateu
 
 ### Site
 
-Page de présentation (trailer, anime, liens pour jouer et pour l'APK) : https://mariusortiz.github.io/overclock-builds/site/
+Page de présentation (trailer, anime, liens pour jouer et pour l'APK) : https://overclock.randomlabs.dev/site/
 
 Sa source est dans `site/`, publiée avec chaque build web. Godot l'ignore (`site/.gdignore`).
 
 ### Vidéos
 
-- Trailer (2 min 30) : https://mariusortiz.github.io/overclock-builds/trailer.html
-- Anime, épisode 1 « L'escouade » (2 min) : https://mariusortiz.github.io/overclock-builds/anime.html
+- Trailer (2 min 30) : https://overclock.randomlabs.dev/trailer.html
+- Anime, épisode 1 « L'escouade » (2 min) : https://overclock.randomlabs.dev/anime.html
 
 Les deux sont jouées par le moteur avec les modèles du jeu (`scripts/trailer.gd`, `scripts/anime.gd`) et rendues par leur propre workflow GitHub Actions quand ces fichiers changent. L'anime ajoute un rendu en cel-shading (aplats de lumière et contours à l'encre), des bulles façon manga, des lignes de vitesse et des images d'impact.
 
@@ -289,7 +289,7 @@ Limite : les achats sont vérifiés par Google sur le téléphone, sans serveur 
 
 ## Boutique du site (produits dérivés)
 
-La page `site/boutique.html` (publiée sur `/overclock-builds/site/boutique.html`) présente 7 articles : deux t-shirts, un sweat, une affiche, un mug, une planche d'autocollants et un tote bag. Le site ne vend rien lui-même : chaque bouton mène vers un service d'impression à la demande, qui gère paiement, fabrication et livraison. Tant qu'aucun lien n'est renseigné, les boutons affichent « Bientôt disponible ».
+La page `site/boutique.html` (publiée sur https://overclock.randomlabs.dev/site/boutique.html) présente 7 articles : deux t-shirts, un sweat, une affiche, un mug, une planche d'autocollants et un tote bag. Le site ne vend rien lui-même : chaque bouton mène vers un service d'impression à la demande, qui gère paiement, fabrication et livraison. Tant qu'aucun lien n'est renseigné, les boutons affichent « Bientôt disponible ».
 
 Pour ouvrir la boutique :
 

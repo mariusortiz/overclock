@@ -10,7 +10,7 @@ extends Node
 ##   godot --write-movie ep.avi --fixed-fps 30 res://scenes/tools/anime/ep02.tscn
 
 const FONT := preload("res://assets/ui/fonts/kenney_mini_square_mono.ttf")
-const URL := "mariusortiz.github.io/overclock-builds"
+const URL := "overclock.randomlabs.dev"
 const WORLD_LAYER := 1
 const BAR_HEIGHT := 0.085
 const ARENAS := ["station", "desert", "jungle", "volcano", "city"]
