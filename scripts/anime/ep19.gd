@@ -8,7 +8,7 @@ extends Season2Episode
 func _init() -> void:
 	episode_number = 19
 	episode_title = "CTRL+Z"
-	duration = 108.0
+	duration = 87.6
 
 
 func _story() -> void:
@@ -114,4 +114,4 @@ func _story() -> void:
 	await _until(74.0)
 	_say(ships[0], "Demain, on redémarre ce monde.", 2.6, -1.0, 1.0)
 	await _until(77.0)
-	await _to_be_continued(94.0)
+	await _to_be_continued(77.6)

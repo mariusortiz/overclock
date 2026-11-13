@@ -7,7 +7,7 @@ extends Season2Episode
 func _init() -> void:
 	episode_number = 18
 	episode_title = "ÉCRAN NOIR"
-	duration = 106.0
+	duration = 71.6
 
 
 func _story() -> void:
@@ -105,4 +105,4 @@ func _story() -> void:
 	_fade_shade(1.0, 2.0)
 	_narrate("ÉCRAN NOIR.", 2.6, true)
 	await _until(61.0)
-	await _to_be_continued(90.0)
+	await _to_be_continued(61.6)

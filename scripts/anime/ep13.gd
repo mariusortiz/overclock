@@ -7,7 +7,7 @@ extends Season2Episode
 func _init() -> void:
 	episode_number = 13
 	episode_title = "LA COURSE CORROMPUE"
-	duration = 106.0
+	duration = 88.6
 
 
 func _story() -> void:
@@ -128,4 +128,4 @@ func _story() -> void:
 	await _until(73.6)
 	_narrate("Au même moment, dans le désert, le sable se met à trembler.", 3.6, true)
 	await _until(78.0)
-	await _to_be_continued(90.0)
+	await _to_be_continued(78.6)

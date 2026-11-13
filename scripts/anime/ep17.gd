@@ -7,7 +7,7 @@ extends Season2Episode
 func _init() -> void:
 	episode_number = 17
 	episode_title = "MISE À JOUR"
-	duration = 108.0
+	duration = 87.6
 
 
 func _story() -> void:
@@ -136,4 +136,4 @@ func _story() -> void:
 	_vanish(creator)
 	_embers(false)
 	await _until(77.0)
-	await _to_be_continued(94.0)
+	await _to_be_continued(77.6)

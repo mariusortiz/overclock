@@ -7,7 +7,7 @@ extends Season2Episode
 func _init() -> void:
 	episode_number = 11
 	episode_title = "LE GLITCH"
-	duration = 110.0
+	duration = 101.2
 
 
 func _story() -> void:
@@ -148,4 +148,4 @@ func _story() -> void:
 	await _until(87.2)
 	_say(squad.soldier, "Elle sait quelque chose. Il faut la retrouver.", 2.8, -1.0)
 	await _until(90.6)
-	await _to_be_continued(96.0)
+	await _to_be_continued(91.2)

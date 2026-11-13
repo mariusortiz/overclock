@@ -7,7 +7,7 @@ extends Season2Episode
 func _init() -> void:
 	episode_number = 15
 	episode_title = "LE CRÉATEUR"
-	duration = 110.0
+	duration = 90.0
 
 
 func _story() -> void:
@@ -29,7 +29,10 @@ func _story() -> void:
 	_glitch(1.0)
 	var creator := _creator(Vector3(0, 0, -4), PI)
 	_appear(creator, 0.9)
-	_dolly(Vector3(0, 1.4, 4), Vector3(0, 1.5, 3), Vector3(0, 1.5, -4), Vector3(0, 1.6, -4), 5.0)
+	# The squad turns to him.
+	for id: String in ids:
+		create_tween().tween_property(squad[id].get_parent(), "rotation:y", 0.0, 0.6)
+	_dolly(Vector3(3.4, 1.5, -0.6), Vector3(2.8, 1.6, -1.2), Vector3(0, 1.5, -4), Vector3(0, 1.6, -4), 5.0)
 	await _until(14.0)
 	_narrate("Le Créateur.", 2.4, true)
 	await _until(17.0)
@@ -38,7 +41,7 @@ func _story() -> void:
 	await _until(20.4)
 	_say(creator, "Les arènes. Les boss. Vous.", 2.4, -1.0)
 	await _until(23.2)
-	_dolly(Vector3(-2, 1.6, 3), Vector3(-1.6, 1.6, 2.6), Vector3(0, 1.3, 0), Vector3(0, 1.3, 0), 6.0)
+	_dolly(Vector3(-2, 1.6, -2.2), Vector3(-1.6, 1.6, -1.8), Vector3(0, 1.3, 0), Vector3(0, 1.3, 0), 6.0)
 	_say(squad.soldier, "Et le Virus ?", 1.6, 1.0)
 	await _until(25.4)
 	_say(creator, "Une ligne de trop. Une seule. Elle s'est mise à se recopier.", 3.4, -1.0)
@@ -49,7 +52,7 @@ func _story() -> void:
 	await _until(35.0)
 
 	# 35 s: the doubt.
-	_dolly(Vector3(3.2, 1.6, 2.4), Vector3(2.8, 1.6, 2.0), Vector3(1.6, 1.4, 0), Vector3(1.6, 1.4, 0), 8.0)
+	_dolly(Vector3(3.0, 1.6, -2.2), Vector3(2.6, 1.6, -1.8), Vector3(1.6, 1.4, 0), Vector3(1.6, 1.4, 0), 8.0)
 	_say(squad.sand_ghost, "Une vache en costume qui dit avoir créé le monde.", 3.0, 1.0)
 	await _until(38.4)
 	_say(squad.sand_ghost, "Et on doit la croire ?", 1.8, 1.0)
@@ -72,9 +75,9 @@ func _story() -> void:
 	_load_showroom()
 	squad.clear()
 	for index in ids.size():
-		squad[ids[index]] = _hero(ids[index], Vector3(-4.8 + 1.6 * index, 0, 0), PI, "none")
+		squad[ids[index]] = _hero(ids[index], Vector3(-4.8 + 1.6 * index, 0, 0), 0.0, "none")
 	creator = _creator(Vector3(0, 0, -4), PI)
-	_dolly(Vector3(3.2, 1.6, 2.4), Vector3(2.8, 1.6, 2.0), Vector3(1.6, 1.4, 0), Vector3(1.6, 1.4, 0), 6.0)
+	_dolly(Vector3(3.0, 1.6, -2.2), Vector3(2.6, 1.6, -1.8), Vector3(1.6, 1.4, 0), Vector3(1.6, 1.4, 0), 6.0)
 	await _until(45.0)
 	_say(squad.sand_ghost, "... D'accord. On te croit.", 2.2, 1.0)
 	await _until(47.6)
@@ -82,7 +85,8 @@ func _story() -> void:
 	await _until(50.2)
 
 	# 50.2 s: the plan.
-	_dolly(Vector3(0, 3.2, 6), Vector3(0, 2.8, 5), Vector3(0, 1.2, -2), Vector3(0, 1.2, -2), 10.0)
+	# From the side: him on one side, the squad facing him on the other.
+	_dolly(Vector3(9.0, 4.6, -2.6), Vector3(8.2, 4.2, -2.4), Vector3(0, 1.0, -2), Vector3(0, 1.0, -2), 10.0)
 	_say(creator, "Trois fragments du code source sont restés propres.", 3.0, -1.0)
 	await _until(53.6)
 	for index in 3:
@@ -109,4 +113,4 @@ func _story() -> void:
 	await _until(75.6)
 	_narrate("Trois fragments. Une course contre le Virus.", 3.2, true)
 	await _until(79.4)
-	await _to_be_continued(96.0)
+	await _to_be_continued(80.0)

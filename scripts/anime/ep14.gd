@@ -7,7 +7,7 @@ extends Season2Episode
 func _init() -> void:
 	episode_number = 14
 	episode_title = "LE VIRUS"
-	duration = 108.0
+	duration = 89.0
 
 
 func _story() -> void:
@@ -117,4 +117,4 @@ func _story() -> void:
 	await _until(75.6)
 	_say(captain, "Et un virus qu'on ne peut pas toucher.", 2.4, -1.0)
 	await _until(78.4)
-	await _to_be_continued(94.0)
+	await _to_be_continued(79.0)

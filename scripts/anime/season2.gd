@@ -45,6 +45,28 @@ func _load_arena(index: int) -> void:
 	_camera.far = 400.0
 
 
+## Narration, smaller than season 1's and wrapped when too long for the
+## screen (a long line used to run off it).
+func _narrate(text: String, seconds: float, big := false) -> void:
+	var screen := get_viewport().get_visible_rect().size
+	var font_size := 44 if big else 24
+	var room := screen.x - 160.0
+	_narration.text = text
+	_narration.add_theme_font_size_override("font_size", font_size)
+	_narration.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_narration.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER if big else HORIZONTAL_ALIGNMENT_LEFT
+	var width := FONT.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	_narration.custom_minimum_size.x = minf(width + 4.0, room)
+	_narration_box.reset_size()
+	_layer.move_child(_narration_box, -1)
+	var box := _narration_box.get_combined_minimum_size()
+	_narration_box.position = (screen - box) / 2.0 if big else Vector2(60, 110)
+	var tween := create_tween()
+	tween.tween_property(_narration_box, "modulate:a", 1.0, 0.25)
+	tween.tween_interval(seconds - 0.5)
+	tween.tween_property(_narration_box, "modulate:a", 0.0, 0.25)
+
+
 ## The picture tears and jumps for `seconds`: the Virus is near.
 func _glitch(seconds: float) -> void:
 	_glitch_left = seconds

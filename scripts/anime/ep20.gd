@@ -8,7 +8,7 @@ extends Season2Episode
 func _init() -> void:
 	episode_number = 20
 	episode_title = "REDÉMARRAGE"
-	duration = 120.0
+	duration = 98.0
 
 
 func _story() -> void:

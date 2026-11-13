@@ -7,7 +7,7 @@ extends Season2Episode
 func _init() -> void:
 	episode_number = 16
 	episode_title = "CODE SOURCE"
-	duration = 108.0
+	duration = 84.2
 
 
 func _story() -> void:
@@ -133,4 +133,4 @@ func _story() -> void:
 	await _until(72.2)
 	_vanish(creator)
 	await _until(73.6)
-	await _to_be_continued(94.0)
+	await _to_be_continued(74.2)
