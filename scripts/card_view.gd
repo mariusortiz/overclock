@@ -2,10 +2,11 @@ class_name CardView
 extends Control
 ## One collectible card, laid out like a trading card: name and power at the
 ## top, the art in a window, an ability box, a footer with its number, its
-## rarity symbol and the game's bolt. Rare cards and up have a holographic
-## foil on the art that moves when the card (or the phone) tilts; legendary
-## ones a foil frame as well; mythic ones are full-art, foil all over, with
-## glitter. A missing card is grey; a card can be face down (a booster).
+## rarity symbol and the game's bolt. Rare cards and up are holographic all
+## over (frame, art and text): rainbow bands and glitter that move when the
+## card (or the phone) tilts, stronger with the rarity. Legendary and mythic
+## cards are full-art. A missing card is grey; a card can be face down (a
+## booster).
 
 const FONT := preload("res://assets/ui/fonts/kenney_mini_square_mono.ttf")
 const BACK_COLOR := Color(0.06, 0.09, 0.25)
@@ -17,14 +18,17 @@ const SERIES_TINT := {
 	"Vaisseaux": Color(0.6, 0.8, 0.95), "Armes": Color(0.78, 0.78, 0.85), "Mêlée": Color(0.85, 0.75, 0.65),
 	"Arènes": Color(0.6, 0.85, 0.75), "Anime": Color(0.9, 0.65, 0.85), "Mythiques": Color(0.2, 0.15, 0.35),
 }
-## The holographic foil: rainbow bands that slide with the tilt and time,
-## glitter, stronger on the edges of the bands. `strength` 0 turns it off.
+## The holographic foil, laid over the whole card: a faint rainbow wash,
+## brighter rainbow bands that slide with the tilt and time, and glitter.
+## `strength` 0 turns the bands off; the card's rounded corners stay clean.
 const FOIL_SHADER := """
 shader_type canvas_item;
 uniform vec2 tilt = vec2(0.0);
 uniform float strength = 0.5;
 uniform float glitter = 0.0;
-uniform bool use_texture = true;
+uniform float wash = 0.0;
+uniform vec2 rect_size = vec2(100.0);
+uniform float radius = 0.0;
 vec3 hue(float h) {
 	return clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
 }
@@ -32,15 +36,17 @@ float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 void fragment() {
-	vec4 base = use_texture ? texture(TEXTURE, UV) * COLOR : COLOR;
+	vec2 p = abs(UV * rect_size - rect_size * 0.5) - (rect_size * 0.5 - vec2(radius));
+	float outside = length(max(p, 0.0)) - radius;
 	float phase = UV.x * 1.3 + UV.y * 0.9 + tilt.x * 0.8 + tilt.y * 0.5 + TIME * 0.06;
 	vec3 rainbow = hue(fract(phase));
 	float band = 0.5 + 0.5 * sin(phase * 18.0);
 	float shine = smoothstep(0.75, 1.0, band) * strength;
-	vec2 cell = floor(UV * 90.0);
-	float sparkle = step(0.993, hash(cell)) * (0.5 + 0.5 * sin(TIME * 5.0 + hash(cell + 3.0) * 30.0 + tilt.x * 6.0)) * glitter;
-	vec3 color = base.rgb + rainbow * shine * 0.6 + vec3(sparkle);
-	COLOR = vec4(color, use_texture ? base.a : shine * 0.55 + sparkle);
+	vec2 cell = floor(UV * rect_size / 3.0);
+	float sparkle = step(0.985, hash(cell)) * (0.5 + 0.5 * sin(TIME * 5.0 + hash(cell + 3.0) * 30.0 + tilt.x * 6.0)) * glitter;
+	vec3 color = mix(rainbow, vec3(1.0), sparkle);
+	float alpha = clamp(wash + shine * 0.55 + sparkle, 0.0, 1.0);
+	COLOR = vec4(color, outside > 0.0 ? 0.0 : alpha);
 }
 """
 
@@ -56,9 +62,9 @@ var copies := 0
 
 var _time := 0.0
 var _art := TextureRect.new()
-var _art_foil := ShaderMaterial.new()
-var _frame_foil := ColorRect.new()
-var _frame_material := ShaderMaterial.new()
+## The foil over the whole card, under the ink.
+var _foil := ColorRect.new()
+var _foil_material := ShaderMaterial.new()
 ## Texts and symbols, drawn over the art (see _draw_ink).
 var _ink := Control.new()
 ## Where the drawing helpers draw: this card, or the ink layer.
@@ -76,19 +82,17 @@ func _init(shown: Dictionary = {}, is_owned := true, card_copies := 0) -> void:
 	_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_art_foil.shader = _foil_shader
-	_frame_material.shader = _foil_shader
-	_frame_material.set_shader_parameter("use_texture", false)
-	_frame_foil.color = Color.WHITE
-	_frame_foil.material = _frame_material
-	_frame_foil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_foil_material.shader = _foil_shader
+	_foil.color = Color.WHITE
+	_foil.material = _foil_material
+	_foil.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_ink.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_ink.draw.connect(_draw_ink)
 
 
 func _ready() -> void:
-	add_child(_frame_foil)
 	add_child(_art)
+	add_child(_foil)
 	add_child(_ink)
 	resized.connect(_layout)
 	_layout()
@@ -113,24 +117,29 @@ func _layout() -> void:
 	_ink.position = Vector2.ZERO
 	_ink.size = size
 	_ink.queue_redraw()
-	_frame_foil.visible = false
+	_foil.visible = false
 	if not show_face:
 		queue_redraw()
 		return
 	_art.texture = Cards.art(card)
-	var full_art := _rarity() == Cards.Rarity.MYTHIC
+	var full_art := _is_full_art()
 	_art.position = Vector2(size.x * 0.05, size.y * 0.05) if full_art else Vector2(size.x * 0.08, size.y * 0.13)
 	_art.size = Vector2(size.x * 0.9, size.y * 0.9) if full_art else Vector2(size.x * 0.84, size.y * 0.42)
 	_art.self_modulate = Color.WHITE if owned else Color(0.12, 0.12, 0.16)
-	var foil := owned and _rarity() >= Cards.Rarity.RARE
-	_art.material = _art_foil if foil else null
-	_art_foil.set_shader_parameter("strength", [0.0, 0.18, 0.26, 0.32, 0.42][_rarity()])
-	_art_foil.set_shader_parameter("glitter", 1.0 if _rarity() >= Cards.Rarity.EPIC else 0.0)
-	_frame_foil.position = Vector2.ZERO
-	_frame_foil.size = size
-	_frame_material.set_shader_parameter("strength", 0.7)
-	_frame_material.set_shader_parameter("glitter", 1.0)
+	_foil.visible = owned and _rarity() >= Cards.Rarity.RARE
+	_foil.position = Vector2.ZERO
+	_foil.size = size
+	_foil_material.set_shader_parameter("rect_size", size)
+	_foil_material.set_shader_parameter("radius", float(int(size.x * 0.05)))
+	_foil_material.set_shader_parameter("strength", [0.0, 0.35, 0.5, 0.6, 0.75][_rarity()])
+	_foil_material.set_shader_parameter("wash", [0.0, 0.05, 0.08, 0.11, 0.14][_rarity()])
+	_foil_material.set_shader_parameter("glitter", [0.0, 0.5, 0.8, 1.0, 1.0][_rarity()])
 	queue_redraw()
+
+
+## Legendary and mythic cards: the art fills the card, under the texts.
+func _is_full_art() -> bool:
+	return _rarity() >= Cards.Rarity.LEGENDARY
 
 
 func _process(delta: float) -> void:
@@ -144,7 +153,7 @@ func _process(delta: float) -> void:
 		tilt = Vector2(gravity.x, gravity.y) / 9.8
 	elif get_global_rect().has_point(get_global_mouse_position()):
 		tilt = (get_local_mouse_position() / size - Vector2(0.5, 0.5)) * 2.0
-	_art_foil.set_shader_parameter("tilt", tilt)
+	_foil_material.set_shader_parameter("tilt", tilt)
 	if _rarity() >= Cards.Rarity.LEGENDARY:
 		queue_redraw()
 		_ink.queue_redraw()
@@ -172,8 +181,7 @@ func _draw() -> void:
 	inner.bg_color = tint
 	inner.set_corner_radius_all(int(radius * 0.6))
 	var panel := rect.grow(-size.x * 0.035)
-	var full_art := _rarity() == Cards.Rarity.MYTHIC
-	if not full_art:
+	if not _is_full_art():
 		draw_style_box(inner, panel)
 
 
@@ -184,11 +192,14 @@ func _draw_ink() -> void:
 	_canvas = _ink
 	var rarity_color: Color = Cards.RARITY[_rarity()].color
 	var border_color := _border_color()
-	var full_art := _rarity() == Cards.Rarity.MYTHIC
+	var full_art := _is_full_art()
 	var ink := Color(0.08, 0.08, 0.12) if owned and not full_art else Color.WHITE
 	if not owned:
 		ink = Color(0.6, 0.6, 0.65)
 	var font_size := size.x * 0.075
+	# Full-art: a dark band behind the header, so the name reads on the art.
+	if full_art:
+		_canvas.draw_rect(Rect2(size.x * 0.05, size.y * 0.05, size.x * 0.9, size.y * 0.075), Color(0, 0, 0, 0.45))
 	# Header: name, power.
 	_text(str(card.name).to_upper(), Vector2(size.x * 0.08, size.y * 0.1), font_size, ink, false, size.x * 0.6)
 	_text("%d" % Cards.power(card), Vector2(size.x * 0.92, size.y * 0.1), font_size * 1.2, ink, true)
