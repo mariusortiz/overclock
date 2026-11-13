@@ -67,6 +67,7 @@ var _boss: Boss
 var _stats := GameStats.new()
 var _streak := 0
 var _last_kill_time := -100.0
+var _pet: Pet
 
 @onready var player: Player = $Player
 @onready var hud: Hud = $HUD
@@ -75,6 +76,7 @@ var _last_kill_time := -100.0
 
 func _ready() -> void:
 	# Test options: "-- --arena=2" on the command line starts in that arena;
+	# "--pet=pet_drone" plays with that pet;
 	# "--autofire" holds the trigger down; "--ulti" fires the ultimate after 5 s.
 	var first_arena := 0
 	for argument in OS.get_cmdline_user_args():
@@ -83,6 +85,9 @@ func _ready() -> void:
 		elif argument == "--christmas":
 			# Test option: the Christmas waves.
 			Events.christmas_run = true
+		elif argument.begins_with("--pet="):
+			# Test option: plays with that pet, owned or not.
+			Pets.forced = Pets.find(argument.get_slice("=", 1))
 		elif argument == "--autofire":
 			Input.action_press("fire")
 		elif argument == "--ulti":
@@ -139,6 +144,15 @@ func _ready() -> void:
 
 	add_child(_stats)
 	_stats.setup(player, waves)
+
+	# The pet: beside the hero, its perk on.
+	Pets.enabled = true
+	player.move_speed *= Pets.speed_factor()
+	if Pets.selected().id != Pets.NONE.id:
+		_pet = Pet.new()
+		_pet.configure(Pets.selected(), player)
+		add_child(_pet)
+		waves.enemy_killed.connect(_pet.cheer)
 
 	if Net.mode == "waves" and Net.is_online():
 		_coop = WavesNet.new()
@@ -324,6 +338,9 @@ func _on_boss_killed(kind: Boss.Kind) -> void:
 	# In co-op, a boss felled by a guest is scored on the guest's device.
 	if waves.remote_blow == 0:
 		_add_score(BOSS_SCORE)
+	# An egg for each boss (it hatches after a few waves, see Pets).
+	if Pets.give_egg():
+		hud.show_banner("UN ŒUF ! IL ÉCLÔT APRÈS %d VAGUES" % Pets.HATCH_WAVES)
 	if Story.is_active():
 		_end_story_mission(true)
 		return
@@ -364,6 +381,7 @@ func coop_wave_cleared(number: int, boss: bool) -> void:
 	_add_score(WAVE_BONUS * number)
 	player.heal(WAVE_HEAL)
 	_stats.add("waves")
+	Pets.add_wave()
 	hud.show_banner("VAGUE %d TERMINÉE" % number)
 	_coop_perk_and_arena()
 
@@ -486,6 +504,7 @@ func _on_wave_cleared(number: int) -> void:
 	player.heal(WAVE_HEAL)
 	_arena_change_pending = waves.is_boss_wave()
 	hud.show_banner("VAGUE %d TERMINÉE   +%d" % [number, bonus])
+	Pets.add_wave()
 	if _coop:
 		_coop_perk_and_arena()
 		return
@@ -610,7 +629,7 @@ func _start_endless() -> void:
 
 ## XP this game is worth so far, if it ends without dying.
 func _earned_xp() -> int:
-	return BattlePass.xp_for_score(score) + _bonus_xp
+	return roundi((BattlePass.xp_for_score(score) + _bonus_xp) * Pets.xp_factor())
 
 
 func _on_enemies_left_changed(count: int) -> void:
@@ -619,6 +638,7 @@ func _on_enemies_left_changed(count: int) -> void:
 
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
+	Pets.enabled = false
 
 
 func _on_player_died() -> void:
@@ -673,7 +693,7 @@ func _show_results(result: Hud.Result) -> void:
 	hud.show_game_over(score, maxi(score, best), is_record, xp, unlocked, result, completed, rank, _stats.counts)
 	# Shop money: credits from the score (halved like the XP), gems for the
 	# bosses beaten and for finishing all of the day's challenges.
-	var credits := Wallet.credits_for_score(score)
+	var credits := roundi(Wallet.credits_for_score(score) * Pets.credits_factor())
 	if result == Hud.Result.DEATH or result == Hud.Result.QUIT:
 		@warning_ignore("integer_division")
 		credits /= 2
@@ -681,6 +701,7 @@ func _show_results(result: Hud.Result) -> void:
 	if not completed.is_empty() and Challenges.done_count() == Challenges.PER_DAY:
 		gems += Wallet.GEMS_FOR_ALL_CHALLENGES
 		Cards.give_booster("rare")
+		Pets.give_egg()
 	Wallet.add_credits(credits)
 	Wallet.add_gems(gems)
 	hud.show_rewards(credits, gems, Cards.reward_game(score, tier_before))

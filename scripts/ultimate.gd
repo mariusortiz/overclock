@@ -61,7 +61,7 @@ static func boost_text(boost: float) -> String:
 
 
 func add_charge(amount: float) -> void:
-	charge = minf(charge + amount, 1.0)
+	charge = minf(charge + amount * Pets.charge_factor(), 1.0)
 	charge_changed.emit(charge)
 
 

@@ -93,6 +93,10 @@ jobs:
           for wave in 5 10 15 20 25 30 35; do
             godot --headless --fixed-fps 60 --quit-after 1200 res://scenes/main.tscn -- --start-wave=$wave 2>&1 | tee -a run.log
           done
+          # The pets whose perk acts by itself, 15 s each in a boss wave.
+          for pet in pet_drone pet_wolf pet_eagle pet_dragon pet_shard pet_slime pet_llama pet_bat; do
+            godot --headless --fixed-fps 60 --quit-after 900 res://scenes/main.tscn -- --pet=$pet --start-wave=5 2>&1 | tee -a run.log
+          done
           # Zone capture: a whole match's first minute on two arenas.
           for arena in 0 3 7; do
             godot --headless --fixed-fps 60 --quit-after 3600 res://scenes/capture.tscn -- --arena=$arena 2>&1 | tee -a run.log
@@ -139,7 +143,7 @@ jobs:
           done
           rm "$save_dir/save.cfg"
           # The trailer's whole timeline, without drawing it.
-          godot --headless --fixed-fps 30 --quit-after 7100 res://scenes/tools/trailer.tscn 2>&1 | tee -a run.log
+          godot --headless --fixed-fps 30 --quit-after 7200 res://scenes/tools/trailer.tscn 2>&1 | tee -a run.log
           # The same for each anime episode.
           for scene in scenes/tools/anime/ep*.tscn; do
             godot --headless --fixed-fps 30 --quit-after 3800 "res://$scene" 2>&1 | tee -a run.log

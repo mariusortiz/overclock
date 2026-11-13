@@ -58,7 +58,7 @@ theme_override_colors/font_color = Color(0.16, 0.83, 1, 1)
 theme_override_font_sizes/font_size = 44
 text = "ARSENAL"
 
-[node name="Tabs" type="HBoxContainer" parent="Right/Box"]
+[node name="Tabs" type="HFlowContainer" parent="Right/Box"]
 theme_override_constants/separation = 10
 
 [node name="Scroll" type="ScrollContainer" parent="Right/Box"]

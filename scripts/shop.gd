@@ -13,6 +13,7 @@ const PRICES := {
 	"Skin d'arme": [2500, 180],
 	"Vaisseau": [8000, 600],
 	"Danse": [1500, 110],
+	"Animal": [4000, 300],
 }
 ## Overpowered items ("op" in Loadout): this many times the price of their kind.
 const OP_PRICE := 3.0
@@ -29,7 +30,7 @@ const GEM_PACKS: Array[Dictionary] = [
 ## Every item for sale, as {"item", "kind", "credits", "gems"}.
 static func catalog() -> Array[Dictionary]:
 	var offers: Array[Dictionary] = []
-	for group: Array in [["Personnage", Loadout.CHARACTERS], ["Arme", Loadout.WEAPONS], ["Skin d'arme", Loadout.SKINS], ["Vaisseau", Loadout.SHIPS], ["Danse", Dances.LIST]]:
+	for group: Array in [["Personnage", Loadout.CHARACTERS], ["Arme", Loadout.WEAPONS], ["Skin d'arme", Loadout.SKINS], ["Vaisseau", Loadout.SHIPS], ["Danse", Dances.LIST], ["Animal", Pets.LIST]]:
 		for item: Dictionary in group[1]:
 			# Event items are sold during their event only.
 			if item.get("shop", false) and Events.is_on(item.get("event", "")):

@@ -84,11 +84,38 @@ Huit vaisseaux pour la course, choisis dans l'onglet VAISSEAU de l'arsenal. Le D
 | Faucheuse (boutique, ULTRA) | 118 % | 120 % | 4 | 220 % | Trou noir : touche deux fois tous les vaisseaux devant |
 | Aurore (boutique, ULTRA) | 120 % | 150 % | 5 | 150 % | Chronos : ralentit tous les autres 3 s |
 
+
+## Animaux de compagnie
+
+17 compagnons qui suivent le héros (à sa droite) en vagues, en coop, en capture et en combat, sur l'accueil et dans l'arsenal (onglet ANIMAL). Chacun a un petit coup de main, actif en vagues, en coop et en capture contre les bots ; en combat et en capture contre d'autres joueurs, il n'est là que pour être vu.
+
+| Animal | Rareté | Bonus | Obtention |
+|---|---|---|---|
+| Chien | Commun | Rapporte : attire les bonus à moins de 10 m | Œuf |
+| Chat | Commun | Porte-bonheur : +10 % de chances de bonus par ennemi | Œuf |
+| Poussin | Commun | Piou : +10 % d'XP | Œuf |
+| Mouton | Commun | Laine : −10 % de dégâts reçus | Œuf |
+| Renard | Rare | Vif : +6 % de vitesse | Œuf |
+| Mini chauve-souris | Rare | Écho : une onde toutes les 3 s (2 dégâts) | Œuf |
+| Cochon | Rare | Tirelire : +10 % de crédits | Boutique |
+| Lama | Rare | Crachat : ralentit un ennemi toutes les 5 s | Boutique |
+| Carlin | Rare | Câlin : 1 PV par élimination | Palier 16 du passe saison 2 |
+| Loup | Épique | Morsure : 3 dégâts au contact toutes les 3 s | Œuf |
+| Mini slime | Épique | Gelée : 1 PV toutes les 3 s | Boutique |
+| Aigle | Épique | Piqué : 4 dégâts à 20 m toutes les 6 s | Palier 33 du passe saison 2 |
+| Drone | Épique | Tourelle : 1 dégât toutes les 1,5 s | Boutique |
+| Dragonnet | Légendaire | Souffle : enflamme un ennemi toutes les 5 s | Œuf |
+| Mini-Titan | Légendaire | Bouclier : annule un coup toutes les 20 s | Palier 57 du passe saison 2 |
+| Veau | Légendaire | Petit créateur : ulti 15 % plus rapide | Œuf |
+| Éclat de cristal | Légendaire | Chant : ralentit les ennemis proches toutes les 8 s | Œuf |
+
+**Œufs** : un par boss vaincu (vagues et coop) et un quand les trois défis du jour sont réussis, trois au plus en attente. Le premier éclôt après 10 vagues terminées (FAIRE ÉCLORE dans l'onglet ANIMAL) : 60 % commun, 28 % rare, 10 % épique, 2 % légendaire ; un animal déjà eu rapporte 100 gemmes. En boutique : 4000 crédits ou 300 gemmes. Chaque animal a sa carte (série Compagnons de l'extension). L'épisode hors-série 31 de l'anime les présente.
+
 ## Cartes à collectionner
 
 99 cartes en 10 séries : héros, ennemis (dont le tireur d'élite et le kamikaze), boss, vaisseaux, armes, armes de mêlée, skins, arènes, épisodes de l'anime et mythiques. Chaque carte a son nom, sa puissance, son illustration, un encadré de capacité (l'ulti du héros, la capacité du vaisseau, les stats de l'arme…), son numéro (012/099) et son symbole de rareté. Cinq raretés : commune (62 % des tirages), rare (26 %), épique (10 %, cadre or), légendaire (1,5 %, cadre or qui scintille, pleine illustration) et mythique (0,3 %, pleine illustration, cadre arc-en-ciel). La dernière carte d'un booster rare est rare ou mieux (légendaire ou mythique environ une fois sur vingt) ; celle d'un booster légendaire est légendaire ou mieux une fois sur deux. À partir de rare, toute la carte est holographique (reflets arc-en-ciel et paillettes, plus forts avec la rareté), et le reflet bouge quand on incline le téléphone, ou sous la souris.
 
-**Extension Saison 2** : 63 cartes de plus, numérotées à part (S01/S63) et hors des 99 de l'album, dans les mêmes boosters (environ une carte sur quatre) : **Matrice** (l'arène, le programme corrompu, le pare-feu, la pluie de code, le Virus, le Virus déchaîné), **Anime S2** (les épisodes 11 à 20), **Combat** (un contre un, uppercut, coup de pied sauté, garde, supers Clones et Arrêt du temps, le Titan d'arcade) **Boutique** (les 6 danses, l'Annihilateur, le Pistolet d'or), **Noël** (6 cartes, seulement pendant l'événement) **Passe S2** (les skins, danses, vaisseau et héros du passe saison 2, et le skin Platine des succès), **Portail** (la Planète de cristal, les Ruines stellaires, la sentinelle, le pillard, le Gardien, le Portail) et **Anime S3** (les épisodes 21 à 30). Chaque série complète rapporte sa récompense ; elles se recyclent, se fabriquent et s'échangent comme les autres.
+**Extension Saison 2** : 80 cartes de plus, numérotées à part (S01/S80) et hors des 99 de l'album, dans les mêmes boosters (environ une carte sur quatre) : **Matrice** (l'arène, le programme corrompu, le pare-feu, la pluie de code, le Virus, le Virus déchaîné), **Anime S2** (les épisodes 11 à 20), **Combat** (un contre un, uppercut, coup de pied sauté, garde, supers Clones et Arrêt du temps, le Titan d'arcade) **Boutique** (les 6 danses, l'Annihilateur, le Pistolet d'or), **Noël** (6 cartes, seulement pendant l'événement) **Passe S2** (les skins, danses, vaisseau et héros du passe saison 2, et le skin Platine des succès), **Portail** (la Planète de cristal, les Ruines stellaires, la sentinelle, le pillard, le Gardien, le Portail) **Anime S3** (les épisodes 21 à 30) et **Compagnons** (les 17 animaux de compagnie). Chaque série complète rapporte sa récompense ; elles se recyclent, se fabriquent et s'échangent comme les autres.
 
 Les cartes arrivent en boosters (3 cartes, 5 pour un rare, 7 pour un légendaire), à ouvrir dans CARTES (accueil) : on déchire le haut du booster en glissant le doigt le long du pointillé (ou d'un simple toucher), les cartes en sortent en pile, face cachée, la plus rare en dessous. Un toucher retourne la carte du dessus, un autre la met de côté ; à la fin, toutes s'affichent côte à côte. Une carte légendaire ou mythique a droit à un spectacle : elle tremble et s'illumine, des colonnes de lumière montent derrière elle, puis flash, confettis et fanfare (deux fanfares différentes, la plus grande pour les mythiques). Les boosters s'obtiennent :
 - un booster à chaque fin de partie (tous les modes), un deuxième au-delà de 8000 points ;

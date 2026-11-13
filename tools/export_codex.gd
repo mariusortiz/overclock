@@ -34,7 +34,7 @@ func _ready() -> void:
 		if argument.begins_with("--out="):
 			out = argument.get_slice("=", 1)
 	var art := _card_art()
-	var codex := {"heroes": [], "guns": [], "blades": [], "skins": [], "ships": [], "bosses": [], "arenas": []}
+	var codex := {"heroes": [], "guns": [], "blades": [], "skins": [], "ships": [], "pets": [], "bosses": [], "arenas": []}
 	for item: Dictionary in Loadout.CHARACTERS:
 		var ulti: Dictionary = Ultimate.INFO[item.ulti]
 		codex.heroes.append(_entry(item, art, {"ulti": ulti.name, "text": ulti.text, "boost": item.get("boost", 1.0),
@@ -44,6 +44,10 @@ func _ready() -> void:
 				"reload": item.reload_time}))
 	for item: Dictionary in Loadout.MELEE:
 		codex.blades.append(_entry(item, art, {"damage": item.damage, "range": item.range, "sweep": item.get("sweep", false)}))
+	for pet: Dictionary in Pets.LIST.slice(1):
+		var perk: Array = Pets.PERKS[pet.perk]
+		codex.pets.append({"id": pet.id, "name": pet.name, "rarity": Pets.RARITY_NAMES[pet.rarity], "perk": perk[0],
+				"text": perk[1], "how": Pets.unlock_text(pet), "image": _image("card_" + pet.id)})
 	for item: Dictionary in Loadout.SKINS:
 		codex.skins.append(_entry(item, art, {"kill": KILLS.get(item.get("kill", &""), ""), "animated": item.has("fx")}))
 	for item: Dictionary in Loadout.SHIPS:

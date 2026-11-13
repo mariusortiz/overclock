@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Codex Overclock</title>
-<meta name="description" content="Tout Overclock : héros, armes, lames, skins, vaisseaux, boss, arènes et cartes, avec leurs vraies stats et comment les obtenir.">
+<meta name="description" content="Tout Overclock : héros, armes, lames, skins, vaisseaux, animaux, boss, arènes et cartes, avec leurs vraies stats et comment les obtenir.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Overclock">
 <meta property="og:title" content="Codex Overclock">
@@ -68,7 +68,7 @@
 "use strict";
 const TABS = [
   ["heroes", "Héros"], ["guns", "Armes"], ["blades", "Lames"], ["skins", "Skins"],
-  ["ships", "Vaisseaux"], ["bosses", "Boss"], ["arenas", "Arènes"], ["cards", "Cartes"],
+  ["ships", "Vaisseaux"], ["pets", "Animaux"], ["bosses", "Boss"], ["arenas", "Arènes"], ["cards", "Cartes"],
 ];
 const percent = (value) => Math.round(value * 100) + " %";
 const number = (value) => String(Math.round(value * 10) / 10).replace(".", ",");
@@ -80,6 +80,7 @@ const VIEWS = {
   skins: (s) => ({ text: s.kill ? "L'ennemi " + s.kill + "." : "", stats: [["Finition animée", s.animated ? "oui" : "non"]] }),
   ships: (s) => ({ text: s.special ? s.special + " : " + s.text : "", stats: [["Vitesse", percent(s.speed)], ["Maniabilité", percent(s.handling)], ["Bouclier", s.shield]] }),
   bosses: (b) => ({ text: b.text, stats: [["Arène", b.arena], ["Vague", b.wave || "Noël"], ["Points de vie", b.health]] }),
+  pets: (p) => ({ text: p.perk + " : " + p.text, stats: [["Rareté", p.rarity]] }),
   arenas: (a) => ({ text: a.text, stats: [] }),
   cards: (c) => ({ text: c.ability && c.ability[1] ? c.ability[1] : "", stats: [["Numéro", c.number], ["Série", c.series], ["Puissance", c.power]] }),
 };

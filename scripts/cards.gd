@@ -31,7 +31,7 @@ const SERIES := [
 	["Mythiques", 5000, 250],
 	# The "Saison 2" expansion (EXPANSION): its own numbers, outside the 99.
 	["Matrice", 1500, 60], ["Anime S2", 2500, 100], ["Combat", 1500, 60], ["Boutique", 1800, 70], ["Noël", 1500, 80], ["Passe S2", 2000, 90],
-	["Portail", 1800, 70], ["Anime S3", 2500, 100],
+	["Portail", 1800, 70], ["Anime S3", 2500, 100], ["Compagnons", 2500, 100],
 	# Le Créateur's: only through his code, outside the album's count.
 	["Hacker", 10000, 500],
 ]
@@ -231,6 +231,24 @@ const EXPANSION := [
 	{"id": "card_ep28", "name": "Écarlate", "series": "Anime S3", "rarity": E, "art": ["image", "ep28"]},
 	{"id": "card_ep29", "name": "Le Gardien", "series": "Anime S3", "rarity": L, "art": ["image", "ep29"]},
 	{"id": "card_ep30", "name": "Retour", "series": "Anime S3", "rarity": L, "art": ["image", "ep30"]},
+	# The pets.
+	{"id": "card_pet_dog", "name": "Chien", "series": "Compagnons", "rarity": C, "art": ["pet", "pet_dog"]},
+	{"id": "card_pet_cat", "name": "Chat", "series": "Compagnons", "rarity": C, "art": ["pet", "pet_cat"]},
+	{"id": "card_pet_chick", "name": "Poussin", "series": "Compagnons", "rarity": C, "art": ["pet", "pet_chick"]},
+	{"id": "card_pet_sheep", "name": "Mouton", "series": "Compagnons", "rarity": C, "art": ["pet", "pet_sheep"]},
+	{"id": "card_pet_fox", "name": "Renard", "series": "Compagnons", "rarity": R, "art": ["pet", "pet_fox"]},
+	{"id": "card_pet_bat", "name": "Mini chauve-souris", "series": "Compagnons", "rarity": R, "art": ["pet", "pet_bat"]},
+	{"id": "card_pet_pig", "name": "Cochon", "series": "Compagnons", "rarity": R, "art": ["pet", "pet_pig"]},
+	{"id": "card_pet_llama", "name": "Lama", "series": "Compagnons", "rarity": R, "art": ["pet", "pet_llama"]},
+	{"id": "card_pet_pug", "name": "Carlin", "series": "Compagnons", "rarity": R, "art": ["pet", "pet_pug"]},
+	{"id": "card_pet_wolf", "name": "Loup", "series": "Compagnons", "rarity": E, "art": ["pet", "pet_wolf"]},
+	{"id": "card_pet_slime", "name": "Mini slime", "series": "Compagnons", "rarity": E, "art": ["pet", "pet_slime"]},
+	{"id": "card_pet_eagle", "name": "Aigle", "series": "Compagnons", "rarity": E, "art": ["pet", "pet_eagle"]},
+	{"id": "card_pet_drone", "name": "Drone", "series": "Compagnons", "rarity": E, "art": ["pet", "pet_drone"]},
+	{"id": "card_pet_dragon", "name": "Dragonnet", "series": "Compagnons", "rarity": L, "art": ["pet", "pet_dragon"]},
+	{"id": "card_pet_titan", "name": "Mini-Titan", "series": "Compagnons", "rarity": L, "art": ["pet", "pet_titan"]},
+	{"id": "card_pet_calf", "name": "Veau", "series": "Compagnons", "rarity": L, "art": ["pet", "pet_calf"]},
+	{"id": "card_pet_shard", "name": "Éclat de cristal", "series": "Compagnons", "rarity": L, "art": ["pet", "pet_shard"]},
 ]
 
 ## Every card there is: the album, the expansion, Le Créateur's.
@@ -311,6 +329,10 @@ static func ability(card: Dictionary) -> Array:
 		"melee":
 			var blade: Dictionary = Loadout.find(reference).item
 			return ["FRAPPE", "Dégâts %d · portée %s m." % [blade.damage, str(blade.range).trim_suffix(".0")]]
+		"pet":
+			var pet := Pets.find(reference)
+			var perk: Array = Pets.PERKS[pet.perk]
+			return ["COMPAGNON · " + str(perk[0]).to_upper(), perk[1]]
 		"boss", "titan", "virus", "frost", "guardian":
 			return ["BOSS", FLAVOR.get(card.id, "Garde la fin d'une arène.")]
 		"dance":

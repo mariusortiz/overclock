@@ -13,10 +13,10 @@ const BUTTON_HEIGHT := 64
 const GOLD := Color(1.0, 0.85, 0.3)
 const DEAL := Color(0.3, 1.0, 0.5)
 
-const TABS := ["JOUR", "HÉROS", "ARMES", "SKINS", "VAISSEAUX", "DANSES", "CARTES", "GEMMES"]
-const KINDS := ["", "Personnage", "Arme", "Skin d'arme", "Vaisseau", "Danse", "", ""]
-const CARDS_TAB := 6
-const GEMS_TAB := 7
+const TABS := ["JOUR", "HÉROS", "ARMES", "SKINS", "VAISSEAUX", "DANSES", "ANIMAUX", "CARTES", "GEMMES"]
+const KINDS := ["", "Personnage", "Arme", "Skin d'arme", "Vaisseau", "Danse", "Animal", "", ""]
+const CARDS_TAB := 7
+const GEMS_TAB := 8
 ## Overpowered items stand out in this color, with "ULTRA" in their detail.
 const ULTRA := Color(1.0, 0.24, 0.95)
 ## Booster packs of collectible cards (see Cards), bought again and again.
@@ -176,6 +176,9 @@ func _preview() -> void:
 		"Vaisseau":
 			_stage.focus(CharacterStage.Focus.SHIP)
 			_stage.show_ship(_viewed.item)
+		"Animal":
+			_stage.focus(CharacterStage.Focus.PET)
+			_stage.show_pet(_viewed.item)
 		"Danse":
 			# The hero dances it, on the spot.
 			_stage.focus(CharacterStage.Focus.CHARACTER)
@@ -214,6 +217,8 @@ func _show_detail() -> void:
 	var item: Dictionary = _viewed.item
 	_name.text = item.name
 	_info.text = "%s exclusif" % _viewed.kind.to_lower() if _viewed.kind != "Arme" else "Arme exotique"
+	if _viewed.kind == "Animal":
+		_info.text = "Animal de compagnie"
 	if _viewed.kind == "Danse":
 		_info.text = "Danse exclusive"
 	_info.text += "\n" + _description(item, _viewed.kind)
@@ -262,6 +267,8 @@ func _traits(item: Dictionary, kind: String) -> String:
 			return ", ".join(traits)
 		"Danse":
 			return "Se lance en jeu avec DANSE (touche B), dans la roue des danses."
+		"Animal":
+			return "%s · %s" % [Pets.RARITY_NAMES[item.rarity], Pets.perk_text(item)]
 		"Vaisseau":
 			var special: Array = Loadout.SHIP_SPECIALS[item.special]
 			return "%s : %s · vitesse %d %%, maniabilité %d %%, bouclier %d, tir x%s" % [special[0], special[1],
@@ -311,6 +318,8 @@ func _is_equipped(item: Dictionary) -> bool:
 			return Loadout.selected_weapon().id == item.id
 		"Vaisseau":
 			return Loadout.selected_ship().id == item.id
+		"Animal":
+			return Pets.selected().id == item.id
 	return Loadout.selected_skin().id == item.id
 
 
@@ -322,4 +331,6 @@ func _key(kind: String) -> String:
 			return Loadout.WEAPON_KEY
 		"Vaisseau":
 			return Loadout.SHIP_KEY
+		"Animal":
+			return Pets.KEY
 	return Loadout.SKIN_KEY

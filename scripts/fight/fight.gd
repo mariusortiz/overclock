@@ -116,6 +116,13 @@ func _ready() -> void:
 			fighter.signature_used.connect(_run_signature)
 	fighters[0].opponent = fighters[1]
 	fighters[1].opponent = fighters[0]
+	# The first player's pet watches from behind the line: no perk here.
+	Pets.enabled = false
+	if FightSetup.mode != "online" and Pets.selected().id != Pets.NONE.id:
+		var pet := Pet.new()
+		pet.configure(Pets.selected(), fighters[0])
+		pet.offset = Vector3(0, 0, -1.4)
+		add_child(pet)
 	add_child(_camera)
 	_camera.fov = 50.0
 	_camera.far = 300.0

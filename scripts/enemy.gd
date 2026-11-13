@@ -587,7 +587,7 @@ func _die() -> void:
 	if role == &"kamikaze":
 		_blow_up()
 	died.emit()
-	if randf() < drop_chance:
+	if randf() < drop_chance + Pets.drop_bonus():
 		_drop_power_up()
 	_death_sound.play()
 	if _tween:

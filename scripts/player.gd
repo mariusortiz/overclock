@@ -138,6 +138,8 @@ func add_perk(type: Perk.Type) -> void:
 func on_enemy_killed() -> void:
 	heal(Perk.LIFESTEAL_HEAL * perks.get(Perk.Type.LIFESTEAL, 0))
 	ultimate.add_charge(Ultimate.KILL_CHARGE)
+	if Pets.perk() == &"cuddle":
+		heal(1)
 
 
 ## `from`: where the hit came from, when known.
@@ -148,6 +150,10 @@ func take_damage(amount: int, from := Vector3.INF) -> void:
 		hurt_from.emit(from)
 	if has_effect(PowerUp.Type.SHIELD):
 		amount = ceili(amount / 2.0)
+	# The pet's wool or shield.
+	amount = Pets.filter_damage(amount)
+	if amount <= 0:
+		return
 	health = maxi(health - amount, 0)
 	health_changed.emit(health, max_health)
 	damaged.emit()

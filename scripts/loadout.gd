@@ -302,6 +302,8 @@ const SHIP_KEY := "ship"
 
 
 static func is_unlocked(item: Dictionary) -> bool:
+	if Pets.is_pet(item):
+		return Pets.is_owned(item)
 	if item.id == Cards.COLLECTOR_SKIN_ID:
 		return Cards.album_complete()
 	if item.id == Achievements.PLATINUM_SKIN:
@@ -500,6 +502,8 @@ static func _melee_material(part_name: String) -> StandardMaterial3D:
 
 ## Why a locked item is locked, for the menus.
 static func unlock_text(item: Dictionary) -> String:
+	if Pets.is_pet(item):
+		return Pets.unlock_text(item)
 	if item.id == Cards.COLLECTOR_SKIN_ID:
 		return "Complète l'album de cartes"
 	if item.id == Achievements.PLATINUM_SKIN:
@@ -521,7 +525,7 @@ static func unlock_text(item: Dictionary) -> String:
 
 ## Finds an item of any list by its id: {"item": ..., "kind": "Arme"}.
 static func find(id: String) -> Dictionary:
-	for group: Array in [["Personnage", CHARACTERS], ["Arme", WEAPONS], ["Corps à corps", MELEE], ["Skin d'arme", SKINS], ["Vaisseau", SHIPS]]:
+	for group: Array in [["Personnage", CHARACTERS], ["Arme", WEAPONS], ["Corps à corps", MELEE], ["Skin d'arme", SKINS], ["Vaisseau", SHIPS], ["Animal", Pets.LIST]]:
 		for item: Dictionary in group[1]:
 			if item.id == id:
 				return {"item": item, "kind": group[0]}

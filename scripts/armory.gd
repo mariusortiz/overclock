@@ -6,7 +6,7 @@ const MENU_SCENE := "res://scenes/menu.tscn"
 const CARD_SIZE := Vector2(214, 108)
 ## Characters that fit on one line of a card.
 const CARD_LINE_LENGTH := 12
-## Five tabs share the width of the panel.
+## The tabs wrap on two lines when they do not fit.
 const TAB_FONT_SIZE := 15
 
 ## One tab per kind of item. "stats" lists what the detail panel shows:
@@ -21,12 +21,13 @@ var _tabs := [
 	{"label": "SKIN M.", "key": Loadout.MELEE_SKIN_KEY, "items": Loadout.SKINS, "stats": []},
 	{"label": "VAISSEAU", "key": Loadout.SHIP_KEY, "items": Loadout.SHIPS,
 		"stats": [["VITESSE", "velocity", 1.1], ["MANIABILITÉ", "handling", 1.4], ["BOUCLIER", "shield", 5.0], ["CADENCE", "fire", 1.7]]},
+	{"label": "ANIMAL", "key": Pets.KEY, "items": Pets.LIST, "stats": []},
 ]
 var _tab_index := 0
 var _viewed: Dictionary
 
 @onready var _stage: CharacterStage = $Stage
-@onready var _tab_bar: HBoxContainer = $Right/Box/Tabs
+@onready var _tab_bar: HFlowContainer = $Right/Box/Tabs
 @onready var _grid: GridContainer = $Right/Box/Scroll/Grid
 @onready var _detail_name: Label = $Right/Box/Detail/Box/Name
 @onready var _detail_status: Label = $Right/Box/Detail/Box/Status
@@ -69,9 +70,13 @@ func _select_tab(index: int) -> void:
 		Loadout.SHIP_KEY:
 			_stage.focus(CharacterStage.Focus.SHIP)
 			_stage.show_ship(Loadout.selected_ship())
+		Pets.KEY:
+			_stage.focus(CharacterStage.Focus.PET)
 		_:
 			_stage.focus(CharacterStage.Focus.WEAPON)
 	_stage.show_loadout()
+	if _tabs[index].key == Pets.KEY:
+		_stage.show_pet(_viewed)
 	_refresh()
 
 
@@ -87,6 +92,8 @@ func _equipped() -> Dictionary:
 			return Loadout.selected_melee_skin()
 		Loadout.SHIP_KEY:
 			return Loadout.selected_ship()
+		Pets.KEY:
+			return Pets.selected()
 	return Loadout.selected_character()
 
 
@@ -128,6 +135,8 @@ func _refresh() -> void:
 	if _viewed.has("special"):
 		var special: Array = Loadout.SHIP_SPECIALS[_viewed.special]
 		_detail_status.text += "\nCAPACITÉ · %s : %s" % [special[0], special[1]]
+	if Pets.is_pet(_viewed) and _viewed.perk != &"":
+		_detail_status.text += "\n%s · %s" % [Pets.RARITY_NAMES[_viewed.rarity].to_upper(), Pets.perk_text(_viewed)]
 	if _viewed.has("pellets"):
 		_detail_status.text += "\n%d plombs par tir" % _viewed.pellets
 	if _viewed.has("ulti"):
@@ -138,6 +147,8 @@ func _refresh() -> void:
 	for bar in _detail_stats.get_children():
 		_detail_stats.remove_child(bar)
 		bar.queue_free()
+	if _tabs[_tab_index].key == Pets.KEY:
+		_add_eggs()
 	for stat: Array in _tabs[_tab_index].stats:
 		# A melee weapon's speed is its number of blows per second.
 		var value: float = 1.0 / _viewed.cooldown if stat[1] == "speed" else _viewed[stat[1]]
@@ -163,6 +174,8 @@ func _on_card_pressed(item: Dictionary) -> void:
 			_stage.show_melee(Loadout.selected_melee(), item)
 		Loadout.SHIP_KEY:
 			_stage.show_ship(item)
+		Pets.KEY:
+			_stage.show_pet(item)
 	# Deferred: the cards are rebuilt, and one of them is handling this click.
 	_refresh.call_deferred()
 
@@ -189,3 +202,40 @@ func _add_stat(label_text: String, value: float, full: float) -> void:
 	number.add_theme_font_size_override("font_size", 20)
 	row.add_child(number)
 	_detail_stats.add_child(row)
+
+
+## On the pet tab: the eggs waiting, and the one about to hatch.
+func _add_eggs() -> void:
+	var line := Label.new()
+	line.add_theme_font_size_override("font_size", 18)
+	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if Pets.eggs() == 0:
+		line.text = "ŒUFS : aucun. Bats un boss ou réussis les 3 défis du jour pour en gagner un."
+		_detail_stats.add_child(line)
+		return
+	line.text = "ŒUFS : %d  ·  le premier éclôt après %d vagues (%d / %d)" % [Pets.eggs(), Pets.HATCH_WAVES,
+			mini(Pets.egg_waves(), Pets.HATCH_WAVES), Pets.HATCH_WAVES]
+	_detail_stats.add_child(line)
+	if Pets.can_hatch():
+		var hatch := Button.new()
+		hatch.text = "FAIRE ÉCLORE L'ŒUF"
+		hatch.custom_minimum_size.y = 64
+		hatch.add_theme_font_size_override("font_size", 22)
+		hatch.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+		hatch.pressed.connect(_hatch)
+		_detail_stats.add_child(hatch)
+
+
+func _hatch() -> void:
+	var result := Pets.hatch()
+	if result.is_empty():
+		return
+	var pet: Dictionary = result.pet
+	if result.new:
+		Pets.select(pet)
+	_viewed = pet
+	_stage.show_pet(pet)
+	_stage.cheer_pet()
+	_refresh()
+	_detail_status.text = ("%s est sorti de l'œuf !" % pet.name) if result.new else \
+			("Encore un %s : %d gemmes à la place." % [pet.name.to_lower(), Pets.DUPLICATE_GEMS])

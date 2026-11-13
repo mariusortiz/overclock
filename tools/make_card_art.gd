@@ -169,6 +169,25 @@ func _subject(kind: String, reference: String) -> Node3D:
 				mesh.material_override = body
 				mesh.material_overlay = glow
 			return virus
+		"pet":
+			var pet := Pets.find(reference)
+			var holder := Node3D.new()
+			holder.add_child(Pet.build_model(pet))
+			# An invisible box of the pet's real size guides the framing (an
+			# animated mesh's own bounds can be far off).
+			var size: float = pet.height
+			var frame := MeshInstance3D.new()
+			var box := BoxMesh.new()
+			box.size = Vector3(size * 1.2, size * 1.1, size * 1.4)
+			var clear := StandardMaterial3D.new()
+			clear.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			clear.albedo_color = Color(1, 1, 1, 0)
+			box.material = clear
+			frame.mesh = box
+			frame.position.y = size * 0.55 + (0.3 if pet.get("fly", false) else 0.0)
+			holder.add_child(frame)
+			holder.rotation.y = PI + 0.5
+			return holder
 		"guardian":
 			# The crystal wizard of the portal (see Boss.dress_guardian).
 			var guardian := _character(Boss.MODEL_DIR + str(Boss.INFO[Boss.Kind.GUARDIAN].model), &"idle")

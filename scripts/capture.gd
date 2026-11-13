@@ -32,6 +32,7 @@ var _zone_text := RichTextLabel.new()
 var _net: CaptureNet
 
 @onready var player: Player = $Player
+var _pet: Pet
 @onready var hud: Hud = $HUD
 
 
@@ -70,6 +71,13 @@ func _ready() -> void:
 			hud.show_banner(reason)
 			get_tree().create_timer(2.5).timeout.connect(get_tree().change_scene_to_file.bind(MENU_SCENE)))
 	player.global_position = _bases[&"ally"]
+	# The pet: its perk only against bots (fair play against other players).
+	Pets.enabled = not Net.is_online()
+	player.move_speed *= Pets.speed_factor()
+	if Pets.selected().id != Pets.NONE.id:
+		_pet = Pet.new()
+		_pet.configure(Pets.selected(), player)
+		add_child(_pet)
 
 	hud.touch_controls.look.connect(_on_touch_look)
 	hud.replay_pressed.connect(_replay, CONNECT_DEFERRED)
@@ -246,6 +254,8 @@ func count_kill() -> void:
 	hud.set_score(score)
 	player.on_enemy_killed()
 	hud.reticle.show_kill()
+	if _pet:
+		_pet.cheer()
 
 
 ## Network play: the host announced the end.
@@ -398,3 +408,7 @@ func _end_story_mission(won: bool) -> void:
 	await get_tree().create_timer(2.5).timeout
 	Story.finish(won, stars)
 	get_tree().change_scene_to_file.call_deferred(Story.SCREEN)
+
+
+func _exit_tree() -> void:
+	Pets.enabled = false

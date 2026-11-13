@@ -93,6 +93,10 @@ static func redeem(code: String) -> Array:
 				all_tiers += BattlePass.tier_cost(tier)
 			BattlePass.add_xp(maxi(all_tiers - BattlePass.total_xp(season), 0), season)
 		given.append("tout le passe de combat")
+		# And an egg ready to hatch, to try it.
+		if Pets.give_egg():
+			SaveData.save_progress(Pets.EGG_WAVES_KEY, Pets.HATCH_WAVES)
+			given.append("un œuf prêt à éclore")
 	if key not in used:
 		used.append(key)
 		SaveData.save_progress(USED_KEY, used)
@@ -101,8 +105,9 @@ static func redeem(code: String) -> Array:
 
 static func _shop_ids() -> Array:
 	var ids := []
-	for group: Array in [Loadout.CHARACTERS, Loadout.WEAPONS, Loadout.SKINS, Loadout.SHIPS, Dances.LIST]:
+	for group: Array in [Loadout.CHARACTERS, Loadout.WEAPONS, Loadout.SKINS, Loadout.SHIPS, Dances.LIST, Pets.LIST]:
 		for item: Dictionary in group:
-			if item.get("shop", false):
+			# The pets of the eggs too: the test code has everything.
+			if item.get("shop", false) or item.get("egg", false):
 				ids.append(item.id)
 	return ids

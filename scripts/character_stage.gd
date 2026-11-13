@@ -3,8 +3,9 @@ extends SubViewportContainer
 ## 3D showcase used by the menus: the player's character holding the chosen
 ## weapons, on a transparent background so the 2D backdrop shows through.
 ## It can also show one weapon alone, floating and spinning (see `focus`).
+## The pet (Pets) sits at the hero's feet, or alone and closer (Focus.PET).
 
-enum Focus { CHARACTER, WEAPON, MELEE, SHIP }
+enum Focus { CHARACTER, WEAPON, MELEE, SHIP, PET }
 
 const TURN_SPEED := 0.35
 const TURN_RANGE := 0.5  # radians each side of facing the camera
@@ -20,6 +21,10 @@ const FLOAT_MELEE_TILT := 0.3
 ## A race ship shown alone is scaled down to this, and tilted to show its top.
 const FLOAT_SHIP_SCALE := 0.3
 const FLOAT_SHIP_TILT := 0.75
+## The pet beside the hero, and alone (closer, bigger).
+const PET_BESIDE := Vector3(0.62, 0, -0.35)
+const PET_ALONE := Vector3(0, 0.1, 0.6)
+const PET_ALONE_SCALE := 1.1
 
 var _time := 0.0
 var _character: CharacterModel
@@ -37,11 +42,17 @@ var preview_pose := -1
 @onready var _weapon_holder: Node3D = $SubViewport/World/Pivot/WeaponHolder
 @onready var _melee_holder: Node3D = $SubViewport/World/Pivot/MeleeHolder
 var _ship_holder := Node3D.new()
+var _pet: Pet
 
 
 func _process(delta: float) -> void:
 	# Sway around the pose facing the camera.
 	_time += delta
+	# The pet, three-quarters on, swaying too.
+	if _pet:
+		_pet.rotation.y = PI - 0.6 + sin(_time * TURN_SPEED + 1.0) * TURN_RANGE
+	if _focus == Focus.PET:
+		return
 	if _focus == Focus.SHIP:
 		_pivot.rotation.y = PI
 		_ship_holder.position = Vector3(0, FLOAT_HEIGHT + sin(_time * 1.6) * 0.05, 0)
@@ -80,8 +91,9 @@ func focus(what: Focus) -> void:
 		_pivot.add_child(_ship_holder)
 	if _character:
 		_character.visible = what == Focus.CHARACTER
-	_weapon_holder.visible = what != Focus.MELEE and what != Focus.SHIP
-	_melee_holder.visible = what != Focus.WEAPON and what != Focus.SHIP
+	_weapon_holder.visible = what != Focus.MELEE and what != Focus.SHIP and what != Focus.PET
+	_melee_holder.visible = what != Focus.WEAPON and what != Focus.SHIP and what != Focus.PET
+	_place_pet()
 	_ship_holder.visible = what == Focus.SHIP
 	for holder: Node3D in [_weapon_holder, _melee_holder]:
 		holder.transform = Transform3D.IDENTITY
@@ -128,6 +140,26 @@ func show_loadout() -> void:
 	show_character(Loadout.selected_character())
 	show_weapon(Loadout.selected_weapon())
 	show_melee(Loadout.selected_melee())
+	show_pet(Pets.selected())
+
+
+## A pet of Pets.LIST (none for Pets.NONE).
+func show_pet(item: Dictionary) -> void:
+	if _pet:
+		_pet.queue_free()
+	_pet = Pet.new()
+	_pet.configure(item)
+	$SubViewport/World.add_child(_pet)
+	_place_pet()
+
+
+func _place_pet() -> void:
+	if _pet == null:
+		return
+	var alone := _focus == Focus.PET
+	_pet.visible = alone or _focus == Focus.CHARACTER
+	_pet.position = PET_ALONE if alone else PET_BESIDE
+	_pet.scale = Vector3.ONE * (PET_ALONE_SCALE if alone else 1.0)
 
 
 func _replace(holder: Node3D, model: Node3D) -> void:
@@ -135,3 +167,9 @@ func _replace(holder: Node3D, model: Node3D) -> void:
 		holder.remove_child(old)
 		old.queue_free()
 	holder.add_child(model)
+
+
+## The pet jumps for joy (just hatched).
+func cheer_pet() -> void:
+	if _pet:
+		_pet.cheer()

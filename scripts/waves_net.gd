@@ -214,6 +214,8 @@ func _enemy_died(id: int, style: StringName, color: Color, boss: bool, killer: i
 	if boss:
 		main.hud.hide_boss()
 		Music.play_track(main._arena.music_track)
+		if Pets.give_egg():
+			main.hud.show_banner("UN ŒUF ! IL ÉCLÔT APRÈS %d VAGUES" % Pets.HATCH_WAVES)
 
 
 ## A host enemy's bolt, for the eyes only on the guests' screens.

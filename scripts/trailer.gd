@@ -9,7 +9,9 @@ extends Node
 ## The music is laid over the picture afterwards, by the same workflow.
 
 const URL := "overclock.randomlabs.dev"
-const DURATION := 227.0
+const DURATION := 231.4
+## Room between two pets on their shot.
+const PET_SPACING := 1.6
 ## The heroes of the story mode, for its shot.
 const STORY_HEROES := ["kunoichi", "soldier", "sand_ghost", "ronin", "captain", "cowgirl"]
 ## The ships flown on the circuits: the ultra ones lead.
@@ -400,9 +402,27 @@ func _run() -> void:
 	_show_caption("BATS-LE", "GAGNE LE SKIN CHAMPION", 3.8)
 	await _until(221.6)
 
+	# 221.6 s: the pets, in a row on the mirror floor.
+	_build_showroom()
+	_flash()
+	var shown := ["pet_dog", "pet_fox", "pet_drone", "pet_dragon", "pet_calf", "pet_shard"]
+	for index in shown.size():
+		var pet := Pets.find(shown[index])
+		var at := Vector3(index * PET_SPACING, 0.5 if pet.get("fly", false) else 0.0, 0)
+		for parent: Node3D in [_set, _mirror]:
+			var model := Pet.build_model(pet)
+			parent.add_child(model)
+			model.position = at
+			model.rotation.y = PI + 0.5
+			Pet.play_idle(model)
+		_label(str(pet.name).to_upper(), Vector3(at.x, 1.35, 0), Color.WHITE, 34)
+	_dolly(Vector3(-1.2, 1.1, 3.6), Vector3(PET_SPACING * 5 + 1.2, 1.0, 3.4), Vector3(0, 0.5, 0), Vector3(PET_SPACING * 5, 0.5, 0), 4.4)
+	_show_caption("NOUVEAU · ANIMAUX DE COMPAGNIE", "%d COMPAGNONS" % (Pets.LIST.size() - 1), 4.0)
+	await _until(226.0)
+
 	# End card.
 	_fade_shade(1.0, 0.9)
-	await _until(222.7)
+	await _until(227.1)
 	_end_sparks.emitting = true
 	_show_title("%s\nSUR ANDROID ET DANS LE NAVIGATEUR\n\nHISTOIRE · COMBAT · COOP WI-FI · 7 ARÈNES\n%d ARMES · %d HÉROS · %d CARTES" % [
 			URL, Loadout.WEAPONS.size(), Loadout.CHARACTERS.size(), Cards.CATALOG.size()], 4.3, true)
