@@ -19,7 +19,8 @@ const RARITY := {
 	Rarity.HACKER: {"name": "Hacker", "color": Color(0.2, 1.0, 0.45), "weight": 0.0, "dust": 0, "craft": 0},
 }
 const ART_DIR := "res://assets/cards/"
-const CARDS_PER_BOOSTER := 3
+## Cards in each kind of booster.
+const CARDS_PER_BOOSTER := {"standard": 3, "rare": 5, "legend": 7}
 ## A score worth a second booster.
 const BIG_SCORE := 8000
 
@@ -319,10 +320,11 @@ static func open_booster(kind: String) -> Array[Dictionary]:
 	pending[kind] -= 1
 	SaveData.save_progress(BOOSTERS_KEY, pending)
 	var drawn: Array[Dictionary] = []
-	for slot in CARDS_PER_BOOSTER:
+	var count: int = cards_in(kind)
+	for slot in count:
 		var lowest := Rarity.COMMON
 		var highest := Rarity.MYTHIC
-		if slot == CARDS_PER_BOOSTER - 1:
+		if slot == count - 1:
 			if kind == "rare":
 				lowest = Rarity.RARE
 			elif kind == "legend":
@@ -336,6 +338,10 @@ static func open_booster(kind: String) -> Array[Dictionary]:
 		add(card.id)
 		drawn.append(card)
 	return drawn
+
+
+static func cards_in(kind: String) -> int:
+	return CARDS_PER_BOOSTER.get(kind, 3)
 
 
 ## Chance that a legendary booster's last card is legendary or better.

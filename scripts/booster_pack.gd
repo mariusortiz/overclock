@@ -213,7 +213,7 @@ func _draw_body() -> void:
 	_body.draw_colored_polygon(bolt, MAGENTA)
 	_centered(_body, "OVERCLOCK", Vector2(size.x / 2.0, size.y * 0.3), size.x * 0.11, Color.WHITE)
 	_centered(_body, {"rare": "BOOSTER RARE", "legend": "LÉGENDAIRE"}.get(kind, "BOOSTER"), Vector2(size.x / 2.0, size.y * 0.78), size.x * 0.085, _accent())
-	_centered(_body, "%d CARTES" % Cards.CARDS_PER_BOOSTER, Vector2(size.x / 2.0, size.y * 0.86), size.x * 0.06, Color(1, 1, 1, 0.8))
+	_centered(_body, "%d CARTES" % Cards.cards_in(kind), Vector2(size.x / 2.0, size.y * 0.86), size.x * 0.06, Color(1, 1, 1, 0.8))
 	# The hint arrow, until the tear starts.
 	if _progress < 1.0:
 		if _progress == 0.0 and not _torn:

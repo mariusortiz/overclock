@@ -24,9 +24,9 @@ const BOOSTERS: Array[Dictionary] = [
 	{"booster": "standard", "name": "BOOSTER", "credits": 400, "gems": 30,
 		"text": "3 cartes de toutes raretés."},
 	{"booster": "rare", "name": "BOOSTER RARE", "credits": 1200, "gems": 90,
-		"text": "3 cartes, dont une rare ou mieux."},
+		"text": "5 cartes, dont une rare ou mieux."},
 	{"booster": "legend", "name": "BOOSTER LÉGENDAIRE", "credits": 20000, "gems": 1500,
-		"text": "3 cartes, dont une sur deux légendaire ou mieux (sinon rare ou mieux)."},
+		"text": "7 cartes, dont une légendaire ou mieux une fois sur deux (sinon rare ou épique)."},
 ]
 
 var _tab := 0

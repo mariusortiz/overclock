@@ -543,18 +543,22 @@ func _play_fanfare(mythic: bool) -> void:
 
 ## The booster's three cards side by side, once all are turned.
 func _lay_out(row: HBoxContainer, drawn: Array[Dictionary], news: Array) -> void:
+	# Smaller cards when there are many, so that they fit side by side.
+	var width := minf(200.0, (get_viewport_rect().size.x - 80.0 - 16.0 * drawn.size()) / drawn.size())
+	var card_size := Vector2(width, width * 1.4)
+	row.add_theme_constant_override("separation", 16)
 	for index in drawn.size():
 		var holder := Control.new()
-		holder.custom_minimum_size = Vector2(200, 280)
+		holder.custom_minimum_size = card_size
 		row.add_child(holder)
 		var view := CardView.new(drawn[index], true, 0)
-		view.size = Vector2(200, 280)
+		view.size = card_size
 		view.pivot_offset = view.size / 2.0
 		holder.add_child(view)
 		if news[index]:
 			var badge := Label.new()
 			badge.text = "NOUVELLE !"
-			badge.add_theme_font_size_override("font_size", 20)
+			badge.add_theme_font_size_override("font_size", 20 if width >= 180.0 else 15)
 			badge.add_theme_color_override("font_color", MAGENTA)
 			badge.add_theme_color_override("font_outline_color", Color.BLACK)
 			badge.add_theme_constant_override("outline_size", 8)
