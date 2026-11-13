@@ -1,7 +1,7 @@
 extends Node
 ## Directs the three-minute trailer: a showcase, with no fighting. It visits the
 ## arenas, parades their enemies and bosses, then scrolls past every weapon and
-## every hero, then the shop's exclusive guns and heroes, with title cards on top. Nothing of the game itself runs here:
+## every hero, then the shop's exclusive guns, heroes and dances, and Le Créateur, with title cards on top. Nothing of the game itself runs here:
 ## the director only borrows its scenes and models.
 ##
 ## Rendered by .github/workflows/trailer.yml with Godot's movie mode:
@@ -9,7 +9,7 @@ extends Node
 ## The music is laid over the picture afterwards, by the same workflow.
 
 const URL := "overclock.randomlabs.dev"
-const DURATION := 178.0
+const DURATION := 190.0
 ## The heroes of the story mode, for its shot.
 const STORY_HEROES := ["kunoichi", "soldier", "sand_ghost", "ronin", "captain", "cowgirl"]
 ## The ships flown on the circuits: the ultra ones lead.
@@ -251,7 +251,7 @@ func _run() -> void:
 	var last_blade := (Loadout.MELEE.size() - 1) * BLADE_SPACING
 	_dolly(Vector3(-1.2, 1.25, 3.4), Vector3(last_blade + 1.2, 1.25, 3.4),
 			Vector3(-1.2, 1.15, 0), Vector3(last_blade + 1.2, 1.15, 0), 7.0)
-	_show_caption("CORPS À CORPS", "%%d LAMES · %d SKINS" % _base(Loadout.SKINS).size(), 6.0, Loadout.MELEE.size())
+	_show_caption("CORPS À CORPS", "%%d LAMES · %d SKINS" % _base(Loadout.SKINS).size(), 6.0, _base(Loadout.MELEE).size())
 	await _until(110.0)
 	_build_showroom()
 	_blink()
@@ -296,6 +296,29 @@ func _run() -> void:
 	_show_caption("%d HÉROS EXCLUSIFS" % exclusive.size(), "ULTIS BOOSTÉES", 4.6)
 	await _until(135.6)
 
+	# 135.6 s: the shop's dances, one hero dancing each.
+	_build_showroom()
+	_flash()
+	var shop_dances := _shop(Dances.LIST)
+	var dancers: Array = []
+	for dance in shop_dances:
+		dancers.append(Loadout.find("soldier").item)
+	_line_up_heroes(dancers, shop_dances)
+	var last_dancer := (dancers.size() - 1) * HERO_SPACING
+	_dolly(Vector3(-0.8, 1.5, 4.8), Vector3(last_dancer + 0.8, 1.5, 4.8),
+			Vector3(-0.8, 1.45, 0), Vector3(last_dancer + 0.8, 1.45, 0), 5.0)
+	_show_caption("NOUVEAU · BOUTIQUE", "%d DANSES", 4.6, shop_dances.size())
+	await _until(140.6)
+
+	# 140.6 s: Le Créateur, his gun, his sword, his card.
+	_build_showroom()
+	_flash()
+	_present_creator()
+	_show_caption("LE CRÉATEUR · SAISON 2 DE L'ANIME", "RARETÉ HACKER", 6.6)
+	await _until(147.6)
+	for child in _cards_layer.get_children():
+		child.queue_free()
+
 	# 135.6 s: the story mode, the season's heroes.
 	_build_showroom()
 	_flash()
@@ -309,9 +332,9 @@ func _run() -> void:
 	_dolly(Vector3(last_cast + 0.8, 1.5, 4.8), Vector3(-0.8, 1.5, 4.6),
 			Vector3(last_cast + 0.8, 1.45, 0), Vector3(-0.8, 1.45, 0), 7.6)
 	_show_caption("NOUVEAU · MODE HISTOIRE", "SAISON 1 · %d CHAPITRES", 7.0, Story.CHAPTERS.size())
-	await _until(143.6)
+	await _until(155.6)
 
-	# 143.6 s: the five circuits, their item boxes, the ultra ships.
+	# 155.6 s: the five circuits, their item boxes, the ultra ships.
 	for index in RaceTrack.CIRCUITS.size():
 		_load_circuit(index)
 		if index == 0:
@@ -327,36 +350,37 @@ func _run() -> void:
 				_show_caption("VAISSEAUX ULTRA", "OMÉGA · FAUCHEUSE · AURORE", CIRCUIT_SHOT)
 			_:
 				_show_caption("CIRCUIT", RaceTrack.CIRCUITS[index].name.to_upper(), CIRCUIT_SHOT)
-		await _until(143.6 + CIRCUIT_SHOT * (index + 1))
+		await _until(155.6 + CIRCUIT_SHOT * (index + 1))
 	_clear()
 
-	# 156.6 s: the collectible cards, then a booster torn open.
+	# 168.6 s: the collectible cards, then a booster torn open.
 	_build_showroom()
 	_flash()
 	_dolly(Vector3(0, 1.4, 6), Vector3(0, 1.4, 5.5), Vector3(0, 1.2, 0), Vector3(0, 1.2, 0), 7.0)
 	_show_cards()
-	_show_caption("CARTES À COLLECTIONNER", "%d CARTES · 5 RARETÉS", 6.6, Cards.CATALOG.size())
-	await _until(160.6)
+	_show_caption("CARTES À COLLECTIONNER", "%d CARTES · 6 RARETÉS", 3.8, Cards.CATALOG.size())
+	await _until(172.6)
 	_tear_booster()
-	await _until(163.6)
+	_show_caption("BOOSTER LÉGENDAIRE", "%d CARTES · 50 %% LÉGENDAIRE", 2.8, Cards.cards_in("legend"))
+	await _until(175.6)
 	for child in _cards_layer.get_children():
 		child.queue_free()
 
-	# 163.6 s: the last boss, and what beating it earns.
+	# 175.6 s: the last boss, and what beating it earns.
 	_load_arena(CITY)
 	_flash()
 	_present_boss(Boss.Kind.TITAN, 4.6)
 	_show_caption("AU BOUT DE LA VILLE", "LE TITAN", 3.8)
-	await _until(168.2)
+	await _until(180.2)
 	_clear_actors()
 	_blink()
 	_celebrate()
 	_show_caption("BATS-LE", "GAGNE LE SKIN CHAMPION", 3.8)
-	await _until(172.6)
+	await _until(184.6)
 
 	# End card.
 	_fade_shade(1.0, 0.9)
-	await _until(173.7)
+	await _until(185.7)
 	_end_sparks.emitting = true
 	_show_title("%s\nSUR ANDROID ET DANS LE NAVIGATEUR\n\nMODE HISTOIRE · 5 ARÈNES · 5 CIRCUITS\n%d ARMES · %d HÉROS · %d CARTES" % [
 			URL, Loadout.WEAPONS.size(), Loadout.CHARACTERS.size(), Cards.CATALOG.size()], 4.3, true)
@@ -407,21 +431,21 @@ func _load_circuit(index: int) -> void:
 	_camera.fov = 72.0
 
 
-## Five cards, one per rarity, fanned out over the picture, shimmering.
+## Six cards, one per rarity, fanned out over the picture, shimmering.
 func _show_cards() -> void:
-	var picks := {}
+	var picks := {Cards.Rarity.HACKER: Cards.find("card_createur")}
 	for card: Dictionary in Cards.CATALOG:
 		if not picks.has(card.rarity) or card.id in ["card_kunoichi", "card_ship_nova", "card_volcano", "card_paladin", "card_titan_mk2"]:
 			picks[card.rarity] = card
 	var screen := get_viewport().get_visible_rect().size
-	var card_size := Vector2(250, 250 / CardView.ASPECT)
-	for rarity in 5:
+	var card_size := Vector2(240, 240 / CardView.ASPECT)
+	for rarity in 6:
 		var view := CardView.new(picks[rarity], true, 0)
 		view.size = card_size
 		view.pivot_offset = card_size / 2.0
-		var slot := rarity - 2
-		view.position = Vector2(screen.x / 2.0 - card_size.x / 2.0 + slot * 200.0, screen.y * 0.4 - card_size.y / 2.0 + absf(slot) * 24.0)
-		view.rotation = slot * 0.12
+		var slot := rarity - 2.5
+		view.position = Vector2(screen.x / 2.0 - card_size.x / 2.0 + slot * 190.0, screen.y * 0.4 - card_size.y / 2.0 + absf(slot) * 22.0)
+		view.rotation = slot * 0.1
 		view.modulate.a = 0.0
 		_cards_layer.add_child(view)
 		var tween := view.create_tween()
@@ -437,7 +461,7 @@ func _tear_booster() -> void:
 		var out := (child as Control).create_tween()
 		out.tween_property(child, "modulate:a", 0.0, 0.3)
 	var screen := get_viewport().get_visible_rect().size
-	var pack := BoosterPack.new("rare")
+	var pack := BoosterPack.new("legend")
 	pack.size = Vector2(320, 450)
 	pack.position = (screen - pack.size) / 2.0
 	_cards_layer.add_child(pack)
@@ -449,10 +473,38 @@ func _tear_booster() -> void:
 		pack._tear()
 
 
+## Le Créateur on stage, his gun in hand and his sword turning beside him, in
+## green sparks; his card comes up on the right.
+func _present_creator() -> void:
+	var matrix: Dictionary = Loadout.find("skin_matrix").item
+	var scene: PackedScene = load(Loadout.CHARACTER_DIR + str(Loadout.find("createur").item.model))
+	for parent: Node3D in [_set, _mirror]:
+		var hero := _actor(scene, 1.9, 0.0, Vector3.ZERO, PI, &"idle", parent)
+		_hold(hero, Loadout.instantiate_weapon(Loadout.find("source_code").item, matrix), false)
+	var sword := _blade_on_show(Loadout.find("ctrl_alt_del").item, matrix, 0, _set)
+	sword.position.x = -1.5
+	_spinners.append(sword)
+	_twins[sword] = _blade_on_show(Loadout.find("ctrl_alt_del").item, matrix, 0, _mirror)
+	_add_sparkles(Vector3(0, 0.1, 0), Color(0.2, 1.0, 0.45))
+	_dolly(Vector3(-0.6, 1.4, 4.4), Vector3(0.6, 1.5, 3.4), Vector3(-0.3, 1.2, 0), Vector3(0.2, 1.3, 0), 7.0)
+	await get_tree().create_timer(2.6).timeout
+	var screen := get_viewport().get_visible_rect().size
+	var card_size := Vector2(250, 250 / CardView.ASPECT)
+	var view := CardView.new(Cards.find("card_createur"), true, 0)
+	view.size = card_size
+	view.pivot_offset = card_size / 2.0
+	view.position = Vector2(screen.x * 0.78 - card_size.x / 2.0, screen.y * 0.42 - card_size.y / 2.0)
+	view.rotation = 0.08
+	_cards_layer.add_child(view)
+	var tween := view.create_tween()
+	tween.tween_property(view, "scale", Vector2.ONE, 0.45).from(Vector2.ONE * 0.2) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
 ## The items of `items` earned by playing (the battle pass), and those sold
 ## in the shop.
 func _base(items: Array) -> Array:
-	return items.filter(func(item: Dictionary) -> bool: return not item.get("shop", false))
+	return items.filter(func(item: Dictionary) -> bool: return not item.get("shop", false) and not item.get("code", false))
 
 
 func _shop(items: Array) -> Array:
@@ -836,10 +888,10 @@ func _add_confetti(at: Vector3) -> void:
 
 
 ## Golden sparkles rising around the trophy.
-func _add_sparkles(at: Vector3) -> void:
+func _add_sparkles(at: Vector3, color := Color(1.0, 0.9, 0.5)) -> void:
 	var material := StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.albedo_color = Color(1.0, 0.9, 0.5)
+	material.albedo_color = color
 	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	var mesh := QuadMesh.new()
 	mesh.size = Vector2.ONE * 0.06
@@ -974,8 +1026,9 @@ func _shine(item: Node) -> void:
 
 ## Every melee weapon in a row, each with a finish, turning on itself.
 func _line_up_blades() -> void:
-	for index in Loadout.MELEE.size():
-		var item: Dictionary = Loadout.MELEE[index]
+	var blades := _base(Loadout.MELEE)
+	for index in blades.size():
+		var item: Dictionary = blades[index]
 		var skins := _base(Loadout.SKINS)
 		var skin: Dictionary = skins[(index * 3 + 1) % skins.size()]
 		var holder := _blade_on_show(item, skin, index, _set)
@@ -989,13 +1042,13 @@ func _line_up_blades() -> void:
 
 ## `heroes` side by side, dancing, with the name of their ultimate (and its
 ## boost, for the shop's).
-func _line_up_heroes(heroes: Array) -> void:
+func _line_up_heroes(heroes: Array, dances: Array = []) -> void:
 	for index in heroes.size():
 		var item: Dictionary = heroes[index]
 		var at := Vector3(index * HERO_SPACING, 0, 0)
 		var scene: PackedScene = load(Loadout.CHARACTER_DIR + str(item.model))
 		# Each hero dances one of the dances; the reflection dances along.
-		var dance: Dictionary = Dances.LIST[index % Dances.LIST.size()]
+		var dance: Dictionary = dances[index] if index < dances.size() else Dances.LIST[index % Dances.LIST.size()]
 		for parent: Node3D in [_set, _mirror]:
 			var hero := _actor(scene, 1.75, 0.0, at, PI, dance.get("animation", &"idle"), parent)
 			if dance.has("animation"):
@@ -1003,6 +1056,9 @@ func _line_up_heroes(heroes: Array) -> void:
 				hero.play(dance.animation, true)
 			hero.pose.weight = 1.0
 			_dancers.append([hero, dance, index * 0.37])
+		if index < dances.size():
+			_label(str(dance.name).to_upper(), at + Vector3(0, 2.7, 0), ACCENT, 40)
+			continue
 		var ultimate: Dictionary = Ultimate.INFO[item.ulti]
 		_label(str(item.name).to_upper(), at + Vector3(0, 2.85, 0), Color.WHITE, 40)
 		var ulti_text := str(ultimate.name).to_upper()

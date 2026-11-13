@@ -61,9 +61,9 @@ jobs:
       # one frame at a time, so the film is smooth however long it takes.
       - name: Render
         run: |
-          # --quit-after: the film is 5340 frames; stop anyway if the script stalls.
+          # --quit-after: the film is 5700 frames; stop anyway if the script stalls.
           xvfb-run -a -s "-screen 0 1920x1080x24" godot --rendering-driver opengl3 --audio-driver Dummy \
-            --resolution 1920x1080 --fixed-fps 30 --quit-after 5500 --write-movie "$RUNNER_TEMP/trailer.avi" \
+            --resolution 1920x1080 --fixed-fps 30 --quit-after 5900 --write-movie "$RUNNER_TEMP/trailer.avi" \
             res://scenes/tools/trailer.tscn 2>&1 | tee render.log
           if grep -E "SCRIPT ERROR|Parse Error" render.log; then exit 1; fi
           ls -lh "$RUNNER_TEMP/trailer.avi"
@@ -73,8 +73,8 @@ jobs:
       - name: Encode
         run: |
           ffmpeg -y -loglevel error -i "$RUNNER_TEMP/trailer.avi" -ss 12 -i tools/trailer_music.mp3 \
-            -map 0:v -map 1:a -t 178 \
-            -af "afade=t=in:d=1.5,afade=t=out:st=173:d=5,loudnorm=I=-14:TP=-1.5" \
+            -map 0:v -map 1:a -t 190 \
+            -af "afade=t=in:d=1.5,afade=t=out:st=185:d=5,loudnorm=I=-14:TP=-1.5" \
             -c:v libx264 -preset medium -crf 22 -maxrate 3M -bufsize 6M -pix_fmt yuv420p \
             -c:a aac -b:a 192k -movflags +faststart trailer.mp4
           ffmpeg -y -loglevel error -ss 4 -i trailer.mp4 -frames:v 1 -q:v 3 trailer.jpg
