@@ -7,7 +7,8 @@ extends Enemy
 
 ## Peer id for a player, a negative number for a host's bot.
 var entity_id := 0
-var net: CaptureNet
+## CaptureNet or WavesNet: what sends its hits on (report_damage).
+var net: Node
 var alive := true
 
 var _goal_position := Vector3.ZERO

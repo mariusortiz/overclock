@@ -56,6 +56,8 @@ var _won := false
 var _endless := false
 ## The player's health when the boss came (see the Antivirus achievement).
 var _health_at_boss := 0
+## Co-op waves over the Wi-Fi (Net mode "waves"), or null.
+var _coop: WavesNet
 var _boss: Boss
 var _stats := GameStats.new()
 var _streak := 0
@@ -133,9 +135,15 @@ func _ready() -> void:
 	add_child(_stats)
 	_stats.setup(player, waves)
 
+	if Net.mode == "waves" and Net.is_online():
+		_coop = WavesNet.new()
+		add_child(_coop)
+		_coop.setup(self)
+		hud.pause_menu.keep_running = true
+
 	if Story.is_active():
 		_start_story_mission()
-	elif Tutorial.is_needed():
+	elif Tutorial.is_needed() and not _coop:
 		var tutorial := Tutorial.new()
 		add_child(tutorial)
 		tutorial.setup(player, hud, waves)
@@ -315,6 +323,74 @@ func _on_boss_killed(kind: Boss.Kind) -> void:
 		_win_christmas()
 
 
+# --- Co-op (see WavesNet) ------------------------------------------------------------
+
+## No pause in co-op: the perk is drawn, and after a boss the host takes
+## everyone to the next arena.
+func _coop_perk_and_arena() -> void:
+	await get_tree().create_timer(PERK_CHOICE_DELAY, false).timeout
+	if _won or (player.health <= 0 and not _coop):
+		return
+	var perk: Perk.Type = Perk.pick_choices(1)[0]
+	player.add_perk(perk)
+	hud.show_banner("POUVOIR : %s" % str(Perk.INFO[perk].name).to_upper())
+	if _arena_change_pending and Net.is_host():
+		_arena_change_pending = false
+		_coop.change_arena(_next_arena())
+
+
+## Guests: the host's waves.
+func coop_wave_started(number: int, _boss: bool) -> void:
+	if player.health <= 0:
+		player.revive(player.global_position)
+	_on_wave_started(number)
+
+
+func coop_wave_cleared(number: int, boss: bool) -> void:
+	if Net.is_host():
+		return
+	waves.wave = number
+	_arena_change_pending = boss
+	_add_score(WAVE_BONUS * number)
+	player.heal(WAVE_HEAL)
+	_stats.add("waves")
+	hud.show_banner("VAGUE %d TERMINÉE" % number)
+	_coop_perk_and_arena()
+
+
+## A host enemy this device's player hit last just died.
+func coop_kill(boss: bool) -> void:
+	_add_score(BOSS_SCORE if boss else KILL_SCORE)
+	_stats.add("kills")
+	if boss:
+		_stats.add("bosses")
+
+
+func coop_change_arena(index: int) -> void:
+	_arena_change_pending = false
+	await hud.fade_to_black()
+	_load_arena(index)
+	if player.health <= 0:
+		player.revive(player.global_position)
+	hud.show_banner(_arena.display_name)
+	hud.fade_from_black()
+
+
+## The game is over for everyone: won (the Titan) or every player down.
+func coop_end(won: bool) -> void:
+	_won = won
+	waves.stop()
+	Input.action_release("fire")
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if not won:
+		Music.play_track(Music.Track.DEATH)
+		hud.show_death_title()
+		await get_tree().create_timer(DEATH_TITLE_TIME, true, false, true).timeout
+	_show_results(Hud.Result.VICTORY if won else Hud.Result.DEATH)
+	# The results are this device's own; the game together is over.
+	Net.leave()
+
+
 ## The arena after a boss: the next of the round, or the village again in
 ## the Christmas waves.
 func _next_arena() -> int:
@@ -342,6 +418,9 @@ func _win_christmas() -> void:
 ## The final boss is down: a trophy rises where it fell, the Champion skin is
 ## won, then the player chooses: go home, or carry on in endless mode.
 func _win() -> void:
+	if _coop:
+		_coop.announce_victory()
+		return
 	_won = true
 	waves.stop()
 	player.invulnerable = true
@@ -379,6 +458,9 @@ func _on_wave_cleared(number: int) -> void:
 	player.heal(WAVE_HEAL)
 	_arena_change_pending = waves.is_boss_wave()
 	hud.show_banner("VAGUE %d TERMINÉE   +%d" % [number, bonus])
+	if _coop:
+		_coop_perk_and_arena()
+		return
 
 	# A short breather, then pause and let the player pick a perk.
 	await get_tree().create_timer(PERK_CHOICE_DELAY, false).timeout
@@ -443,6 +525,11 @@ func _on_quit_pressed() -> void:
 		get_tree().paused = false
 		get_tree().change_scene_to_file.call_deferred(Story.SCREEN)
 		return
+	if _coop:
+		# Leaving a co-op game: the others go on without this device.
+		Net.leave()
+		_coop.queue_free()
+		_coop = null
 	waves.stop()
 	player.process_mode = Node.PROCESS_MODE_DISABLED
 	Input.action_release("fire")
@@ -505,6 +592,10 @@ func _exit_tree() -> void:
 
 func _on_player_died() -> void:
 	if _won:
+		return
+	if _coop:
+		# Down, not out: a teammate can bring them back (see WavesNet).
+		hud.show_banner("À TERRE : UN ÉQUIPIER PEUT TE RELEVER")
 		return
 	waves.stop()
 	Input.action_release("fire")

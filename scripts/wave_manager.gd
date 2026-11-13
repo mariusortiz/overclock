@@ -13,6 +13,8 @@ signal elite_spawned
 ## The last seconds before a wave: 3, 2, 1.
 signal countdown(seconds: int)
 signal elite_killed
+## A new enemy is in the arena (co-op: the host tells the others).
+signal enemy_spawned(enemy: Enemy)
 
 const BOSS_EVERY := 5
 const BOSS_ESCORT := 3
@@ -43,6 +45,8 @@ var wave := 0
 ## The only boss to come, or -1 for the usual round (Boss.ORDER): the
 ## Christmas waves have the Père Glaçon only.
 var boss_kind := -1
+## Players in a co-op game: more enemies, and tougher, for each one more.
+var coop_players := 1
 
 var _to_spawn := 0
 var _alive := 0
@@ -92,13 +96,13 @@ func is_boss_wave() -> bool:
 
 func _enemy_count() -> int:
 	if is_boss_wave():
-		return 1 + BOSS_ESCORT
-	return 3 + 2 * (wave - 1)
+		return 1 + BOSS_ESCORT * coop_players
+	return roundi((3 + 2 * (wave - 1)) * (1.0 + 0.5 * (coop_players - 1)))
 
 
 func _max_alive() -> int:
 	@warning_ignore("integer_division")
-	return mini(3 + (wave - 1) / 2, 6)
+	return mini(3 + (wave - 1) / 2, 6) + 2 * (coop_players - 1)
 
 
 func _configure(enemy: Enemy) -> void:
@@ -202,7 +206,10 @@ func _spawn() -> void:
 	enemy.died.connect(_on_enemy_died)
 	if enemy.elite:
 		enemy.died.connect(elite_killed.emit)
+	if coop_players > 1:
+		enemy.max_health = roundi(enemy.max_health * (1.0 + 0.3 * (coop_players - 1)))
 	get_parent().add_child(enemy)
+	enemy_spawned.emit(enemy)
 	# A flash where it appears.
 	var flash_color := Color(1.0, 0.5, 0.15) if enemy is Boss else Color(0.16, 0.9, 1.0)
 	Effects.spray(get_parent(), enemy.position + Vector3.UP * 0.6, [flash_color, Color.WHITE], 22,

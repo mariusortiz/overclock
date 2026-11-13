@@ -5,6 +5,8 @@ extends CharacterBody3D
 
 signal died
 signal health_changed(current: int, maximum: int)
+## A bolt just left the muzzle (shown on the other devices in co-op).
+signal fired_bolt(from: Vector3, direction: Vector3)
 
 const REPATH_INTERVAL := 0.3
 const EYE_HEIGHT := 1.2
@@ -51,6 +53,9 @@ static var HIT_FLASH := _make_hit_flash()
 ## Set by a story mission of season 2: the enemies are corrupted by the
 ## Virus, a green glow over them (looks only).
 static var corrupted := false
+## Co-op waves (WavesNet): the enemies go after the nearest player, theirs
+## or one of the other devices' (group "coop_players").
+static var coop := false
 const VIRUS_COLOR := Color(0.2, 1.0, 0.45)
 
 @export var max_health := 5
@@ -420,9 +425,15 @@ func _has_line_of_sight() -> bool:
 
 ## Who to fight now. The player by default; team modes choose among foes.
 func _pick_target() -> Node3D:
-	if _player and _player.health > 0:
-		return _player
-	return null
+	var best: Node3D = _player if _player and _player.health > 0 else null
+	if coop:
+		var nearest := global_position.distance_to(best.global_position) if best else INF
+		for other: Node in get_tree().get_nodes_in_group("coop_players"):
+			var avatar := other as NetAvatar
+			if avatar.alive and not avatar._dead and global_position.distance_to(avatar.global_position) < nearest:
+				nearest = global_position.distance_to(avatar.global_position)
+				best = avatar
+	return best
 
 
 ## Where to go when there is nobody to fight, or Vector3.INF to stay put.
@@ -554,6 +565,7 @@ func _blow_up() -> void:
 
 
 func _spawn_projectile(direction: Vector3) -> void:
+	fired_bolt.emit(_muzzle.global_position, direction)
 	var projectile: Projectile = projectile_scene.instantiate()
 	projectile.position = _muzzle.global_position
 	projectile.direction = direction

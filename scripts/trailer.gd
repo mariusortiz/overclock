@@ -322,7 +322,7 @@ func _run() -> void:
 	# 147.6 s: the fight mode, two fighters of the computer in the Matrice.
 	_clear()
 	_flash()
-	_show_caption("NOUVEAU · MODE COMBAT", "1 CONTRE 1 · ARCADE", 6.6)
+	_show_caption("NOUVEAU · MODE COMBAT", "SPÉCIAUX · ARCADE", 6.6)
 	var fight := _start_fight()
 	await _until(154.6)
 	fight.queue_free()
@@ -402,7 +402,7 @@ func _run() -> void:
 	_fade_shade(1.0, 0.9)
 	await _until(198.7)
 	_end_sparks.emitting = true
-	_show_title("%s\nSUR ANDROID ET DANS LE NAVIGATEUR\n\nHISTOIRE · COMBAT · 5 ARÈNES · 5 CIRCUITS\n%d ARMES · %d HÉROS · %d CARTES" % [
+	_show_title("%s\nSUR ANDROID ET DANS LE NAVIGATEUR\n\nHISTOIRE · COMBAT · COOP WI-FI · 6 ARÈNES\n%d ARMES · %d HÉROS · %d CARTES" % [
 			URL, Loadout.WEAPONS.size(), Loadout.CHARACTERS.size(), Cards.CATALOG.size()], 4.3, true)
 	await _until(DURATION)
 	get_tree().quit()

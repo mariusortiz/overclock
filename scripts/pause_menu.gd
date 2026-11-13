@@ -8,6 +8,8 @@ signal menu_pressed
 
 ## Set to false when the game must not be paused (game over).
 var enabled := true
+## Co-op: the menu opens but the game goes on (it is the others' game too).
+var keep_running := false
 
 var _mouse_was_captured := false
 
@@ -50,7 +52,7 @@ func open() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Input.action_release("fire")
 	Input.action_release("aim")
-	get_tree().paused = true
+	get_tree().paused = not keep_running
 	visible = true
 
 
