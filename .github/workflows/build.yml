@@ -94,6 +94,11 @@ jobs:
           for arena in 0 3; do
             godot --headless --fixed-fps 60 --quit-after 3600 res://scenes/capture.tscn -- --arena=$arena 2>&1 | tee -a run.log
           done
+          # The story mode: its screen, then each chapter's scene played through.
+          godot --headless --fixed-fps 60 --quit-after 120 res://scenes/story.tscn 2>&1 | tee -a run.log
+          for chapter in 1 2 3 4 5 6 7 8 9 10; do
+            godot --headless --fixed-fps 60 --quit-after 2400 res://scenes/story_cutscene.tscn -- --chapter=$chapter 2>&1 | tee -a run.log
+          done
           # The ship race: the circuit choice, a whole race on the first circuit
           # (3 laps, about 95 s, the player idle), 20 s on each of the others.
           godot --headless --fixed-fps 60 --quit-after 120 res://scenes/race.tscn 2>&1 | tee -a run.log

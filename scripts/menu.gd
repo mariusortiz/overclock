@@ -8,6 +8,7 @@ const LOBBY_SCENE := "res://scenes/lobby.tscn"
 const CARDS_SCENE := "res://scenes/cards.tscn"
 ## The game modes offered by JOUER: [title, description, scene].
 const MODES := [
+	["HISTOIRE", "La saison 1 de l'anime, en 10 chapitres", Story.SCREEN],
 	["VAGUES", "Survis aux vagues et bats les 5 boss", GAME_SCENE],
 	["CAPTURE DE ZONE", "4 contre 4 avec des bots · tiens les zones A, B et C", CAPTURE_SCENE],
 	["COURSE DE VAISSEAUX", "3 tours contre 5 pilotes · boost et lasers", RACE_SCENE],
@@ -27,6 +28,7 @@ var _mode_panel := Control.new()
 
 func _ready() -> void:
 	Loadout.fair_play = false
+	Story.leave()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Music.play_track(Music.Track.MAIN)
 	_stage.show_loadout()
@@ -143,7 +145,7 @@ func _build_mode_panel() -> void:
 	for mode: Array in MODES:
 		var button := Button.new()
 		button.text = "%s\n%s" % [mode[0], mode[1]]
-		button.custom_minimum_size = Vector2(560, 104)
+		button.custom_minimum_size = Vector2(560, 88)
 		button.add_theme_font_size_override("font_size", 24)
 		button.pressed.connect(get_tree().change_scene_to_file.bind(mode[2]), CONNECT_DEFERRED)
 		box.add_child(button)

@@ -43,6 +43,8 @@ func _ready() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--arena="):
 			index = argument.get_slice("=", 1).to_int() % ARENAS.size()
+	if Story.is_active():
+		index = Story.mission().arena
 	_arena = load("res://scenes/arenas/%s.tscn" % ARENAS[index]).instantiate()
 	add_child(_arena)
 	move_child(_arena, 0)
@@ -260,7 +262,7 @@ func _replay() -> void:
 func _to_menu() -> void:
 	if Net.is_online():
 		Net.leave()
-	get_tree().change_scene_to_file(MENU_SCENE)
+	get_tree().change_scene_to_file(Story.SCREEN if Story.is_active() else MENU_SCENE)
 
 
 func _on_player_died() -> void:
@@ -326,6 +328,9 @@ func _finish(result: Hud.Result) -> void:
 		bot.process_mode = Node.PROCESS_MODE_DISABLED
 	Input.action_release("fire")
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if Story.is_active():
+		_end_story_mission(result == Hud.Result.TEAM_WIN)
+		return
 	if result == Hud.Result.TEAM_WIN:
 		score += WIN_BONUS
 	var xp := BattlePass.xp_for_score(score)
@@ -378,3 +383,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_F4 \
 			and (OS.is_debug_build() or OS.has_feature("web")):
 		player.invulnerable = true
+
+
+## A story mission ends: a banner, then the story screen.
+func _end_story_mission(won: bool) -> void:
+	hud.show_banner("MISSION ACCOMPLIE" if won else "MISSION ÉCHOUÉE")
+	var stars := Story.stars_for_capture(_points[&"enemy"], WIN_SCORE)
+	await get_tree().create_timer(2.5).timeout
+	Story.finish(won, stars)
+	get_tree().change_scene_to_file.call_deferred(Story.SCREEN)

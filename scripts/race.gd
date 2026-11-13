@@ -94,7 +94,6 @@ var _pause_panel := PanelContainer.new()
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	Music.play_track(Music.Track.RACE)
 	_build_world()
 	_online = Net.is_online()
 	var seed_value := Net.seed_value if _online else randi()
@@ -103,6 +102,8 @@ func _ready() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--circuit="):
 			circuit = argument.get_slice("=", 1).to_int()
+	if Story.is_active():
+		circuit = Story.mission().circuit
 	if circuit >= 0:
 		_setup(circuit, seed_value)
 	else:
@@ -111,6 +112,7 @@ func _ready() -> void:
 
 ## Solo: the circuits, to pick one before the race.
 func _show_circuits(seed_value: int) -> void:
+	Music.play_track(Music.Track.RACE)
 	add_child(_layer)
 	var backdrop := ColorRect.new()
 	backdrop.color = Color(0.02, 0.01, 0.06)
@@ -158,6 +160,9 @@ func _show_circuits(seed_value: int) -> void:
 
 ## Builds circuit `circuit` and its pilots, then starts (or waits for the others).
 func _setup(circuit: int, seed_value: int) -> void:
+	# Each circuit has its own music.
+	var tracks := [Music.Track.RACE, Music.Track.NEBULA, Music.Track.ASTEROIDS, Music.Track.RED_SUN, Music.Track.ICE]
+	Music.play_track(tracks[posmod(circuit, tracks.size())])
 	_track.build(circuit)
 	add_child(_track)
 	_environment.background_color = _track.circuit.sky
@@ -167,7 +172,9 @@ func _setup(circuit: int, seed_value: int) -> void:
 		_environment.fog_density = 0.0015
 	# Each pilot flies a different ship: the player the one chosen in the
 	# armory, the computers the others, shuffled with the track's seed.
-	var others := Loadout.SHIPS.filter(func(item: Dictionary) -> bool: return item.id != Loadout.selected_ship().id)
+	# The computers fly the ordinary ships, never the ultra ones.
+	var others := Loadout.SHIPS.filter(func(item: Dictionary) -> bool:
+		return item.id != Loadout.selected_ship().id and not item.get("op", false))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
 	for i in range(others.size() - 1, 0, -1):
@@ -772,7 +779,7 @@ func _toggle_pause() -> void:
 func _quit() -> void:
 	if _online:
 		Net.leave()
-	get_tree().change_scene_to_file.call_deferred(MENU_SCENE)
+	get_tree().change_scene_to_file.call_deferred(Story.SCREEN if Story.is_active() else MENU_SCENE)
 
 
 # --- Network ------------------------------------------------------------------
@@ -858,6 +865,14 @@ func _show_results() -> void:
 	Input.action_release("fire")
 	var standings := _standings()
 	var place := standings.find(_player)
+	if Story.is_active():
+		var won: bool = place < Story.mission().place
+		_show_center("MISSION ACCOMPLIE" if won else "MISSION ÉCHOUÉE")
+		_touch.visible = false
+		await get_tree().create_timer(2.5).timeout
+		Story.finish(won, Story.stars_for_place(place))
+		get_tree().change_scene_to_file.call_deferred(Story.SCREEN)
+		return
 	var score: int = PLACE_SCORES[place]
 	var xp := BattlePass.xp_for_score(score)
 	var credits := Wallet.credits_for_score(score)

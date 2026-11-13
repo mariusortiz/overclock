@@ -172,6 +172,8 @@ const SHIPS := [
 		"fair": {"velocity": 1.04, "handling": 1.1, "shield": 3, "fire": 1.1, "special": &"surboost"}},
 	{"id": "ship_reaper", "name": "Faucheuse", "design": 1, "color": Color(1.0, 0.1, 0.15), "hull": Color(0.18, 0.05, 0.07), "velocity": 1.18, "handling": 1.2, "shield": 4, "fire": 2.2, "special": &"blackhole", "shop": true, "op": true,
 		"fair": {"velocity": 1.04, "handling": 1.1, "shield": 3, "fire": 1.1, "special": &"salvo"}},
+	# Earned by finishing the story mode's season 1 (see Story): Vipère's ship.
+	{"id": "ship_scarlet", "name": "Écarlate", "design": 1, "color": Color(1.0, 0.2, 0.15), "hull": Color(0.55, 0.08, 0.1), "velocity": 1.08, "handling": 1.15, "shield": 3, "fire": 1.2, "special": &"salvo", "story": true},
 	{"id": "ship_aurora", "name": "Aurore", "design": 4, "color": Color(0.3, 1.0, 0.85), "hull": Color(0.95, 0.97, 1.0), "velocity": 1.2, "handling": 1.5, "shield": 5, "fire": 1.5, "special": &"chronos", "shop": true, "op": true,
 		"fair": {"velocity": 1.04, "handling": 1.1, "shield": 3, "fire": 1.1, "special": &"emp"}},
 ]
@@ -275,14 +277,20 @@ static func is_unlocked(item: Dictionary) -> bool:
 		return Wallet.owns(item.id)
 	if item.id == CHAMPION_SKIN_ID:
 		return SaveData.load_progress(CHAMPION_KEY, false)
+	if item.get("story", false):
+		return Story.season_done()
 	return BattlePass.is_unlocked(item.id)
 
 
 static func selected_character() -> Dictionary:
+	if story_hero != "":
+		return find(story_hero).item
 	return fair(_selected(CHARACTERS, CHARACTER_KEY))
 
 
 static func selected_weapon() -> Dictionary:
+	if story_weapon != "":
+		return find(story_weapon).item
 	return fair(_selected(WEAPONS, WEAPON_KEY))
 
 
@@ -299,12 +307,19 @@ static func selected_melee_skin() -> Dictionary:
 
 
 static func selected_ship() -> Dictionary:
+	if story_ship != "":
+		return find(story_ship).item
 	return _selected(SHIPS, SHIP_KEY)
 
 
 ## On during a multiplayer match (set by Net): overpowered items play as
 ## their "fair" version.
 static var fair_play := false
+## Set by the story mode (see Story): the hero, gun and ship the chapter
+## imposes, whatever is equipped. Empty outside the story.
+static var story_hero := ""
+static var story_weapon := ""
+static var story_ship := ""
 
 
 ## The item as it plays now: its "fair" version in multiplayer.
@@ -441,6 +456,8 @@ static func unlock_text(item: Dictionary) -> String:
 		return "En vente à la boutique"
 	if item.id == CHAMPION_SKIN_ID:
 		return "Bats le boss final de la ville"
+	if item.get("story", false):
+		return "Termine la saison 1 du mode histoire"
 	return "Palier %d du passe de combat" % BattlePass.required_tier(item.id)
 
 

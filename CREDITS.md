@@ -23,7 +23,12 @@ Tous les fichiers externes du jeu sont sous licence [CC0 1.0](https://creativeco
 | Musique du volcan | [Fire Level](https://opengameart.org/content/fire-level) | Spring Spring (Julie Damsgaard) | `assets/audio/music/` |
 | Musique de la ville | [City Loop](https://opengameart.org/content/city-loop-0) | wipics | `assets/audio/music/` |
 | Musique de la capture de zone | [Return of the Omega Droid](https://opengameart.org/content/return-of-the-omega-droid) | Umplix | `assets/audio/music/omega_droid.ogg` |
-| Musique de la course de vaisseaux | [Virtual Rush](https://opengameart.org/content/virtual-rush) | vita | `assets/audio/music/virtual_rush.ogg` |
+| Musique de la course de vaisseaux (Anneau d'Orion) | [Virtual Rush](https://opengameart.org/content/virtual-rush) | vita | `assets/audio/music/virtual_rush.ogg` |
+| Musique du circuit Nébuleuse | [Chase](https://opengameart.org/content/chase-2) | Adiutorium | `assets/audio/music/chase.ogg` (réencodée en Ogg) |
+| Musique du circuit Ceinture d'astéroïdes | [As fast as you can](https://opengameart.org/content/as-fast-as-you-can) | Centurion_of_war | `assets/audio/music/as_fast_as_you_can.ogg` |
+| Musique du circuit Soleil rouge | [Cyber Runner Music](https://opengameart.org/content/cyber-runner-music) | ansimuz | `assets/audio/music/cyber_runner.ogg` |
+| Musique du circuit Labyrinthe de glace | [Fields of Ice](https://opengameart.org/content/fields-of-ice) | Jonathan So | `assets/audio/music/fields_of_ice.ogg` (réencodée en Ogg) |
+| Musique du mode histoire | [Destiny Formation](https://opengameart.org/content/destiny-formation) | Bobjt | `assets/audio/music/destiny_formation.ogg` (réencodée en Ogg) |
 | Musique de boss | [Boss Battle (loop)](https://opengameart.org/content/boss-battle-loop) | Alex McCulloch | `assets/audio/music/` |
 | Musique de défaite | [Game Over Theme (No Hope)](https://opengameart.org/content/game-over-theme) | Cleyton Kauffman | `assets/audio/music/` |
 | Musique de l'anime | [The Rush](https://opengameart.org/content/the-rush) | tebr | `tools/anime_music.mp3` |

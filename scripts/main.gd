@@ -1,6 +1,8 @@
 extends Node3D
 ## Game root: wires the player, the waves and the HUD together, and keeps the score.
 
+## Seconds between a story mission's win and the story screen.
+const STORY_END_TIME := 2.5
 const KILL_SCORE := 100
 const WAVE_BONUS := 250  # multiplied by the wave number
 const WAVE_HEAL := 25
@@ -71,6 +73,8 @@ func _ready() -> void:
 				player.ultimate.add_charge(1.0)
 				Input.action_press("ultimate")
 				get_tree().create_timer(0.2, false).timeout.connect(Input.action_release.bind("ultimate")))
+	if Story.is_active():
+		first_arena = Story.mission().arena
 	_load_arena(first_arena)
 
 	hud.touch_controls.look.connect(_on_touch_look)
@@ -116,7 +120,9 @@ func _ready() -> void:
 	add_child(_stats)
 	_stats.setup(player, waves)
 
-	if Tutorial.is_needed():
+	if Story.is_active():
+		_start_story_mission()
+	elif Tutorial.is_needed():
 		var tutorial := Tutorial.new()
 		add_child(tutorial)
 		tutorial.setup(player, hud, waves)
@@ -281,6 +287,9 @@ func _on_boss_killed(kind: Boss.Kind) -> void:
 	Music.play_track(_arena.music_track)
 	hud.hide_boss()
 	_add_score(BOSS_SCORE)
+	if Story.is_active():
+		_end_story_mission(true)
+		return
 	if kind == Boss.Kind.TITAN and not _endless:
 		_win()
 
@@ -385,11 +394,42 @@ func _slow_motion() -> void:
 ## Giving up from the pause menu ends the game like a death: half the XP,
 ## the challenges and stats counted, then the end screen.
 func _on_quit_pressed() -> void:
+	if Story.is_active():
+		get_tree().paused = false
+		get_tree().change_scene_to_file.call_deferred(Story.SCREEN)
+		return
 	waves.stop()
 	player.process_mode = Node.PROCESS_MODE_DISABLED
 	Input.action_release("fire")
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_show_results(Hud.Result.QUIT)
+
+
+## A story mission: the waves of the chapter's arena (from its first one),
+## with a power-up for each arena skipped, as if the player had come this far.
+func _start_story_mission() -> void:
+	var arena: int = Story.mission().arena
+	waves.wave = arena * WaveManager.BOSS_EVERY
+	for i in arena * 2:
+		player.add_perk(Perk.pick_choices(1)[0])
+	hud.show_banner("CHAPITRE %d  ·  %s" % [Story.chapter + 1, str(Story.mission().title).to_upper()])
+
+
+## The chapter's boss is down: the mission is won, stars by health left.
+func _end_story_mission(won: bool) -> void:
+	_won = true
+	waves.stop()
+	player.invulnerable = true
+	for enemy in get_tree().get_nodes_in_group("targets"):
+		enemy.take_damage(9999)
+	hud.show_banner("MISSION ACCOMPLIE")
+	Effects.flash(self, player.global_position + Vector3.UP * 2.0, Color(1.0, 0.8, 0.25), 8.0, 1.0)
+	var stars := Story.stars_for_health(float(player.health) / float(player.max_health))
+	await get_tree().create_timer(STORY_END_TIME).timeout
+	Input.action_release("fire")
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Story.finish(won, stars)
+	get_tree().change_scene_to_file.call_deferred(Story.SCREEN)
 
 
 ## The game goes on past the Titan, from the first arena.
@@ -431,6 +471,10 @@ func _on_player_died() -> void:
 	hud.show_death_title()
 	await get_tree().create_timer(DEATH_TITLE_TIME, true, false, true).timeout
 	Engine.time_scale = 1.0
+	if Story.is_active():
+		Story.finish(false, 0)
+		get_tree().change_scene_to_file.call_deferred(Story.SCREEN)
+		return
 	_show_results(Hud.Result.DEATH)
 
 
