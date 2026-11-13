@@ -104,14 +104,15 @@ func _story() -> void:
 	_say(vipere, "« À lui » ? À qui ?!", 2.0, -1.0, 1.0)
 	await _until(56.6)
 
-	# 56.6 s: back at the hangar.
+	# 56.6 s: back in the station's hall.
 	_wipe()
-	_load_arena(0)
-	var hero_soldier := _hero("soldier", STAGE + Vector3(-1.0, 0, 1.0), PI * 0.8, "none")
-	var hero_vipere := _hero("sand_ghost", STAGE + Vector3(1.0, 0, 1.2), -PI * 0.8, "none")
-	var hero_captain := _hero("captain", STAGE + Vector3(0, 0, -0.4), 0.0, "none")
+	_load_showroom()
+	_camera.far = 400.0
+	var hero_soldier := _hero("soldier", Vector3(-1.0, 0, 1.0), PI * 0.8, "none")
+	var hero_vipere := _hero("sand_ghost", Vector3(1.0, 0, 1.2), -PI * 0.8, "none")
+	var hero_captain := _hero("captain", Vector3(0, 0, -0.4), 0.0, "none")
 	_face(hero_captain, hero_soldier)
-	_dolly(STAGE + Vector3(3, 1.6, 4.5), STAGE + Vector3(2.4, 1.6, 4.0), STAGE + Vector3(0, 1.3, 0.6), STAGE + Vector3(0, 1.3, 0.6), 10.0, true)
+	_dolly(Vector3(3, 1.6, 4.5), Vector3(2.4, 1.6, 4.0), Vector3(0, 1.3, 0.6), Vector3(0, 1.3, 0.6), 10.0)
 	await _until(57.4)
 	_say(hero_captain, "Trois vaisseaux en miettes. Un circuit qui n'existe plus.", 3.2, 1.0)
 	await _until(61.2)

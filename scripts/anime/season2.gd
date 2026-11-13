@@ -72,9 +72,19 @@ func _corrupt(node: Node) -> void:
 		mesh.material_overlay = glow
 
 
+## What to show or hide for `model`: its own pivot (characters, enemies,
+## bosses), or the model itself when it sits right in the set (ships):
+## hiding the set would hide everything.
+func _pivot_of(model: Node3D) -> Node3D:
+	var parent := model.get_parent()
+	if parent is Node3D and parent != _set:
+		return parent
+	return model
+
+
 ## Someone appears like a glitch: he flickers into view in a burst of green.
 func _appear(model: Node3D, seconds := 0.6) -> void:
-	var pivot := model.get_parent() as Node3D if model.get_parent() is Node3D else model
+	var pivot := _pivot_of(model)
 	Effects.burst(_set, model.global_position + Vector3.UP, VIRUS, 40)
 	var tween := create_tween()
 	for i in 6:
@@ -85,7 +95,7 @@ func _appear(model: Node3D, seconds := 0.6) -> void:
 
 ## He flickers out of view and is gone.
 func _vanish(model: Node3D, seconds := 0.6) -> void:
-	var pivot := model.get_parent() as Node3D if model.get_parent() is Node3D else model
+	var pivot := _pivot_of(model)
 	var tween := create_tween()
 	for i in 6:
 		tween.tween_callback(func() -> void: pivot.visible = i % 2 == 1)
