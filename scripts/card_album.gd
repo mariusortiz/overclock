@@ -23,6 +23,7 @@ var _overlay := Control.new()
 
 
 func _ready() -> void:
+	Music.play_track(Music.Track.CARDS)
 	Cards.sync_hacker()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var background := ColorRect.new()

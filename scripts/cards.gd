@@ -13,8 +13,8 @@ const RARITY := {
 	Rarity.COMMON: {"name": "Commune", "color": Color(0.75, 0.78, 0.85), "weight": 60.0, "dust": 5, "craft": 40},
 	Rarity.RARE: {"name": "Rare", "color": Color(0.25, 0.6, 1.0), "weight": 25.0, "dust": 20, "craft": 160},
 	Rarity.EPIC: {"name": "Épique", "color": Color(0.75, 0.35, 1.0), "weight": 10.0, "dust": 50, "craft": 400},
-	Rarity.LEGENDARY: {"name": "Légendaire", "color": Color(1.0, 0.75, 0.2), "weight": 4.0, "dust": 150, "craft": 1200},
-	Rarity.MYTHIC: {"name": "Mythique", "color": Color(1.0, 0.25, 0.6), "weight": 1.0, "dust": 500, "craft": 4000},
+	Rarity.LEGENDARY: {"name": "Légendaire", "color": Color(1.0, 0.75, 0.2), "weight": 1.5, "dust": 150, "craft": 1200},
+	Rarity.MYTHIC: {"name": "Mythique", "color": Color(1.0, 0.25, 0.6), "weight": 0.3, "dust": 500, "craft": 4000},
 	# Never drawn, recycled or crafted: only with a code.
 	Rarity.HACKER: {"name": "Hacker", "color": Color(0.2, 1.0, 0.45), "weight": 0.0, "dust": 0, "craft": 0},
 }

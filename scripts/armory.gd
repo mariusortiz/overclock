@@ -34,6 +34,7 @@ var _viewed: Dictionary
 
 
 func _ready() -> void:
+	Music.play_track(Music.Track.ARMORY)
 	TouchScroll.attach($Right/Box/Scroll)
 	_stage.show_loadout()
 	$Back.pressed.connect(get_tree().change_scene_to_file.bind(MENU_SCENE), CONNECT_DEFERRED)

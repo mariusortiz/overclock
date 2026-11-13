@@ -44,6 +44,7 @@ var _billing := Billing.new()
 
 
 func _ready() -> void:
+	Music.play_track(Music.Track.SHOP)
 	TouchScroll.attach($Right/Box/Scroll)
 	add_child(_billing)
 	_billing.status_changed.connect(_refresh)

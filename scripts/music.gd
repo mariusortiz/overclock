@@ -4,7 +4,7 @@ extends AudioStreamPlayer
 
 ## CAPTURE and RACE are the zone capture and the ship race modes (RACE for
 ## the first circuit, then one track per circuit); STORY the story mode.
-enum Track { MAIN, BOSS, DEATH, DESERT, JUNGLE, VOLCANO, CITY, CAPTURE, RACE, STORY, NEBULA, ASTEROIDS, RED_SUN, ICE, STORY_2, MATRIX }
+enum Track { MAIN, BOSS, DEATH, DESERT, JUNGLE, VOLCANO, CITY, CAPTURE, RACE, STORY, NEBULA, ASTEROIDS, RED_SUN, ICE, STORY_2, MATRIX, SHOP, ARMORY, PASS, CARDS, FIGHT_MENU, LOBBY }
 
 # Loaded on demand rather than preloaded, so this script still compiles
 # before the audio files have been imported for the first time.
@@ -25,6 +25,13 @@ const PATHS := {
 	Track.ICE: "res://assets/audio/music/fields_of_ice.ogg",
 	Track.STORY_2: "res://assets/audio/music/cyberpunk_moonlight_sonata.ogg",
 	Track.MATRIX: "res://assets/audio/music/digital_acid.ogg",
+	# Each screen of the menus has its own.
+	Track.SHOP: "res://assets/audio/music/bossa_shop.ogg",
+	Track.ARMORY: "res://assets/audio/music/mysterywave.ogg",
+	Track.PASS: "res://assets/audio/music/synthwave_421k.ogg",
+	Track.CARDS: "res://assets/audio/music/chill_menu.ogg",
+	Track.FIGHT_MENU: "res://assets/audio/music/all_the_fight_left.ogg",
+	Track.LOBBY: "res://assets/audio/music/electronic_outlaw.ogg",
 }
 
 var _current := -1

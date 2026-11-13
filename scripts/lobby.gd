@@ -12,6 +12,7 @@ var _status := Label.new()
 
 
 func _ready() -> void:
+	Music.play_track(Music.Track.LOBBY)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var background := ColorRect.new()
 	background.color = Color(0.02, 0.04, 0.16)

@@ -31,6 +31,12 @@ Tous les fichiers externes du jeu sont sous licence [CC0 1.0](https://creativeco
 | Musique du mode histoire | [Destiny Formation](https://opengameart.org/content/destiny-formation) | Bobjt | `assets/audio/music/destiny_formation.ogg` (réencodée en Ogg) |
 | Musique du mode histoire, saison 2 | [Cyberpunk Moonlight Sonata](https://opengameart.org/content/cyberpunk-moonlight-sonata) | Joth | `assets/audio/music/cyberpunk_moonlight_sonata.ogg` (réencodée en Ogg) |
 | Musique de la Matrice | [Xenocity - Digital Acid](https://opengameart.org/content/xenocity-digital-acid-glitch-hop) | Deva | `assets/audio/music/digital_acid.ogg` (réencodée en Ogg) |
+| Musique de la boutique | [Bossa Shop Theme](https://opengameart.org/content/bossa-shop-theme-in-low-fi-and-hd) | Spring Spring | `assets/audio/music/bossa_shop.ogg` (réencodée en Ogg) |
+| Musique de l'arsenal | [80's Mysterywave](https://opengameart.org/content/80s-mysterywave-music) | Dese | `assets/audio/music/mysterywave.ogg` (3 premières minutes, réencodée en Ogg) |
+| Musique du passe de combat | [Calm Relax 1 (Synthwave 421k)](https://opengameart.org/content/calm-relax-1-synthwave-421k) | cyn | `assets/audio/music/synthwave_421k.ogg` (3 premières minutes, réencodée en Ogg) |
+| Musique des cartes | [Chill Main Menu Music](https://opengameart.org/content/chill-main-menu-music) | Augmentality (Brandon Morris) | `assets/audio/music/chill_menu.ogg` (réencodée en Ogg) |
+| Musique du menu combat | [All the Fight Left](https://opengameart.org/content/all-the-fight-left) | Holizn | `assets/audio/music/all_the_fight_left.ogg` (réencodée en Ogg) |
+| Musique du multijoueur | [Electronic Outlaw](https://opengameart.org/content/electronic-outlaw) | Zane Little Music | `assets/audio/music/electronic_outlaw.ogg` (réencodée en Ogg) |
 | Fanfare des cartes légendaires | [Win Jingle](https://opengameart.org/content/win-jingle) | Fupi | `assets/audio/fanfare_legendary.ogg` |
 | Fanfare des cartes mythiques | [Hyper Ultra Fanfare](https://opengameart.org/content/hyper-ultra-fanfare) | Zane Little Music | `assets/audio/fanfare_mythic.ogg` (réencodée en Ogg) |
 | Musique de boss | [Boss Battle (loop)](https://opengameart.org/content/boss-battle-loop) | Alex McCulloch | `assets/audio/music/` |

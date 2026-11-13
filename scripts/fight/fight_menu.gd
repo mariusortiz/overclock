@@ -31,7 +31,7 @@ var _go := Button.new()
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	Music.play_track(Music.Track.CAPTURE)
+	Music.play_track(Music.Track.FIGHT_MENU)
 	if FightSetup.mode == "online":
 		FightSetup.mode = "ai"
 	if not Loadout.is_unlocked(Loadout.find(FightSetup.heroes[0]).item):
