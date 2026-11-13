@@ -825,7 +825,8 @@ func _celebrate() -> void:
 	var fan := Node3D.new()
 	fan.position = Vector3.BACK * 0.6  # behind the trophy
 	_rays.add_child(fan)
-	create_tween().set_loops().tween_property(fan, "rotation:z", TAU, 10.0).from(0.0)
+	# Bound to the fan: it stops when the set is cleared (a later shot).
+	fan.create_tween().set_loops().tween_property(fan, "rotation:z", TAU, 10.0).from(0.0)
 	var ray_material := StandardMaterial3D.new()
 	ray_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	ray_material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
