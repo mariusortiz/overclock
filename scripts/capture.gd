@@ -338,6 +338,8 @@ func _finish(result: Hud.Result) -> void:
 		score += WIN_BONUS
 	var xp := BattlePass.xp_for_score(score)
 	var credits := Wallet.credits_for_score(score)
+	if result == Hud.Result.TEAM_WIN:
+		Achievements.set_flag("capture_win")
 	if result != Hud.Result.TEAM_WIN:
 		@warning_ignore("integer_division")
 		xp /= 2

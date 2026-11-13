@@ -28,6 +28,10 @@ static func add_gems(amount: int) -> void:
 	SaveData.save_progress(GEMS_KEY, gems() + amount)
 
 
+static func owned_count() -> int:
+	return _owned().size()
+
+
 static func owns(id: String) -> bool:
 	return id in _owned()
 

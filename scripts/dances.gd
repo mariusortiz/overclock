@@ -115,6 +115,27 @@ static var LIST: Array[Dictionary] = [
 			PoseLayer.symmetric({"UpperArm": Vector3(0, 0, 100), "LowerArm": Vector3(0, 0, 20)}, {"UpperLeg.L": Vector3(-50, 0, 0), "LowerLeg.L": Vector3(80, 0, 0)}),
 		],
 	},
+	# Season 2 of the battle pass ("pass").
+	{
+		# A glitch: the body jumps from pose to pose, frozen in between.
+		"id": "dance_glitch", "pass": true, "name": "GLITCH", "snap": true, "bounce": 0.0, "spin": 0.0,
+		"poses": [
+			{"UpperArm.R": Vector3(0, 0, -120), "Head": Vector3(0, 30, 0), "Torso": Vector3(0, 20, 0)},
+			{"UpperArm.L": Vector3(-90, 0, 0), "LowerArm.L": Vector3(-90, 0, 0), "Head": Vector3(20, -20, 0)},
+			{"UpperArm.R": Vector3(-160, 0, 0), "UpperArm.L": Vector3(0, 0, 60), "Torso": Vector3(0, -25, 10)},
+			{"UpperLeg.L": Vector3(-50, 0, 0), "LowerLeg.L": Vector3(60, 0, 0), "Head": Vector3(-15, 0, 15)},
+		],
+	},
+	{
+		# Reboot: slumped, then upright, arms rising like a system starting up.
+		"id": "dance_reboot", "pass": true, "name": "REDÉMARRAGE", "snap": false, "bounce": 0.05, "spin": 0.0,
+		"poses": [
+			PoseLayer.symmetric({"UpperArm": Vector3(10, 0, 5), "LowerArm": Vector3(0, 0, 0)}, {"Torso": Vector3(35, 0, 0), "Head": Vector3(30, 0, 0)}),
+			PoseLayer.symmetric({"UpperArm": Vector3(0, 0, 70)}, {"Torso": Vector3(0, 0, 0)}),
+			PoseLayer.symmetric({"UpperArm": Vector3(0, 0, 160)}, {"Head": Vector3(-15, 0, 0)}),
+			PoseLayer.symmetric({"UpperArm": Vector3(0, 0, 70)}, {"Torso": Vector3(0, 0, 0)}),
+		],
+	},
 	# Sold during the Christmas event only ("event", see Events).
 	{
 		# The snowman: round arms out like branches, a stiff little wobble.
@@ -140,7 +161,13 @@ static var LIST: Array[Dictionary] = [
 static func available() -> Array[int]:
 	var indices: Array[int] = []
 	for index in LIST.size():
-		if not LIST[index].get("shop", false) or Wallet.owns(LIST[index].id):
+		var dance: Dictionary = LIST[index]
+		var owned := Wallet.owns(dance.get("id", ""))
+		if dance.get("pass", false):
+			owned = BattlePass.is_unlocked(dance.id)
+		elif not dance.get("shop", false):
+			owned = true
+		if owned:
 			indices.append(index)
 	return indices
 

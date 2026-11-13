@@ -1,7 +1,13 @@
 class_name BattlePass
-## Free, permanent progression track. Every game gives XP from the score; each
+## Free, permanent progression tracks. Every game gives XP from the score; each
 ## tier reached unlocks one item of the Loadout catalog. Items that are not
 ## listed here are available from the start.
+##
+## Two seasons, each with its own tiers (REWARDS, REWARDS_2). Every XP counts
+## for both: the second season starts from zero when it comes, and nothing
+## of the first is lost. Season 2 also pays gems ("gems:n"), credits
+## ("credits:n") and boosters ("booster:kind") between its items, given
+## as soon as the tier is reached.
 
 const XP_PER_SCORE_POINT := 0.1
 const FIRST_TIER_COST := 260
@@ -10,6 +16,8 @@ const COST_INCREASE := 60
 const RISING_TIERS := 30
 const LATE_TIER_COST := 1000
 const XP_KEY := "xp"
+const XP_2_KEY := "xp_season2"
+const SEASON_NAMES: Array[String] = ["SAISON 1", "SAISON 2 · MATRICE"]
 
 ## Loadout item ids, in tier order: REWARDS[0] is the reward of tier 1.
 const REWARDS: Array[String] = [
@@ -34,6 +42,29 @@ const REWARDS: Array[String] = [
 ]
 
 
+## Season 2: the Matrice. Its last tier is a hero, Programme.
+const REWARDS_2: Array[String] = [
+	"credits:560", "skin_data", "gems:52", "booster:standard", "credits:800",
+	"gems:64", "booster:rare", "dance_glitch", "credits:1040", "gems:80",
+	"booster:standard", "credits:1220", "gems:92", "skin_firewall", "booster:rare",
+	"credits:1460", "gems:108", "booster:standard", "credits:1640", "gems:120",
+	"ship_firewall", "booster:rare", "credits:1880", "gems:136", "booster:standard",
+	"credits:2060", "gems:148", "skin_corruption", "booster:rare", "credits:2300",
+	"gems:164", "booster:standard", "credits:2480", "gems:176", "booster:rare",
+	"skin_binary", "credits:2720", "gems:192", "booster:standard", "credits:2900",
+	"gems:204", "booster:rare", "credits:3080", "gems:216", "dance_reboot",
+	"booster:standard", "credits:3320", "gems:232", "booster:rare", "credits:3500",
+	"gems:244", "skin_kernel", "booster:standard", "credits:3740", "gems:260",
+	"booster:rare", "credits:3920", "gems:272", "booster:standard", "booster:legend",
+	"credits:4160", "gems:288", "booster:rare", "credits:4340", "gems:300",
+	"booster:standard", "credits:4520", "gems:312", "booster:rare", "programme",
+]
+
+
+static func rewards(season: int) -> Array[String]:
+	return REWARDS if season == 0 else REWARDS_2
+
+
 static func xp_for_score(score: int) -> int:
 	return roundi(score * XP_PER_SCORE_POINT)
 
@@ -45,34 +76,84 @@ static func tier_cost(tier: int) -> int:
 	return FIRST_TIER_COST + COST_INCREASE * (tier - 1)
 
 
-static func total_xp() -> int:
-	return SaveData.load_progress(XP_KEY, 0)
+static func total_xp(season := 0) -> int:
+	return SaveData.load_progress(XP_KEY if season == 0 else XP_2_KEY, 0)
 
 
 ## Where the player stands: {"tier": tiers reached, "xp": XP into the next
 ## tier, "needed": cost of the next tier (0 when the pass is complete)}.
-static func progress() -> Dictionary:
-	var xp := total_xp()
+static func progress(season := 0) -> Dictionary:
+	var list := rewards(season)
+	var xp := total_xp(season)
 	var tier := 0
-	while tier < REWARDS.size() and xp >= tier_cost(tier + 1):
+	while tier < list.size() and xp >= tier_cost(tier + 1):
 		xp -= tier_cost(tier + 1)
 		tier += 1
-	var complete := tier == REWARDS.size()
+	var complete := tier == list.size()
 	return {"tier": tier, "xp": 0 if complete else xp, "needed": 0 if complete else tier_cost(tier + 1)}
 
 
-## Adds XP and returns the ids unlocked by the tiers just reached.
-static func add_xp(amount: int) -> Array[String]:
-	var before: int = progress().tier
-	SaveData.save_progress(XP_KEY, total_xp() + amount)
-	var after: int = progress().tier
-	return REWARDS.slice(before, after)
+## Adds XP to both seasons, pays season 2's gems, credits and boosters, and
+## returns the ids of the items unlocked by the tiers just reached (those
+## of the Loadout: guns, heroes, skins, ships).
+static func add_xp(amount: int, season := -1) -> Array[String]:
+	var unlocked: Array[String] = []
+	for index in SEASON_NAMES.size():
+		if season != -1 and index != season:
+			continue
+		var before: int = progress(index).tier
+		SaveData.save_progress(XP_KEY if index == 0 else XP_2_KEY, total_xp(index) + amount)
+		for reward in rewards(index).slice(before, progress(index).tier):
+			if not _pay(reward) and not Loadout.find(reward).is_empty():
+				unlocked.append(reward)
+	return unlocked
+
+
+## Gives a currency or booster reward. Returns false for an item.
+static func _pay(reward: String) -> bool:
+	var parts := reward.split(":")
+	if parts.size() != 2:
+		return false
+	match parts[0]:
+		"gems":
+			Wallet.add_gems(parts[1].to_int())
+		"credits":
+			Wallet.add_credits(parts[1].to_int())
+		"booster":
+			Cards.give_booster(parts[1])
+		_:
+			return false
+	return true
+
+
+## What a reward is, for the pass screen: [name, kind].
+static func describe(reward: String) -> Array:
+	var parts := reward.split(":")
+	if parts.size() == 2:
+		match parts[0]:
+			"gems":
+				return ["%s gemmes" % parts[1], "Gemmes"]
+			"credits":
+				return ["%s crédits" % parts[1], "Crédits"]
+			"booster":
+				return [{"standard": "Booster", "rare": "Booster rare", "legend": "Booster légendaire"}[parts[1]], "Cartes"]
+	var dance := Dances.find(reward)
+	if not dance.is_empty():
+		return [str(dance.name).capitalize(), "Danse"]
+	var found := Loadout.find(reward)
+	return [found.item.name, found.kind] if not found.is_empty() else [reward, ""]
 
 
 ## Tier that unlocks an item, or 0 when it is available from the start.
 static func required_tier(id: String) -> int:
-	return REWARDS.find(id) + 1
+	return REWARDS.find(id) + 1 if id in REWARDS else REWARDS_2.find(id) + 1
+
+
+## The season whose pass unlocks the item (0 or 1), or -1.
+static func season_of(id: String) -> int:
+	return 0 if id in REWARDS else (1 if id in REWARDS_2 else -1)
 
 
 static func is_unlocked(id: String) -> bool:
-	return required_tier(id) <= progress().tier
+	var season := season_of(id)
+	return season == -1 or required_tier(id) <= progress(season).tier

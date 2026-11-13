@@ -69,7 +69,7 @@ const BLADES := {
 	"knight": "mace", "kimono": "katana", "viking": "axe", "elf": "spear", "cowgirl": "knife", "witch": "spear",
 	"wizard": "spear", "golden_knight": "mace", "kunoichi": "kunai", "captain": "machete", "ronin": "katana",
 	"paladin": "mace", "godfather": "butterfly", "sand_ghost": "kunai", "directeur": "butterfly",
-	"createur": "ctrl_alt_del", "commander": "karambit",
+	"createur": "ctrl_alt_del", "commander": "karambit", "programme": "katana",
 }
 ## The arcade's last opponent.
 const TITAN := {"id": "titan", "name": "Titan Mk II", "ulti": &"airstrike", "boss": true, "boost": 1.4}
@@ -137,6 +137,8 @@ func setup(item: Dictionary, tint: Color) -> void:
 	model = instance as CharacterModel
 	model.target_height = 3.2 if item.get("boss", false) else HEIGHT
 	_model_pivot.add_child(model)
+	if item.has("glow"):
+		Loadout.glow(model, item.glow)
 	model.pose.space = model
 	if item.get("boss", false):
 		var material := StandardMaterial3D.new()

@@ -53,6 +53,7 @@ func _ready() -> void:
 	$Right/Box/Play.pressed.connect(func() -> void: _mode_panel.visible = true)
 	if Events.is_christmas():
 		_add_christmas()
+	_announce_achievements(Achievements.check())
 	$Right/Box/Gear/Armory.pressed.connect(get_tree().change_scene_to_file.bind(ARMORY_SCENE), CONNECT_DEFERRED)
 	$Right/Box/Gear/Shop.pressed.connect(get_tree().change_scene_to_file.bind(SHOP_SCENE), CONNECT_DEFERRED)
 	$Right/Box/PassRow/Pass.pressed.connect(get_tree().change_scene_to_file.bind(PASS_SCENE), CONNECT_DEFERRED)
@@ -234,6 +235,29 @@ func _open_code_panel() -> void:
 	close.pressed.connect(get_tree().reload_current_scene, CONNECT_DEFERRED)
 	row.add_child(close)
 	field.grab_focus()
+
+
+## Achievements just reached (outside a game: cards, pass, shop…): a banner
+## at the top, one after the other.
+func _announce_achievements(reached: Array[Dictionary]) -> void:
+	for achievement in reached:
+		var banner := Label.new()
+		banner.text = "SUCCÈS : %s  ·  +%d GEMMES" % [str(achievement.name).to_upper(), achievement.gems]
+		banner.add_theme_font_size_override("font_size", 28)
+		banner.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+		banner.add_theme_color_override("font_outline_color", Color.BLACK)
+		banner.add_theme_constant_override("outline_size", 10)
+		banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		banner.anchor_right = 1.0
+		banner.offset_top = 14
+		banner.modulate.a = 0.0
+		add_child(banner)
+		var tween := banner.create_tween()
+		tween.tween_interval(1.2 + 2.6 * reached.find(achievement))
+		tween.tween_property(banner, "modulate:a", 1.0, 0.25)
+		tween.tween_interval(2.0)
+		tween.tween_property(banner, "modulate:a", 0.0, 0.3)
+		tween.tween_callback(banner.queue_free)
 
 
 ## The Christmas event: snow over the home screen, and the gift of the day.

@@ -95,6 +95,8 @@ static func reward(won: bool, run_over := false) -> String:
 			return "%d gemmes et un booster rare" % ARCADE_GEMS
 		Wallet.add_credits(150)
 		return "150 crédits"
+	if mode == "ai" and difficulty == 2:
+		Achievements.set_flag("fight_hard")
 	var credits: int = WIN_CREDITS[difficulty]
 	Wallet.add_credits(credits)
 	return "%d crédits" % credits

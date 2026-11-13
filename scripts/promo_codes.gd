@@ -87,10 +87,11 @@ static func redeem(code: String) -> Array:
 		SaveData.save_progress(Events.FORCE_KEY, true)
 		given.append("l'événement de Noël")
 	if reward.get("pass_complete", false):
-		var all_tiers := 0
-		for tier in range(1, BattlePass.REWARDS.size() + 1):
-			all_tiers += BattlePass.tier_cost(tier)
-		BattlePass.add_xp(maxi(all_tiers - BattlePass.total_xp(), 0))
+		for season in BattlePass.SEASON_NAMES.size():
+			var all_tiers := 0
+			for tier in range(1, BattlePass.rewards(season).size() + 1):
+				all_tiers += BattlePass.tier_cost(tier)
+			BattlePass.add_xp(maxi(all_tiers - BattlePass.total_xp(season), 0), season)
 		given.append("tout le passe de combat")
 	if key not in used:
 		used.append(key)

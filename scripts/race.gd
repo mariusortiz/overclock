@@ -884,6 +884,8 @@ func _show_results() -> void:
 		Story.finish(won, Story.stars_for_place(place))
 		get_tree().change_scene_to_file.call_deferred(Story.SCREEN)
 		return
+	if place == 0:
+		Achievements.set_flag("race_win")
 	var score: int = PLACE_SCORES[place]
 	var xp := BattlePass.xp_for_score(score)
 	var credits := Wallet.credits_for_score(score)

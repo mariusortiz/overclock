@@ -30,6 +30,8 @@ const CHARACTERS := [
 	# Overpowered ("op"): far above the rest, sold dear. "fair" is what they
 	# become in multiplayer, so that a purchase does not decide the match.
 	{"id": "directeur", "ulti": &"timestop", "name": "Le Directeur", "model": "Suit_Male.fbx", "shop": true, "op": true, "boost": 3.0, "fair": {"boost": 1.6}},
+	# Season 2 of the battle pass: a program of the Matrice, glowing green ("glow").
+	{"id": "programme", "ulti": &"clones", "name": "Programme", "model": "Ninja_Male.fbx", "glow": Color(0.2, 1.0, 0.45), "boost": 1.4},
 	# Le Créateur: the game's maker, the strongest of all, only with a code
 	# ("code"), everywhere at full power. "health" and "speed" raise the
 	# player's (see Player).
@@ -72,6 +74,14 @@ const SKINS := [
 	{"id": "skin_candy", "kill": &"candy", "name": "Sucre d'orge", "pattern": true, "fx": 8, "colors": [Color(0.95, 0.1, 0.15), Color(1.0, 1.0, 1.0)], "glow": 0.0, "scope": false, "silencer": true, "shot": Color(1.0, 0.4, 0.45), "shop": true, "event": "christmas"},
 	{"id": "skin_flake", "kill": &"snow", "name": "Flocon", "pattern": true, "fx": 9, "colors": [Color(0.85, 0.95, 1.0), Color(0.15, 0.3, 0.55)], "glow": 0.0, "scope": true, "silencer": false, "shot": Color(0.8, 0.95, 1.0), "shop": true, "event": "christmas"},
 	{"id": "skin_garland", "kill": &"lights", "name": "Guirlande", "pattern": true, "fx": 10, "colors": [Color(1.0, 0.85, 0.3), Color(0.05, 0.2, 0.08)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 0.85, 0.3), "shop": true, "event": "christmas"},
+	# Season 2 of the battle pass (BattlePass.REWARDS_2).
+	{"id": "skin_data", "kill": &"pixelate", "name": "Données", "pattern": true, "fx": 7, "colors": [Color(0.35, 0.75, 1.0), Color(0.0, 0.02, 0.07)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(0.4, 0.8, 1.0)},
+	{"id": "skin_firewall", "kill": &"burn", "name": "Pare-feu", "pattern": true, "fx": 2, "colors": [Color(1.0, 0.3, 0.1), Color(0.5, 0.0, 0.05)], "glow": 0.0, "scope": false, "silencer": false, "shot": Color(1.0, 0.4, 0.15)},
+	{"id": "skin_corruption", "kill": &"melt", "name": "Corruption", "pattern": true, "fx": 3, "colors": [Color(0.2, 1.0, 0.45), Color(0.02, 0.05, 0.03)], "glow": 0.0, "scope": true, "silencer": false, "shot": Color(0.3, 1.0, 0.5)},
+	{"id": "skin_binary", "kill": &"vanish", "name": "Binaire", "pattern": true, "fx": 0, "colors": [Color(0.85, 1.0, 0.9), Color(0.02, 0.12, 0.06)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(0.8, 1.0, 0.85)},
+	{"id": "skin_kernel", "kill": &"ascend", "name": "Noyau", "pattern": true, "fx": 6, "colors": [Color(0.2, 1.0, 0.45), Color(0.0, 0.0, 0.0)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(0.3, 1.0, 0.5)},
+	# Not sold: the fiftieth achievement, Platine (see Achievements).
+	{"id": "skin_platinum", "kill": &"flare", "name": "Platine", "pattern": true, "fx": 1, "colors": [Color(0.95, 0.97, 1.0), Color(0.35, 0.38, 0.45)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(0.9, 0.95, 1.0)},
 	# Not sold: earned by completing the card album (see Cards).
 	{"id": "skin_collector", "kill": &"ascend", "name": "Collectionneur", "pattern": true, "fx": 1, "colors": [Color(1.0, 0.85, 0.35), Color(0.2, 0.08, 0.02)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 0.85, 0.35)},
 ]
@@ -170,6 +180,8 @@ const WEAPONS := [
 ## the start, the others come with the battle pass.
 const SHIPS := [
 	{"id": "ship_dart", "name": "Dard", "design": 0, "color": Color(0.16, 0.9, 1.0), "velocity": 1.0, "handling": 1.0, "shield": 3, "fire": 1.0, "special": &"surboost"},
+	# Season 2 of the battle pass.
+	{"id": "ship_firewall", "name": "Pare-feu", "design": 5, "color": Color(1.0, 0.3, 0.1), "hull": Color(0.12, 0.03, 0.02), "velocity": 1.1, "handling": 1.15, "shield": 4, "fire": 1.2, "special": &"emp"},
 	{"id": "ship_falcon", "name": "Faucon", "design": 1, "color": Color(1.0, 0.3, 0.2), "velocity": 1.06, "handling": 1.1, "shield": 2, "fire": 1.0, "special": &"salvo"},
 	{"id": "ship_ram", "name": "Bélier", "design": 3, "color": Color(1.0, 0.65, 0.1), "velocity": 0.95, "handling": 0.8, "shield": 5, "fire": 0.8, "special": &"rampart"},
 	{"id": "ship_specter", "name": "Spectre", "design": 4, "color": Color(0.7, 0.45, 1.0), "velocity": 1.0, "handling": 1.3, "shield": 2, "fire": 1.0, "special": &"cloak"},
@@ -292,6 +304,8 @@ const SHIP_KEY := "ship"
 static func is_unlocked(item: Dictionary) -> bool:
 	if item.id == Cards.COLLECTOR_SKIN_ID:
 		return Cards.album_complete()
+	if item.id == Achievements.PLATINUM_SKIN:
+		return Achievements.is_done("platinum")
 	if item.get("shop", false):
 		return Wallet.owns(item.id)
 	if item.id == CHAMPION_SKIN_ID:
@@ -360,7 +374,20 @@ static func select(key: String, item: Dictionary) -> void:
 static func instantiate_character(item: Dictionary) -> CharacterModel:
 	var model: Node3D = load(CHARACTER_DIR + item.model).instantiate()
 	model.set_script(CharacterModel)
+	if item.has("glow"):
+		glow(model, item.glow)
 	return model as CharacterModel
+
+
+## A hero's own glow (Programme): a light layer of its color over the model.
+static func glow(model: Node, color: Color) -> void:
+	var layer := StandardMaterial3D.new()
+	layer.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	layer.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	layer.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	layer.albedo_color = Color(color, 0.3)
+	for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		mesh.material_overlay = layer
 
 
 ## Where a gun's model goes once held, for a given skin: {"basis" (turns the
@@ -475,6 +502,8 @@ static func _melee_material(part_name: String) -> StandardMaterial3D:
 static func unlock_text(item: Dictionary) -> String:
 	if item.id == Cards.COLLECTOR_SKIN_ID:
 		return "Complète l'album de cartes"
+	if item.id == Achievements.PLATINUM_SKIN:
+		return "Débloque les 50 succès"
 	if item.get("event", "") == "christmas":
 		return "Boutique de Noël (1er décembre – 6 janvier)"
 	if item.get("shop", false):
@@ -485,6 +514,8 @@ static func unlock_text(item: Dictionary) -> String:
 		return "Termine la saison 1 du mode histoire"
 	if item.get("code", false):
 		return "Uniquement avec un code"
+	if BattlePass.season_of(item.id) == 1:
+		return "Palier %d du passe saison 2" % BattlePass.required_tier(item.id)
 	return "Palier %d du passe de combat" % BattlePass.required_tier(item.id)
 
 

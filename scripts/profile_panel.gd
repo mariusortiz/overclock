@@ -13,6 +13,8 @@ const GOLD := Color(1.0, 0.85, 0.3)
 var _challenges := VBoxContainer.new()
 var _stats := GridContainer.new()
 var _best := GridContainer.new()
+var _achievements := AchievementsPanel.new()
+var _achievements_button := Button.new()
 
 
 func _ready() -> void:
@@ -59,15 +61,27 @@ func _ready() -> void:
 	right.add_child(_stats)
 	columns.add_child(right)
 
+	var buttons := HBoxContainer.new()
+	buttons.add_theme_constant_override("separation", 14)
+	box.add_child(buttons)
+	_achievements_button.custom_minimum_size.y = 64
+	_achievements_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_achievements_button.add_theme_font_size_override("font_size", 28)
+	_achievements_button.pressed.connect(_achievements.open)
+	buttons.add_child(_achievements_button)
 	var close := Button.new()
 	close.text = "FERMER"
 	close.custom_minimum_size.y = 64
+	close.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	close.add_theme_font_size_override("font_size", 28)
 	close.pressed.connect(func() -> void: visible = false)
-	box.add_child(close)
+	buttons.add_child(close)
+	_achievements.visible = false
+	add_child(_achievements)
 
 
 func open() -> void:
+	_achievements_button.text = "SUCCÈS  %d / %d" % [Achievements.done_count(), Achievements.LIST.size()]
 	for child in _challenges.get_children() + _stats.get_children() + _best.get_children():
 		child.queue_free()
 	var best := Leaderboard.entries().slice(0, BEST_SHOWN)

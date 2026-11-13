@@ -54,6 +54,8 @@ var _won := false
 ## After the Titan, the game can go on: arenas come around again, and bosses
 ## get tougher each time (see WaveManager._create_boss).
 var _endless := false
+## The player's health when the boss came (see the Antivirus achievement).
+var _health_at_boss := 0
 var _boss: Boss
 var _stats := GameStats.new()
 var _streak := 0
@@ -284,6 +286,7 @@ func _on_elite_killed() -> void:
 
 func _on_boss_spawned(boss: Boss) -> void:
 	_boss = boss
+	_health_at_boss = player.health
 	Music.play_track(Music.Track.BOSS)
 	hud.show_boss(Boss.INFO[boss.kind].name)
 	hud.set_boss_health(boss.max_health, boss.max_health)
@@ -297,6 +300,9 @@ func _on_boss_spawned(boss: Boss) -> void:
 
 
 func _on_boss_killed(kind: Boss.Kind) -> void:
+	# The Virus beaten without a scratch: an achievement.
+	if kind == Boss.Kind.VIRUS and player.health >= _health_at_boss:
+		Achievements.set_flag("virus_nodamage")
 	Music.play_track(_arena.music_track)
 	hud.hide_boss()
 	_add_score(BOSS_SCORE)
@@ -539,6 +545,8 @@ func _show_results(result: Hud.Result) -> void:
 		unlocked.append(Loadout.find(id).item.name)
 	if result == Hud.Result.VICTORY or _endless:
 		unlocked.append("skin Champion")
+	for achievement in Achievements.check():
+		unlocked.append("succès %s" % achievement.name)
 	var rank := Leaderboard.add(score, waves.wave, Loadout.selected_character().name, _endless)
 	hud.show_game_over(score, maxi(score, best), is_record, xp, unlocked, result, completed, rank, _stats.counts)
 	# Shop money: credits from the score (halved like the XP), gems for the
