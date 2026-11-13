@@ -58,6 +58,8 @@ func _ready() -> void:
 	$Right/Box/Row/Profile.pressed.connect(_profile_panel.open)
 	$SettingsPanel/Center/Panel/Box/Close.pressed.connect(func() -> void: _settings_panel.visible = false)
 	$Right/Box/Row/Code.pressed.connect(_open_code_panel)
+	$Right.resized.connect(_fit_buttons)
+	_fit_buttons.call_deferred()
 
 
 ## Under the hero: what is equipped. Bottom right: the version.
@@ -215,3 +217,20 @@ func _open_code_panel() -> void:
 	close.pressed.connect(get_tree().reload_current_scene, CONNECT_DEFERRED)
 	row.add_child(close)
 	field.grab_focus()
+
+
+## The buttons need about 600 pixels: on a wide phone the right part of the
+## screen has them, on a 16:9 screen it is narrower, so they shrink to fit
+## instead of running off the edge.
+func _fit_buttons() -> void:
+	var right: Control = $Right
+	var needed: Vector2 = $Right/Box.get_combined_minimum_size()
+	# The share of the screen meant for the buttons (the container itself
+	# grows past it when they are too wide).
+	var screen := get_viewport_rect().size
+	var room := Vector2(screen.x * (right.anchor_right - right.anchor_left) - 40.0, screen.y - 24.0)
+	var fit := minf(1.0, minf(room.x / needed.x, room.y / needed.y))
+	# The box sits in a container, which resets its scale: the whole right
+	# part shrinks, around its center (the center of that share).
+	right.pivot_offset = right.size / 2.0
+	right.scale = Vector2.ONE * fit
