@@ -106,8 +106,10 @@ func _story() -> void:
 	await _until(56.0)
 	_narrate("Au-dessus de la mesa, une carte des étoiles.", 3.0)
 	await _until(59.4)
-	_dolly(STAGE + Vector3(0.8, 1.7, 2.0), STAGE + Vector3(0.6, 1.7, 2.1), STAGE + Vector3(0, 1.55, 3.2), STAGE + Vector3(0, 1.55, 3.2), 8.0)
-	_face(creator, map)
+	# He turns to the squad, the lens between them.
+	_face(creator, heroes.ronin)
+	_dolly(STAGE + Vector3(0.55, 1.7, 1.9), STAGE + Vector3(0.45, 1.7, 2.0), creator.global_position + Vector3.UP * 1.55,
+			creator.global_position + Vector3.UP * 1.55, 12.0)
 	_say(creator, "Une carte. Et un point qui clignote.", 2.6, 1.0)
 	await _until(62.4)
 	_say(heroes.captain, "Pas loin. Une ceinture d'astéroïdes à traverser.", 2.8, -1.0)
