@@ -116,8 +116,8 @@ jobs:
           for circuit in 1 2 3 4; do
             godot --headless --fixed-fps 60 --quit-after 1200 res://scenes/race.tscn -- --circuit=$circuit 2>&1 | tee -a run.log
           done
-          # Local network: a host and a guest on this machine, a race then a capture.
-          for mode in race capture; do
+          # Local network: a host and a guest on this machine, a race, a capture, co-op waves.
+          for mode in race capture waves; do
             timeout 60 godot --headless --fixed-fps 60 res://scenes/lobby.tscn -- --host=$mode > host.log 2>&1 &
             sleep 3
             # The guest gets its own home, hence its own save file: two games

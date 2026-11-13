@@ -492,6 +492,18 @@ func show_game_over(score: int, best: int, is_record: bool, xp: int, unlocked: A
 	_game_over_screen.visible = true
 
 
+## After a co-op game: the host's REJOUER restarts it for the whole team;
+## a guest's waits for the host (`can_start` false), or plays alone once the
+## host has left.
+func set_replay_together(can_start: bool) -> void:
+	_replay_button.visible = true
+	_replay_button.disabled = not can_start
+	if can_start:
+		_replay_button.text = "REJOUER ENSEMBLE" if Net.is_online() else "REJOUER"
+	else:
+		_replay_button.text = "L'HÔTE VA RELANCER…"
+
+
 ## Shop money earned by the game, under the XP.
 func show_rewards(credits: int, gems: int, boosters := 0) -> void:
 	var text := "+%d crédits" % credits

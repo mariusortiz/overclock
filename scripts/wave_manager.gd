@@ -45,6 +45,9 @@ var wave := 0
 ## The only boss to come, or -1 for the usual round (Boss.ORDER): the
 ## Christmas waves have the Père Glaçon only.
 var boss_kind := -1
+## Co-op (WavesNet): the device whose hit is landing right now (0: this one).
+## A kill made by another device is scored over there, not here.
+var remote_blow := 0
 ## Fixed health scale for the bosses (a story mission's: as met the first
 ## time); 0 lets it grow each time the bosses come around.
 var boss_health_scale := 0.0
@@ -208,7 +211,9 @@ func _spawn() -> void:
 		enemy.position.y += FLYING_SPAWN_HEIGHT
 	enemy.died.connect(_on_enemy_died)
 	if enemy.elite:
-		enemy.died.connect(elite_killed.emit)
+		enemy.died.connect(func() -> void:
+			if remote_blow == 0:
+				elite_killed.emit())
 	if coop_players > 1:
 		enemy.max_health = roundi(enemy.max_health * (1.0 + 0.3 * (coop_players - 1)))
 	get_parent().add_child(enemy)
@@ -254,7 +259,8 @@ func _on_boss_summon_requested(count: int) -> void:
 
 func _on_enemy_died() -> void:
 	_alive -= 1
-	enemy_killed.emit()
+	if remote_blow == 0:
+		enemy_killed.emit()
 	enemies_left_changed.emit(_to_spawn + _alive)
 	if _to_spawn == 0 and _alive == 0:
 		_spawn_timer.stop()

@@ -61,6 +61,8 @@ var _endless := false
 var _health_at_boss := 0
 ## Co-op waves over the Wi-Fi (Net mode "waves"), or null.
 var _coop: WavesNet
+## A co-op game ended: the team is still connected, for REJOUER.
+var _coop_over := false
 var _boss: Boss
 var _stats := GameStats.new()
 var _streak := 0
@@ -97,8 +99,8 @@ func _ready() -> void:
 
 	hud.touch_controls.look.connect(_on_touch_look)
 	# Deferred: the scene must not be removed while the button is still handling its click.
-	hud.replay_pressed.connect(get_tree().reload_current_scene, CONNECT_DEFERRED)
-	hud.menu_pressed.connect(get_tree().change_scene_to_file.bind(MENU_SCENE), CONNECT_DEFERRED)
+	hud.replay_pressed.connect(_on_replay_pressed, CONNECT_DEFERRED)
+	hud.menu_pressed.connect(_on_menu_pressed, CONNECT_DEFERRED)
 	hud.perk_chosen.connect(_on_perk_chosen)
 	hud.exit_chosen.connect(_on_exit_chosen)
 	hud.quit_pressed.connect(_on_quit_pressed)
@@ -140,6 +142,8 @@ func _ready() -> void:
 
 	if Net.mode == "waves" and Net.is_online():
 		_coop = WavesNet.new()
+		# The same path on every device: the RPCs find it by its name.
+		_coop.name = "WavesNet"
 		add_child(_coop)
 		_coop.setup(self)
 		hud.pause_menu.keep_running = true
@@ -317,7 +321,9 @@ func _on_boss_killed(kind: Boss.Kind) -> void:
 		Achievements.set_flag("virus_nodamage")
 	Music.play_track(_arena.music_track)
 	hud.hide_boss()
-	_add_score(BOSS_SCORE)
+	# In co-op, a boss felled by a guest is scored on the guest's device.
+	if waves.remote_blow == 0:
+		_add_score(BOSS_SCORE)
 	if Story.is_active():
 		_end_story_mission(true)
 		return
@@ -391,8 +397,26 @@ func coop_end(won: bool) -> void:
 		hud.show_death_title()
 		await get_tree().create_timer(DEATH_TITLE_TIME, true, false, true).timeout
 	_show_results(Hud.Result.VICTORY if won else Hud.Result.DEATH)
-	# The results are this device's own; the game together is over.
-	Net.leave()
+	# The results are this device's own. The team stays together: the host's
+	# REJOUER starts a new game for everyone; the guests follow.
+	_coop.set_physics_process(false)
+	_coop_over = true
+	hud.set_replay_together(Net.is_host())
+	if not Net.is_host():
+		Net.left.connect(func(_reason: String) -> void: hud.set_replay_together(true), CONNECT_ONE_SHOT)
+
+
+func _on_replay_pressed() -> void:
+	if _coop_over and Net.is_online():
+		Net.start_game("waves")
+		return
+	get_tree().reload_current_scene()
+
+
+func _on_menu_pressed() -> void:
+	if Net.is_online():
+		Net.leave()
+	get_tree().change_scene_to_file(MENU_SCENE)
 
 
 ## The arena after a boss: the next of the round, or the village again in

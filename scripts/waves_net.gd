@@ -22,7 +22,6 @@ var main: Node
 var _avatars := {}
 var _send_left := 0.0
 var _next_enemy_id := -1
-var _my_hits := {}
 var _ready_guests := {}
 var _revive_progress := {}
 var _bolt_scene: PackedScene
@@ -170,7 +169,10 @@ func _register_enemy(enemy: Enemy) -> void:
 		enemy.health_changed.connect(func(current: int, maximum: int) -> void: _boss_health.rpc(current, maximum))
 	_spawn_enemy.rpc(id, enemy.model_scene.resource_path, enemy.weapon_id, enemy.global_position, enemy.model_height,
 			enemy.model_hover, enemy._visual.scale, boss, enemy.max_health, enemy.elite)
-	enemy.died.connect(func() -> void: _enemy_died.rpc(id, enemy._kill_style, enemy._kill_color, enemy is Boss))
+	# Who landed the last blow: a guest whose hit is being applied, or the host.
+	enemy.died.connect(func() -> void:
+		var killer: int = main.waves.remote_blow if main.waves.remote_blow != 0 else 1
+		_enemy_died.rpc(id, enemy._kill_style, enemy._kill_color, enemy is Boss, killer))
 	enemy.fired_bolt.connect(func(from: Vector3, direction: Vector3) -> void: _bolt.rpc(from, direction))
 
 
@@ -201,11 +203,11 @@ func _boss_health(current: int, maximum: int) -> void:
 
 
 @rpc("authority", "reliable")
-func _enemy_died(id: int, style: StringName, color: Color, boss: bool) -> void:
+func _enemy_died(id: int, style: StringName, color: Color, boss: bool, killer: int) -> void:
 	var avatar: NetAvatar = _avatars.get(id)
 	if avatar and is_instance_valid(avatar):
-		# The kill counts for whoever hit it last, a moment ago.
-		if Time.get_ticks_msec() - _my_hits.get(id, -10000) < 1500:
+		# The kill counts for the device that landed the last blow only.
+		if killer == multiplayer.get_unique_id():
 			main.coop_kill(boss)
 		avatar.die_with(style if style != &"" else &"knockback", color)
 	_avatars.erase(id)
@@ -281,7 +283,6 @@ func _game_over() -> void:
 
 ## A hit on an avatar on this device: the device that runs it applies it.
 func report_damage(entity_id: int, amount: int, from: Vector3) -> void:
-	_my_hits[entity_id] = Time.get_ticks_msec()
 	if entity_id < 0:
 		if Net.is_host():
 			_apply_enemy_damage(entity_id, amount, from)
@@ -293,7 +294,10 @@ func report_damage(entity_id: int, amount: int, from: Vector3) -> void:
 
 @rpc("any_peer", "reliable")
 func _damage(entity_id: int, amount: int, from: Vector3) -> void:
+	# A guest's hit: if it kills, the kill is the guest's (see WaveManager.remote_blow).
+	main.waves.remote_blow = multiplayer.get_remote_sender_id()
 	_apply_enemy_damage(entity_id, amount, from)
+	main.waves.remote_blow = 0
 
 
 func _apply_enemy_damage(entity_id: int, amount: int, from: Vector3) -> void:
