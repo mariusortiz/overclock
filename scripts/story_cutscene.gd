@@ -15,9 +15,10 @@ func _ready() -> void:
 		if argument.begins_with("--chapter="):
 			Story.begin(argument.get_slice("=", 1).to_int() - 1)
 			_test = true
-	var scene: StoryScene = load("res://scripts/story/ch%02d.gd" % (Story.chapter + 1)).new()
+	# A StoryScene (season 1) or a Season2Scene: both say `done` at the end.
+	var scene: Node = load("res://scripts/story/ch%02d.gd" % (Story.chapter + 1)).new()
 	add_child(scene)
-	scene.done.connect(_to_mission)
+	scene.connect(&"done", _to_mission)
 	var layer := CanvasLayer.new()
 	layer.layer = 120
 	add_child(layer)

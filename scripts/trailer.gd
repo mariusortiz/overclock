@@ -331,7 +331,7 @@ func _run() -> void:
 	var last_cast := (cast.size() - 1) * HERO_SPACING
 	_dolly(Vector3(last_cast + 0.8, 1.5, 4.8), Vector3(-0.8, 1.5, 4.6),
 			Vector3(last_cast + 0.8, 1.45, 0), Vector3(-0.8, 1.45, 0), 7.6)
-	_show_caption("NOUVEAU · MODE HISTOIRE", "SAISON 1 · %d CHAPITRES", 7.0, Story.CHAPTERS.size())
+	_show_caption("NOUVEAU · MODE HISTOIRE", "2 SAISONS · %d CHAPITRES", 7.0, Story.CHAPTERS.size())
 	await _until(155.6)
 
 	# 155.6 s: the five circuits, their item boxes, the ultra ships.

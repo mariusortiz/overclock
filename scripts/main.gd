@@ -73,6 +73,7 @@ func _ready() -> void:
 				player.ultimate.add_charge(1.0)
 				Input.action_press("ultimate")
 				get_tree().create_timer(0.2, false).timeout.connect(Input.action_release.bind("ultimate")))
+	Enemy.corrupted = Story.is_active() and Story.mission().get("virus", false)
 	if Story.is_active():
 		first_arena = Story.mission().arena
 	_load_arena(first_arena)

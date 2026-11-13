@@ -8,7 +8,7 @@ const LOBBY_SCENE := "res://scenes/lobby.tscn"
 const CARDS_SCENE := "res://scenes/cards.tscn"
 ## The game modes offered by JOUER: [title, description, scene].
 const MODES := [
-	["HISTOIRE", "La saison 1 de l'anime, en 10 chapitres", Story.SCREEN],
+	["HISTOIRE", "Les saisons 1 et 2 de l'anime, en 20 chapitres", Story.SCREEN],
 	["VAGUES", "Survis aux vagues et bats les 5 boss", GAME_SCENE],
 	["CAPTURE DE ZONE", "4 contre 4 avec des bots · tiens les zones A, B et C", CAPTURE_SCENE],
 	["COURSE DE VAISSEAUX", "3 tours contre 5 pilotes · boost et lasers", RACE_SCENE],

@@ -48,6 +48,10 @@ const TARGETS_LAYER := 4
 const HEALTH_BAR_TIME := 2.5
 const HEALTH_BAR_SIZE := Vector2(0.07, 0.009)
 static var HIT_FLASH := _make_hit_flash()
+## Set by a story mission of season 2: the enemies are corrupted by the
+## Virus, a green glow over them (looks only).
+static var corrupted := false
+const VIRUS_COLOR := Color(0.2, 1.0, 0.45)
 
 @export var max_health := 5
 @export var move_speed := 3.5
@@ -151,6 +155,8 @@ func _ready() -> void:
 		_glow(ELITE_COLOR, 0.3)
 	if role == &"kamikaze":
 		_glow(KAMIKAZE_COLOR, 0.45, true)
+	elif corrupted and team != &"ally" and not elite:
+		_glow(VIRUS_COLOR, 0.3)
 	_fire_cooldown = fire_interval
 	_status_material.emission_enabled = true
 	_status_material.emission_energy_multiplier = 2.0

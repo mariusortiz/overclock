@@ -1,7 +1,7 @@
 extends Control
-## The story mode's screen: the season's chapters with their stars (locked
-## until the one before is won), the chosen chapter's mission, and, back
-## from a mission, its result.
+## The story mode's screen: a tab per season, the season's chapters with
+## their stars (locked until the one before is won), the chosen chapter's
+## mission, and, back from a mission, its result.
 
 const MENU_SCENE := "res://scenes/menu.tscn"
 const FONT := preload("res://assets/ui/fonts/kenney_mini_square_mono.ttf")
@@ -11,6 +11,8 @@ const GOLD := Color(1.0, 0.8, 0.25)
 const MODE_NAMES := {"waves": "Vagues", "race": "Course de vaisseaux", "capture": "Capture de zone"}
 
 var _selected := 0
+var _heading := Label.new()
+var _tabs: Array[Button] = []
 var _list := VBoxContainer.new()
 var _title := Label.new()
 var _info := Label.new()
@@ -63,20 +65,27 @@ func _ready() -> void:
 	left.add_theme_constant_override("separation", 10)
 	columns.add_child(left)
 	var top := HBoxContainer.new()
-	top.add_theme_constant_override("separation", 16)
+	top.add_theme_constant_override("separation", 12)
 	left.add_child(top)
 	var back := Button.new()
 	back.text = "<  MENU"
-	back.custom_minimum_size = Vector2(160, 56)
+	back.custom_minimum_size = Vector2(120, 56)
 	back.add_theme_font_size_override("font_size", 22)
 	back.pressed.connect(get_tree().change_scene_to_file.bind(MENU_SCENE), CONNECT_DEFERRED)
 	top.add_child(back)
-	var heading := Label.new()
-	heading.text = "SAISON 1  ·  %d / %d ÉTOILES" % [Story.total_stars(), Story.CHAPTERS.size() * 3]
-	heading.add_theme_font_size_override("font_size", 26)
-	heading.add_theme_color_override("font_color", CYAN)
-	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top.add_child(heading)
+	for season in Story.seasons():
+		var tab := Button.new()
+		tab.text = "SAISON %d" % (season + 1)
+		tab.toggle_mode = true
+		tab.custom_minimum_size = Vector2(130, 56)
+		tab.add_theme_font_size_override("font_size", 20)
+		tab.pressed.connect(func() -> void:
+			_selected = _first_to_play(season)
+			_refresh())
+		top.add_child(tab)
+		_tabs.append(tab)
+	_heading.add_theme_font_size_override("font_size", 20)
+	_heading.add_theme_color_override("font_color", CYAN)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -85,6 +94,8 @@ func _ready() -> void:
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.add_theme_constant_override("separation", 8)
 	scroll.add_child(_list)
+	# Under the list: the season's stars.
+	left.add_child(_heading)
 
 	# Right: the chosen chapter.
 	var panel := PanelContainer.new()
@@ -113,10 +124,9 @@ func _ready() -> void:
 	_overlay.visible = false
 	add_child(_overlay)
 
-	# The first chapter not won yet, or the one just played.
-	_selected = 0
-	while _selected < Story.CHAPTERS.size() - 1 and Story.stars_of(_selected) > 0:
-		_selected += 1
+	# The first chapter not won yet (in season 2 once season 1 is done), or
+	# the one just played.
+	_selected = _first_to_play(1 if Story.season_done(0) else 0)
 	if not Story.last_result.is_empty():
 		_selected = Story.last_result.chapter
 	_refresh()
@@ -125,10 +135,22 @@ func _ready() -> void:
 		Story.last_result = {}
 
 
+## The first chapter of `season` not won yet (its last one if all are).
+func _first_to_play(season: int) -> int:
+	var index := season * Story.SEASON_SIZE
+	while not Story.is_final(index) and Story.stars_of(index) > 0:
+		index += 1
+	return index
+
+
 func _refresh() -> void:
+	var season := Story.season_of(_selected)
+	for tab_index in _tabs.size():
+		_tabs[tab_index].button_pressed = tab_index == season
+	_heading.text = "SAISON %d  ·  %d / %d ÉTOILES" % [season + 1, Story.season_stars(season), Story.SEASON_SIZE * 3]
 	for child in _list.get_children():
 		child.queue_free()
-	for index in Story.CHAPTERS.size():
+	for index in range(season * Story.SEASON_SIZE, (season + 1) * Story.SEASON_SIZE):
 		var info: Dictionary = Story.CHAPTERS[index]
 		var row := Button.new()
 		row.toggle_mode = true
@@ -153,9 +175,10 @@ func _refresh() -> void:
 	var hero: String = Loadout.find(chosen.hero).item.name
 	var lines := [chosen.goal, "", "Héros : %s  ·  %s" % [hero, MODE_NAMES[chosen.mode]]]
 	lines.append(_star_rule(chosen))
+	if chosen.get("virus", false):
+		lines.append("Ennemis corrompus par le Virus.")
 	if Story.stars_of(_selected) == 0:
-		lines.append("Première victoire : %d gemmes, un booster rare, la carte de l'épisode%s." % [
-				100 + 20 * _selected, " et le vaisseau Écarlate" if _selected == Story.CHAPTERS.size() - 1 else ""])
+		lines.append("Première victoire : %s." % Story.rewards_text(_selected))
 	_info.text = "\n".join(lines)
 	_play.text = "REJOUER" if Story.stars_of(_selected) > 0 else "JOUER"
 
@@ -217,7 +240,7 @@ func _show_result(result: Dictionary) -> void:
 	row.add_theme_constant_override("separation", 12)
 	box.add_child(row)
 	var next: int = result.chapter + 1
-	if result.won and next < Story.CHAPTERS.size():
+	if result.won and not Story.is_final(result.chapter):
 		_add_button(row, "CHAPITRE SUIVANT", func() -> void: _start(next), true)
 	_add_button(row, "RÉESSAYER" if not result.won else "REJOUER", func() -> void: _start(result.chapter), not result.won)
 	_add_button(row, "FERMER", func() -> void: _overlay.visible = false, false)
