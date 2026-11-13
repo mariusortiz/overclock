@@ -201,13 +201,23 @@ jobs:
           cd "$site"
           git init -q -b gh-pages
           # The trailer and the anime are published by their own workflows: carry them over.
+          # The push only goes through if gh-pages has not changed since it was read
+          # (an episode published meanwhile would be lost); otherwise read it again.
           url="https://x-access-token:${GH_TOKEN}@github.com/${BUILDS_REPO}.git"
-          if git fetch -q --depth 1 "$url" gh-pages; then
-            git checkout -q FETCH_HEAD -- trailer.mp4 trailer.html 2>/dev/null || true
-            git checkout -q FETCH_HEAD -- trailer.jpg 2>/dev/null || true
-            git checkout -q FETCH_HEAD -- ':(glob)anime*' 2>/dev/null || true
-          fi
-          git add -A
-          git -c user.name="github-actions" -c user.email="github-actions@users.noreply.github.com" \
-            commit -q -m "Web build from ${GITHUB_SHA::7}"
-          git push --force "https://x-access-token:${GH_TOKEN}@github.com/${BUILDS_REPO}.git" gh-pages
+          for attempt in 1 2 3 4 5 6; do
+            rm -f trailer.* anime*
+            lease="--force"
+            if git fetch -q --depth 1 "$url" gh-pages; then
+              lease="--force-with-lease=gh-pages:$(git rev-parse FETCH_HEAD)"
+              git checkout -q FETCH_HEAD -- trailer.mp4 trailer.html 2>/dev/null || true
+              git checkout -q FETCH_HEAD -- trailer.jpg 2>/dev/null || true
+              git checkout -q FETCH_HEAD -- ':(glob)anime*' 2>/dev/null || true
+            fi
+            git add -A
+            git -c user.name="github-actions" -c user.email="github-actions@users.noreply.github.com" \
+              commit -q --allow-empty -m "Web build from ${GITHUB_SHA::7}"
+            if git push -q "$lease" "$url" HEAD:gh-pages; then exit 0; fi
+            echo "gh-pages changed meanwhile, trying again"
+            sleep $((attempt * 10))
+          done
+          exit 1

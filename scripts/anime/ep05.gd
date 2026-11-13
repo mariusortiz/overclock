@@ -2,7 +2,7 @@ extends AnimeDirector
 ## Épisode 5 : Le désert des secrets. Calamity, a cow-girl who knows the
 ## desert, leads the squad to a temple the Directeur used. A giant skeleton
 ## guards it; inside, a hologram of the Directeur and the plans of a second
-## Titan.
+## Titan. (Rendered again on its own: a web build once overwrote it.)
 
 
 func _init() -> void:
