@@ -39,7 +39,7 @@ func _story() -> void:
 	await _until(18.2)
 	_say(directeur, "MISE À JOUR... TERMINÉE.", 2.6, 1.0, 3.2)
 	await _until(21.2)
-	_dolly(STAGE + Vector3(-3, 1.5, 5.6), STAGE + Vector3(-2.6, 1.5, 5.0), STAGE + Vector3(0, 1.4, 2.4), STAGE + Vector3(0, 1.4, 2.4), 4.0, true)
+	_dolly(STAGE + Vector3(-2.6, 1.6, -1.6), STAGE + Vector3(-2.2, 1.6, -1.2), STAGE + Vector3(0, 1.4, 2.6), STAGE + Vector3(0, 1.4, 2.6), 4.0, true)
 	_say(paladin, "Sa voix... ce n'est plus lui.", 2.2, -1.0)
 	await _until(23.8)
 	_say(vipere, "Le Virus le porte comme un costume.", 2.4, 1.0)

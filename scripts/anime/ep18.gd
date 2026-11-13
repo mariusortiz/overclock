@@ -56,7 +56,7 @@ func _story() -> void:
 	# 27 s: they are deleted, one after the other.
 	for id in ["captain", "ronin", "paladin", "kunoichi"]:
 		var hero: CharacterModel = squad[id]
-		_dolly(hero.global_position + Vector3(1.6, 1.4, 2.4), hero.global_position + Vector3(1.4, 1.4, 2.0), hero.global_position + Vector3.UP * 1.2, hero.global_position + Vector3.UP * 1.2, 2.4, true)
+		_dolly(hero.global_position + Vector3(1.6, 1.5, -2.6), hero.global_position + Vector3(1.4, 1.5, -2.2), hero.global_position + Vector3.UP * 1.2, hero.global_position + Vector3.UP * 1.2, 2.4, true)
 		_beam(virus.global_position + Vector3.UP * TITAN_HEIGHT, hero.global_position + Vector3.UP, VIRUS, 0.1)
 		_glitch(0.4)
 		_vanish(hero, 0.8)

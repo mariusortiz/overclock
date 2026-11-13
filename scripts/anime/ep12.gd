@@ -12,7 +12,7 @@ func _init() -> void:
 
 func _story() -> void:
 	_load_arena(0)
-	var kunoichi := _hero("kunoichi", STAGE, PI, "none")
+	var kunoichi := _hero("kunoichi", STAGE, 0.0, "none")
 	kunoichi.play(&"walk", true)
 	_move(kunoichi.get_parent() as Node3D, Vector3(0, 0, -0.5))
 	_dolly(STAGE + Vector3(-3, 1.4, -6), STAGE + Vector3(-2, 1.5, -5), STAGE + Vector3(0, 1.3, 0), STAGE + Vector3(0, 1.3, -2), 7.0, true)

@@ -29,7 +29,7 @@ func _story() -> void:
 	_glitch(0.6)
 	_narrate("« Vous m'entendez ? »", 2.4)
 	await _until(15.4)
-	var creator := _creator(Vector3(0, 0, -3), 0.0)
+	var creator := _creator(Vector3(0, 0, -3), PI)
 	_appear(creator, 1.2)
 	_dolly(Vector3(0, 1.5, 3.5), Vector3(0, 1.5, 2.8), Vector3(0, 1.5, -3), Vector3(0, 1.5, -3), 6.0)
 	await _until(17.0)
