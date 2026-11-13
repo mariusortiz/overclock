@@ -308,7 +308,7 @@ func _run() -> void:
 	var last_cast := (cast.size() - 1) * HERO_SPACING
 	_dolly(Vector3(last_cast + 0.8, 1.5, 4.8), Vector3(-0.8, 1.5, 4.6),
 			Vector3(last_cast + 0.8, 1.45, 0), Vector3(-0.8, 1.45, 0), 7.6)
-	_show_caption("NOUVEAU · MODE HISTOIRE", "LA SAISON 1 DE L'ANIME · %d CHAPITRES", 7.0, Story.CHAPTERS.size())
+	_show_caption("NOUVEAU · MODE HISTOIRE", "SAISON 1 · %d CHAPITRES", 7.0, Story.CHAPTERS.size())
 	await _until(143.6)
 
 	# 143.6 s: the five circuits, their item boxes, the ultra ships.
@@ -322,7 +322,7 @@ func _run() -> void:
 			0:
 				_show_caption("NOUVEAU · %d CIRCUITS" % RaceTrack.CIRCUITS.size(), RaceTrack.CIRCUITS[0].name.to_upper(), CIRCUIT_SHOT)
 			3:
-				_show_caption("POWER-UPS SUR LA PISTE", "TURBO · MISSILE · BOUCLIER · MINES", CIRCUIT_SHOT)
+				_show_caption("POWER-UPS SUR LA PISTE", "TURBO · MISSILE · BOUCLIER", CIRCUIT_SHOT)
 			4:
 				_show_caption("VAISSEAUX ULTRA", "OMÉGA · FAUCHEUSE · AURORE", CIRCUIT_SHOT)
 			_:
@@ -335,7 +335,7 @@ func _run() -> void:
 	_flash()
 	_dolly(Vector3(0, 1.4, 6), Vector3(0, 1.4, 5.5), Vector3(0, 1.2, 0), Vector3(0, 1.2, 0), 7.0)
 	_show_cards()
-	_show_caption("CARTES À COLLECTIONNER", "%d CARTES · 5 RARETÉS · HOLOGRAPHIQUES", 6.6, Cards.CATALOG.size())
+	_show_caption("CARTES À COLLECTIONNER", "%d CARTES · 5 RARETÉS", 6.6, Cards.CATALOG.size())
 	await _until(160.6)
 	_tear_booster()
 	await _until(163.6)
@@ -358,7 +358,7 @@ func _run() -> void:
 	_fade_shade(1.0, 0.9)
 	await _until(173.7)
 	_end_sparks.emitting = true
-	_show_title("%s\nSUR ANDROID ET DANS LE NAVIGATEUR\n\nMODE HISTOIRE · 5 ARÈNES · 5 CIRCUITS · %d ARMES · %d HÉROS · %d CARTES" % [
+	_show_title("%s\nSUR ANDROID ET DANS LE NAVIGATEUR\n\nMODE HISTOIRE · 5 ARÈNES · 5 CIRCUITS\n%d ARMES · %d HÉROS · %d CARTES" % [
 			URL, Loadout.WEAPONS.size(), Loadout.CHARACTERS.size(), Cards.CATALOG.size()], 4.3, true)
 	await _until(DURATION)
 	get_tree().quit()
@@ -414,13 +414,13 @@ func _show_cards() -> void:
 		if not picks.has(card.rarity) or card.id in ["card_kunoichi", "card_ship_nova", "card_volcano", "card_paladin", "card_titan_mk2"]:
 			picks[card.rarity] = card
 	var screen := get_viewport().get_visible_rect().size
-	var card_size := Vector2(300, 300 / CardView.ASPECT)
+	var card_size := Vector2(250, 250 / CardView.ASPECT)
 	for rarity in 5:
 		var view := CardView.new(picks[rarity], true, 0)
 		view.size = card_size
 		view.pivot_offset = card_size / 2.0
 		var slot := rarity - 2
-		view.position = Vector2(screen.x / 2.0 - card_size.x / 2.0 + slot * 250.0, screen.y * 0.47 - card_size.y / 2.0 + absf(slot) * 30.0)
+		view.position = Vector2(screen.x / 2.0 - card_size.x / 2.0 + slot * 200.0, screen.y * 0.4 - card_size.y / 2.0 + absf(slot) * 24.0)
 		view.rotation = slot * 0.12
 		view.modulate.a = 0.0
 		_cards_layer.add_child(view)
