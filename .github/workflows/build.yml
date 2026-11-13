@@ -27,6 +27,9 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v5
+        with:
+          # The whole history: the website's update log is made from it.
+          fetch-depth: 0
 
       - uses: actions/setup-java@v5
         with:
@@ -214,9 +217,12 @@ jobs:
           cp tools/remove_service_worker.js "$site/index.service.worker.js"
           # The one-page website (site/), next to the game: https://overclock.randomlabs.dev/site/
           mkdir -p "$site/site"
-          cp -r site/index.html site/boutique.html site/boutique.json site/carte.html site/img site/kenney_mini_square_mono.ttf "$site/site/"
-          # The card page (site/carte.html) reads the catalog and the cards' art.
+          cp -r site/index.html site/boutique.html site/boutique.json site/carte.html site/codex.html site/img site/kenney_mini_square_mono.ttf "$site/site/"
+          # The card page (site/carte.html) reads the catalog and the cards' art;
+          # the codex (site/codex.html) the game's heroes, guns, bosses…
           godot --headless --quit-after 300 res://scenes/tools/export_cards.tscn -- --out="$site/site/cards.json"
+          godot --headless --quit-after 300 res://scenes/tools/export_codex.tscn -- --out="$site/site/codex.json"
+          repo="$GITHUB_WORKSPACE"
           mkdir -p "$site/site/img/cards"
           cp assets/cards/*.jpg "$site/site/img/cards/"
           cd "$site"
@@ -234,6 +240,9 @@ jobs:
               git checkout -q FETCH_HEAD -- trailer.jpg 2>/dev/null || true
               git checkout -q FETCH_HEAD -- ':(glob)anime*' 2>/dev/null || true
             fi
+            # Card pages, the update log, share previews (also on the trailer and
+            # the episodes just carried over), the sitemap.
+            python3 "$repo/tools/make_site_pages.py" --site . --repo "$repo"
             git add -A
             git -c user.name="github-actions" -c user.email="github-actions@users.noreply.github.com" \
               commit -q --allow-empty -m "Web build from ${GITHUB_SHA::7}"

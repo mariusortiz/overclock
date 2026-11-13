@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codex Overclock</title>
+<meta name="description" content="Tout Overclock : héros, armes, lames, skins, vaisseaux, boss, arènes et cartes, avec leurs vraies stats et comment les obtenir.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Overclock">
+<meta property="og:title" content="Codex Overclock">
+<meta property="og:description" content="Héros, armes, lames, skins, vaisseaux, boss, arènes et cartes, toujours à jour.">
+<meta property="og:image" content="https://overclock.randomlabs.dev/site/img/hero-large.jpg">
+<meta property="og:url" content="https://overclock.randomlabs.dev/site/codex.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../index.icon.png">
+<style>
+  @font-face { font-family: "Kenney Mini Square Mono"; src: url("kenney_mini_square_mono.ttf") format("truetype"); font-display: swap; }
+  :root {
+    --bg: #060b2a; --panel: #0c1440; --line: #1d2a6b; --text: #e8ecff; --muted: #9aa6d8;
+    --cyan: #29d4ff; --magenta: #ff3df2; --gold: #ffd84d;
+    --title: "Kenney Mini Square Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  a { color: var(--cyan); }
+  h1, h2, h3, .tab, .chip { font-family: var(--title); font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; }
+  .wrap { width: min(1160px, 100% - 32px); margin-inline: auto; }
+  header { padding-block: 32px 8px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 24px; }
+  header h1 { margin: 0; color: var(--cyan); font-size: clamp(1.8rem, 5vw, 2.6rem); }
+  header nav { display: flex; gap: 16px; flex-wrap: wrap; }
+  header p { flex-basis: 100%; margin: 0; color: var(--muted); }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; padding-block: 20px 12px; position: sticky; top: 0; background: var(--bg); z-index: 2; }
+  .tab { border: 2px solid var(--line); background: var(--panel); color: var(--text); padding: 10px 16px; font-size: 0.95rem; cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--cyan); color: var(--bg); border-color: var(--cyan); }
+  .tab small { opacity: 0.7; }
+  .search { width: 100%; max-width: 420px; padding: 12px 14px; margin-bottom: 18px; background: var(--panel); color: var(--text);
+    border: 2px solid var(--line); font: inherit; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; padding-bottom: 56px; }
+  .item { background: var(--panel); border: 2px solid var(--line); display: flex; flex-direction: column; }
+  .item img { width: 100%; aspect-ratio: 1; object-fit: cover; background: #0a1035; }
+  .item .noimg { aspect-ratio: 1; display: grid; place-items: center; color: var(--line); font-family: var(--title); font-size: 3rem; }
+  .item .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .item h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
+  .item p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+  .stats { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 0.88rem; }
+  .stats span:nth-child(even) { color: var(--cyan); text-align: right; font-variant-numeric: tabular-nums; }
+  .chip { align-self: flex-start; margin-top: auto; font-size: 0.72rem; padding: 4px 8px; background: var(--line); color: var(--text); }
+  .chip.shop { background: var(--gold); color: var(--bg); }
+  .chip.pass { background: var(--cyan); color: var(--bg); }
+  .chip.rare { color: var(--bg); }
+  .empty { color: var(--muted); }
+  footer { border-top: 1px solid var(--line); padding-block: 24px 40px; color: var(--muted); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Codex</h1>
+      <nav><a href="./">Le site</a><a href="nouveautes.html">Nouveautés</a><a href="../">Jouer</a></nav>
+      <p>Tout ce qu'il y a dans Overclock, avec les vraies valeurs du jeu et la façon de l'obtenir. Mis à jour à chaque version.</p>
+    </header>
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <input class="search" id="search" type="search" placeholder="Chercher (nom, boutique, palier…)" aria-label="Chercher">
+    <div class="grid" id="grid" aria-live="polite"></div>
+  </div>
+  <footer><div class="wrap">Overclock · <a href="./">overclock.randomlabs.dev</a></div></footer>
+<script>
+"use strict";
+const TABS = [
+  ["heroes", "Héros"], ["guns", "Armes"], ["blades", "Lames"], ["skins", "Skins"],
+  ["ships", "Vaisseaux"], ["bosses", "Boss"], ["arenas", "Arènes"], ["cards", "Cartes"],
+];
+const percent = (value) => Math.round(value * 100) + " %";
+const number = (value) => String(Math.round(value * 10) / 10).replace(".", ",");
+// For each kind: the lines of stats, and a short description.
+const VIEWS = {
+  heroes: (h) => ({ text: h.ulti + " : " + h.text, stats: [["Spécial (combat)", h.special], ["Boost d'ulti", h.boost > 1 ? "×" + number(h.boost) : "—"]] }),
+  guns: (g) => ({ stats: [["Dégâts", g.damage], ["Cadence", number(g.fire_rate) + " /s"], ["Chargeur", g.magazine], ["Recharge", number(g.reload) + " s"]] }),
+  blades: (b) => ({ stats: [["Dégâts", b.damage], ["Portée", number(b.range) + " m"], ["Balayage", b.sweep ? "oui" : "non"]] }),
+  skins: (s) => ({ text: s.kill ? "L'ennemi " + s.kill + "." : "", stats: [["Finition animée", s.animated ? "oui" : "non"]] }),
+  ships: (s) => ({ text: s.special ? s.special + " : " + s.text : "", stats: [["Vitesse", percent(s.speed)], ["Maniabilité", percent(s.handling)], ["Bouclier", s.shield]] }),
+  bosses: (b) => ({ text: b.text, stats: [["Arène", b.arena], ["Vague", b.wave || "Noël"], ["Points de vie", b.health]] }),
+  arenas: (a) => ({ text: a.text, stats: [] }),
+  cards: (c) => ({ text: c.ability && c.ability[1] ? c.ability[1] : "", stats: [["Numéro", c.number], ["Série", c.series], ["Puissance", c.power]] }),
+};
+let data = {};
+let current = "heroes";
+
+function chip(item, kind) {
+  if (kind === "cards") return `<span class="chip rare" style="background:#${item.color}">${item.rarity_name}</span>`;
+  if (!item.how) return "";
+  const css = /boutique/i.test(item.how) ? "shop" : (/palier/i.test(item.how) ? "pass" : "");
+  return `<span class="chip ${css}">${escape(item.how)}</span>`;
+}
+
+function escape(text) {
+  return String(text).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function render() {
+  const query = document.getElementById("search").value.trim().toLowerCase();
+  const items = (data[current] || []).filter((item) => !query || JSON.stringify(item).toLowerCase().includes(query));
+  const grid = document.getElementById("grid");
+  grid.innerHTML = items.length ? items.map((item) => {
+    const view = VIEWS[current](item);
+    const image = current === "cards" ? `img/cards/${item.id}.jpg` : item.image;
+    const picture = image ? `<img src="${image}" alt="" loading="lazy">` : `<div class="noimg">?</div>`;
+    const stats = view.stats.map(([label, value]) => `<span>${label}</span><span>${escape(value)}</span>`).join("");
+    const link = current === "cards" ? ` <a href="c/${item.id}.html" aria-label="Page de la carte">↗</a>` : "";
+    return `<article class="item">${picture}<div class="body"><h3>${escape(item.name)}${link}</h3>` +
+      (view.text ? `<p>${escape(view.text)}</p>` : "") +
+      (stats ? `<div class="stats">${stats}</div>` : "") + chip(item, current) + `</div></article>`;
+  }).join("") : `<p class="empty">Rien ne correspond.</p>`;
+}
+
+function select(kind) {
+  current = kind;
+  for (const tab of document.querySelectorAll(".tab")) tab.setAttribute("aria-selected", String(tab.dataset.kind === kind));
+  history.replaceState(null, "", "#" + kind);
+  render();
+}
+
+Promise.all([
+  fetch("codex.json").then((r) => r.json()),
+  fetch("cards.json").then((r) => r.json()).catch(() => []),
+]).then(([codex, cards]) => {
+  data = codex;
+  data.cards = cards;
+  const tabs = document.getElementById("tabs");
+  for (const [kind, label] of TABS) {
+    const tab = document.createElement("button");
+    tab.className = "tab";
+    tab.dataset.kind = kind;
+    tab.setAttribute("role", "tab");
+    tab.innerHTML = `${label} <small>${(data[kind] || []).length}</small>`;
+    tab.addEventListener("click", () => select(kind));
+    tabs.appendChild(tab);
+  }
+  const wanted = location.hash.slice(1);
+  select(TABS.some(([kind]) => kind === wanted) ? wanted : "heroes");
+});
+document.getElementById("search").addEventListener("input", render);
+</script>
+</body>
+</html>
