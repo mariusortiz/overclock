@@ -42,6 +42,11 @@ var _move_finger := -1
 var _look_finger := -1
 ## Finger index holding each button (same order as buttons), -1 when free.
 var _button_fingers: Array[int] = []
+## Last position of each finger on the screen, by index. The look comes from
+## these, not from the event's own `relative`: in the browser, with two
+## fingers down, that one is sometimes measured from the other finger, which
+## made the camera jump.
+var _finger_positions := {}
 var _joy_origin := Vector2.ZERO
 var _joy_vector := Vector2.ZERO
 ## Action of a button that pulses to draw attention (tutorial), or &"".
@@ -74,6 +79,7 @@ func _notification(what: int) -> void:
 func _release_all() -> void:
 	_move_finger = -1
 	_look_finger = -1
+	_finger_positions.clear()
 	_button_fingers.fill(-1)
 	_set_joystick(Vector2.ZERO)
 	for button: Dictionary in buttons:
@@ -83,14 +89,22 @@ func _release_all() -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if event.pressed:
+			_finger_positions[event.index] = event.position
 			_on_touch_start(event)
 		else:
+			_finger_positions.erase(event.index)
 			_on_touch_end(event)
 	elif event is InputEventScreenDrag:
+		var last: Vector2 = _finger_positions.get(event.index, event.position)
+		_finger_positions[event.index] = event.position
 		if event.index == _move_finger:
 			_update_joystick(event.position)
 		elif event.index == _look_finger or event.index in _button_fingers:
-			look.emit(event.relative)
+			var moved: Vector2 = event.position - last
+			# A finger does not cross a fifth of the screen between two events:
+			# such a move is a glitch, not a swipe.
+			if moved.length() < size.x * 0.2:
+				look.emit(moved)
 
 
 func _on_touch_start(event: InputEventScreenTouch) -> void:
