@@ -220,7 +220,7 @@ func _open(kind: String) -> void:
 	title.add_theme_color_override("font_color", GOLD if kind == "rare" else CYAN)
 	box.add_child(title)
 	var hint := Label.new()
-	hint.text = "Touche une carte pour la retourner"
+	hint.text = "Glisse sur le pointillé pour ouvrir"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_size_override("font_size", 18)
 	box.add_child(hint)
@@ -231,6 +231,28 @@ func _open(kind: String) -> void:
 	var done := _button(box, "CONTINUER", _close_overlay)
 	done.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	done.custom_minimum_size.x = 300
+	# The sealed pack first; the cards come out once it is torn.
+	var pack := BoosterPack.new(kind)
+	pack.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	box.add_child(pack)
+	box.move_child(pack, row.get_index())
+	row.visible = false
+	done.visible = false
+	pack.opened.connect(func() -> void:
+		hint.text = "Touche une carte pour la retourner"
+		await get_tree().create_timer(0.35).timeout
+		pack.queue_free()
+		row.visible = true
+		done.visible = true
+		# The cards rise from where the pack was, one after the other.
+		for index in row.get_child_count():
+			var view: Control = row.get_child(index).get_child(0)
+			view.position.y = 160.0
+			view.modulate.a = 0.0
+			var tween := view.create_tween()
+			tween.tween_interval(0.08 * index)
+			tween.tween_property(view, "position:y", 0.0, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+			tween.parallel().tween_property(view, "modulate:a", 1.0, 0.2))
 	var seen := {}
 	for card: Dictionary in drawn:
 		# "New" for the first copy of a card the player did not have before

@@ -97,6 +97,17 @@ func _subject(kind: String, reference: String) -> Node3D:
 				mesh.material_overlay = null
 				mesh.material_override = gold
 			return elite
+		"glow":
+			# An enemy with the glow its role gives it in the game (sniper, kamikaze).
+			var parts := reference.split(":")
+			var glowing := _character(Loadout.CHARACTER_DIR + parts[0], &"aim")
+			var overlay := StandardMaterial3D.new()
+			overlay.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			overlay.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			overlay.albedo_color = Color(parts[1], 0.18)
+			for mesh: MeshInstance3D in glowing.find_children("*", "MeshInstance3D", true, false):
+				mesh.material_overlay = overlay
+			return glowing
 		"boss":
 			return _character(Boss.MODEL_DIR + reference, &"idle")
 		"titan":
@@ -156,7 +167,7 @@ func _frame(subject: Node3D, kind: String) -> void:
 	var center := bounds.get_center()
 	var radius := bounds.size.length() * 0.5
 	# Characters: a little above the middle, so the face is in the picture.
-	if kind in ["hero", "enemy", "elite", "boss", "titan"]:
+	if kind in ["hero", "enemy", "elite", "glow", "boss", "titan"]:
 		center.y += bounds.size.y * 0.02
 		radius *= 0.7
 	else:

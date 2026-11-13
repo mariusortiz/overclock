@@ -23,7 +23,8 @@ const BIG_SCORE := 8000
 ## Series, in album order: [name, reward credits, reward gems].
 const SERIES := [
 	["Héros", 3000, 100], ["Ennemis", 1500, 50], ["Boss", 2000, 80], ["Vaisseaux", 2000, 80],
-	["Armes", 2000, 80], ["Mêlée", 1200, 40], ["Arènes", 1200, 40], ["Anime", 2500, 100], ["Mythiques", 5000, 250],
+	["Armes", 2000, 80], ["Mêlée", 1200, 40], ["Skins", 1500, 60], ["Arènes", 1200, 40], ["Anime", 2500, 100],
+	["Mythiques", 5000, 250],
 ]
 
 ## Every card: id, name, series, rarity, and what its art shows ("art": a
@@ -62,6 +63,8 @@ const CATALOG := [
 	{"id": "card_suit", "name": "Homme en costume", "series": "Ennemis", "rarity": C, "art": ["enemy", "Suit_Male.fbx"]},
 	{"id": "card_bat", "name": "Chauve-souris", "series": "Ennemis", "rarity": R, "art": ["boss", "monsters/Bat.fbx"]},
 	{"id": "card_elite", "name": "Garde d'élite", "series": "Ennemis", "rarity": R, "art": ["elite", "BlueSoldier_Male.fbx"]},
+	{"id": "card_sniper_enemy", "name": "Tireur d'élite", "series": "Ennemis", "rarity": R, "art": ["glow", "BlueSoldier_Male.fbx:29d4ff"]},
+	{"id": "card_kamikaze", "name": "Kamikaze", "series": "Ennemis", "rarity": R, "art": ["glow", "Zombie_Male.fbx:ff401a"]},
 	# Bosses.
 	{"id": "card_dragon", "name": "Dragon", "series": "Boss", "rarity": E, "art": ["boss", "monsters/Dragon.fbx"]},
 	{"id": "card_skeleton", "name": "Squelette géant", "series": "Boss", "rarity": E, "art": ["boss", "monsters/Skeleton.fbx"]},
@@ -86,6 +89,11 @@ const CATALOG := [
 	{"id": "card_bazooka", "name": "Lance-roquettes", "series": "Armes", "rarity": R, "art": ["gun", "bazooka"]},
 	{"id": "card_shotgun", "name": "Fusil à pompe", "series": "Armes", "rarity": R, "art": ["gun", "shotgun_1"]},
 	{"id": "card_revolver", "name": "Revolver", "series": "Armes", "rarity": R, "art": ["gun", "revolver_1"]},
+	{"id": "card_pistol_6", "name": "Pistolet VI", "series": "Armes", "rarity": R, "art": ["gun", "pistol_6"]},
+	{"id": "card_bullpup", "name": "Bullpup", "series": "Armes", "rarity": R, "art": ["gun", "bullpup_1"]},
+	{"id": "card_sawed_off", "name": "Canon scié", "series": "Armes", "rarity": R, "art": ["gun", "shotgun_5"]},
+	{"id": "card_revolver_5", "name": "Revolver V", "series": "Armes", "rarity": E, "art": ["gun", "revolver_5"]},
+	{"id": "card_sniper_6", "name": "Précision VI", "series": "Armes", "rarity": E, "art": ["gun", "sniper_6"]},
 	{"id": "card_laser", "name": "Laser", "series": "Armes", "rarity": E, "art": ["gun", "laser"]},
 	{"id": "card_railgun", "name": "Fusil à rail", "series": "Armes", "rarity": E, "art": ["gun", "railgun"]},
 	{"id": "card_plasma", "name": "Canon plasma", "series": "Armes", "rarity": E, "art": ["gun", "plasma"]},
@@ -94,10 +102,23 @@ const CATALOG := [
 	{"id": "card_minigun", "name": "Minigun", "series": "Armes", "rarity": L, "art": ["gun", "minigun"]},
 	# Melee.
 	{"id": "card_knife", "name": "Couteau", "series": "Mêlée", "rarity": C, "art": ["melee", "knife"]},
+	{"id": "card_kunai", "name": "Kunaï", "series": "Mêlée", "rarity": C, "art": ["melee", "kunai"]},
+	{"id": "card_spear", "name": "Lance", "series": "Mêlée", "rarity": C, "art": ["melee", "spear"]},
+	{"id": "card_mace", "name": "Masse", "series": "Mêlée", "rarity": R, "art": ["melee", "mace"]},
+	{"id": "card_machete", "name": "Machette", "series": "Mêlée", "rarity": R, "art": ["melee", "machete"]},
 	{"id": "card_axe", "name": "Hache", "series": "Mêlée", "rarity": R, "art": ["melee", "axe"]},
 	{"id": "card_katana", "name": "Katana", "series": "Mêlée", "rarity": R, "art": ["melee", "katana"]},
 	{"id": "card_karambit", "name": "Karambit", "series": "Mêlée", "rarity": E, "art": ["melee", "karambit"]},
 	{"id": "card_butterfly", "name": "Couteau papillon", "series": "Mêlée", "rarity": E, "art": ["melee", "butterfly"]},
+	# Skins, shown on the assault rifle.
+	{"id": "card_skin_neon", "name": "Skin Néon", "series": "Skins", "rarity": R, "art": ["gun_skin", "heavy:skin_neon"]},
+	{"id": "card_skin_ice", "name": "Skin Glace", "series": "Skins", "rarity": R, "art": ["gun_skin", "heavy:skin_ice"]},
+	{"id": "card_skin_lava", "name": "Skin Lave", "series": "Skins", "rarity": R, "art": ["gun_skin", "heavy:skin_lava"]},
+	{"id": "card_skin_sakura", "name": "Skin Sakura", "series": "Skins", "rarity": E, "art": ["gun_skin", "heavy:skin_sakura"]},
+	{"id": "card_skin_galaxy", "name": "Skin Galaxie", "series": "Skins", "rarity": E, "art": ["gun_skin", "heavy:skin_galaxy"]},
+	{"id": "card_skin_glitch", "name": "Skin Glitch", "series": "Skins", "rarity": E, "art": ["gun_skin", "heavy:skin_glitch"]},
+	{"id": "card_skin_gold", "name": "Skin Or", "series": "Skins", "rarity": L, "art": ["gun_skin", "heavy:skin_gold"]},
+	{"id": "card_skin_prism", "name": "Skin Prisme", "series": "Skins", "rarity": L, "art": ["gun_skin", "heavy:skin_prism"]},
 	# Arenas.
 	{"id": "card_station", "name": "Station", "series": "Arènes", "rarity": R, "art": ["image", "station"]},
 	{"id": "card_desert", "name": "Désert", "series": "Arènes", "rarity": R, "art": ["image", "desert"]},
@@ -121,6 +142,8 @@ const CATALOG := [
 	{"id": "card_directeur", "name": "Le Directeur", "series": "Mythiques", "rarity": M, "art": ["enemy", "Suit_Male.fbx"]},
 	{"id": "card_trophy", "name": "Le trophée", "series": "Mythiques", "rarity": M, "art": ["trophy", ""]},
 	{"id": "card_champion", "name": "Skin Champion", "series": "Mythiques", "rarity": M, "art": ["gun_skin", "heavy:skin_champion"]},
+	{"id": "card_fleet", "name": "La flotte", "series": "Mythiques", "rarity": M, "art": ["image", "fleet"]},
+	{"id": "card_titan_city", "name": "Le Titan sur la ville", "series": "Mythiques", "rarity": M, "art": ["image", "titan_city"]},
 ]
 
 const SAVE_KEY := "cards"
@@ -165,7 +188,9 @@ static func ability(card: Dictionary) -> Array:
 			var ship: Dictionary = Loadout.find(reference).item
 			var special: Array = Loadout.SHIP_SPECIALS[ship.special]
 			return [special[0], "%s. Bouclier %d, vitesse %d %%." % [special[1], ship.shield, roundi(ship.velocity * 100)]]
-		"gun", "gun_skin":
+		"gun_skin":
+			return ["FINITION", FLAVOR.get(card.id, "Change l'allure de l'arme, pas ses stats.")]
+		"gun":
 			var gun: Dictionary = Loadout.find(reference.split(":")[0]).item
 			return ["TIR", "Cadence %s/s · dégâts %d · chargeur %d." % [str(gun.fire_rate).trim_suffix(".0"), gun.damage, gun.magazine]]
 		"melee":
@@ -186,6 +211,18 @@ const FLAVOR := {
 	"card_zombie": "Lent, mais il ne lâche jamais.",
 	"card_suit": "Travaille pour le Directeur. Ne pose pas de questions.",
 	"card_bat": "Plonge du ciel à partir de la vague 3.",
+	"card_sniper_enemy": "Vise longtemps, laser allumé. Ne le laisse pas finir.",
+	"card_kamikaze": "Fonce sur toi et explose. Abats-le de loin.",
+	"card_skin_neon": "Lignes de lumière cyan sur fond sombre.",
+	"card_skin_ice": "Givre bleu. Les ennemis éclatent comme du verre.",
+	"card_skin_lava": "Roche fendue de braises. Les ennemis se consument.",
+	"card_skin_sakura": "Pétales roses. Les ennemis s'envolent en fleurs.",
+	"card_skin_galaxy": "Un ciel étoilé qui tourne sur l'arme.",
+	"card_skin_glitch": "L'arme saute et se décale, comme un signal brouillé.",
+	"card_skin_gold": "Or massif. Les ennemis finissent en statues.",
+	"card_skin_prism": "Toutes les couleurs, qui défilent sans fin.",
+	"card_fleet": "Dard, Faucon, Frelon et Nova, en formation.",
+	"card_titan_city": "Quatre héros, un géant rouge, une ville entière.",
 	"card_elite": "Trois fois plus solide. Laisse toujours un bonus.",
 	"card_dragon": "Crache le feu sur toute la station.",
 	"card_skeleton": "Charge sans prévenir. Frappe fort.",
