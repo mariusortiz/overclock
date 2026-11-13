@@ -42,6 +42,7 @@ var _billing := Billing.new()
 
 
 func _ready() -> void:
+	TouchScroll.attach($Right/Box/Scroll)
 	add_child(_billing)
 	_billing.status_changed.connect(_refresh)
 	_billing.gems_granted.connect(func(_gems: int) -> void: _refresh())

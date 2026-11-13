@@ -15,6 +15,7 @@ const TEST_XP := 1000
 
 
 func _ready() -> void:
+	TouchScroll.attach(_scroll)
 	$Back.pressed.connect(get_tree().change_scene_to_file.bind(MENU_SCENE), CONNECT_DEFERRED)
 	_refresh()
 

@@ -41,10 +41,12 @@ func _ready() -> void:
 	tab_scroll.custom_minimum_size.y = 62
 	tab_scroll.add_child(_tabs)
 	box.add_child(tab_scroll)
+	TouchScroll.attach(tab_scroll)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	box.add_child(scroll)
+	TouchScroll.attach(scroll)
 	_grid.columns = 7
 	_grid.add_theme_constant_override("h_separation", 12)
 	_grid.add_theme_constant_override("v_separation", 12)
@@ -112,7 +114,9 @@ func _refresh() -> void:
 		var view := CardView.new(card, Cards.count(card.id) > 0, Cards.count(card.id))
 		view.custom_minimum_size = CARD_SIZE
 		view.gui_input.connect(func(event: InputEvent) -> void:
-			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			# On release: a finger sliding to scroll the grid opens nothing
+			# (TouchScroll keeps that release from the card).
+			if event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 				_show_card(card))
 		_grid.add_child(view)
 
