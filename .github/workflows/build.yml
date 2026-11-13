@@ -94,8 +94,13 @@ jobs:
           for arena in 0 3; do
             godot --headless --fixed-fps 60 --quit-after 3600 res://scenes/capture.tscn -- --arena=$arena 2>&1 | tee -a run.log
           done
-          # The ship race: a whole race (3 laps, about 95 s), the player idle.
-          godot --headless --fixed-fps 60 --quit-after 6600 res://scenes/race.tscn 2>&1 | tee -a run.log
+          # The ship race: the circuit choice, a whole race on the first circuit
+          # (3 laps, about 95 s, the player idle), 20 s on each of the others.
+          godot --headless --fixed-fps 60 --quit-after 120 res://scenes/race.tscn 2>&1 | tee -a run.log
+          godot --headless --fixed-fps 60 --quit-after 6600 res://scenes/race.tscn -- --circuit=0 2>&1 | tee -a run.log
+          for circuit in 1 2 3 4; do
+            godot --headless --fixed-fps 60 --quit-after 1200 res://scenes/race.tscn -- --circuit=$circuit 2>&1 | tee -a run.log
+          done
           # Local network: a host and a guest on this machine, a race then a capture.
           for mode in race capture; do
             timeout 60 godot --headless --fixed-fps 60 res://scenes/lobby.tscn -- --host=$mode > host.log 2>&1 &

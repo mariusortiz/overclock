@@ -13,10 +13,12 @@ const BUTTON_HEIGHT := 64
 const GOLD := Color(1.0, 0.85, 0.3)
 const DEAL := Color(0.3, 1.0, 0.5)
 
-const TABS := ["JOUR", "HÉROS", "ARMES", "SKINS", "CARTES", "GEMMES"]
-const KINDS := ["", "Personnage", "Arme", "Skin d'arme", "", ""]
-const CARDS_TAB := 4
-const GEMS_TAB := 5
+const TABS := ["JOUR", "HÉROS", "ARMES", "SKINS", "VAISSEAUX", "CARTES", "GEMMES"]
+const KINDS := ["", "Personnage", "Arme", "Skin d'arme", "Vaisseau", "", ""]
+const CARDS_TAB := 5
+const GEMS_TAB := 6
+## Overpowered items stand out in this color, with "ULTRA" in their detail.
+const ULTRA := Color(1.0, 0.24, 0.95)
 ## Booster packs of collectible cards (see Cards), bought again and again.
 const BOOSTERS: Array[Dictionary] = [
 	{"booster": "standard", "name": "BOOSTER", "credits": 400, "gems": 30,
@@ -32,7 +34,7 @@ var _billing := Billing.new()
 
 @onready var _stage: CharacterStage = $Stage
 @onready var _balance: Label = $Right/Box/Balance
-@onready var _tab_bar: HBoxContainer = $Right/Box/Tabs
+@onready var _tab_bar: HFlowContainer = $Right/Box/Tabs
 @onready var _grid: GridContainer = $Right/Box/Scroll/Grid
 @onready var _name: Label = $Right/Box/Detail/Box/Name
 @onready var _info: Label = $Right/Box/Detail/Box/Info
@@ -110,6 +112,8 @@ func _refresh() -> void:
 		card.text = _card_text(offer)
 		if offer.get("discount", false):
 			card.add_theme_color_override("font_color", DEAL)
+		elif offer.has("item") and offer.item.get("op", false):
+			card.add_theme_color_override("font_color", ULTRA)
 		card.pressed.connect(_on_card_pressed.bind(offer))
 		_grid.add_child(card)
 	_show_detail()
@@ -164,6 +168,9 @@ func _preview() -> void:
 		"Skin d'arme":
 			_stage.focus(CharacterStage.Focus.WEAPON)
 			_stage.show_weapon(Loadout.selected_weapon(), _viewed.item)
+		"Vaisseau":
+			_stage.focus(CharacterStage.Focus.SHIP)
+			_stage.show_ship(_viewed.item)
 
 
 func _show_detail() -> void:
@@ -211,6 +218,15 @@ func _show_detail() -> void:
 
 ## What makes the item special, in one or two lines.
 func _description(item: Dictionary, kind: String) -> String:
+	var text := _traits(item, kind)
+	if item.get("op", false):
+		text = "ULTRA · " + text
+	if item.has("fair"):
+		text += "\nEn multijoueur, revient au niveau des autres."
+	return text
+
+
+func _traits(item: Dictionary, kind: String) -> String:
 	match kind:
 		"Personnage":
 			var ulti: Dictionary = Ultimate.INFO[item.ulti]
@@ -229,6 +245,10 @@ func _description(item: Dictionary, kind: String) -> String:
 				traits.append("%d projectiles par tir" % item.pellets)
 			traits.append("cadence %s/s · dégâts %d · chargeur %d" % [str(item.fire_rate).trim_suffix(".0"), item.damage, item.magazine])
 			return ", ".join(traits)
+		"Vaisseau":
+			var special: Array = Loadout.SHIP_SPECIALS[item.special]
+			return "%s : %s · vitesse %d %%, maniabilité %d %%, bouclier %d, tir x%s" % [special[0], special[1],
+					roundi(item.velocity * 100), roundi(item.handling * 100), item.shield, str(item.fire)]
 		_:
 			return "Finition animée · élimination : %s" % Loadout.KILL_NAMES.get(item.kill, "")
 
@@ -272,6 +292,8 @@ func _is_equipped(item: Dictionary) -> bool:
 			return Loadout.selected_character().id == item.id
 		"Arme":
 			return Loadout.selected_weapon().id == item.id
+		"Vaisseau":
+			return Loadout.selected_ship().id == item.id
 	return Loadout.selected_skin().id == item.id
 
 
@@ -281,4 +303,6 @@ func _key(kind: String) -> String:
 			return Loadout.CHARACTER_KEY
 		"Arme":
 			return Loadout.WEAPON_KEY
+		"Vaisseau":
+			return Loadout.SHIP_KEY
 	return Loadout.SKIN_KEY

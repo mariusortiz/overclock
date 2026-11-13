@@ -34,6 +34,19 @@ const MINE_STUN := 1.2
 const PAD_RADIUS := 3.0
 const SHIP_RADIUS := 1.6
 const PLACE_SCORES := [3000, 2200, 1600, 1200, 900, 600]
+const BLACKHOLE_RANGE := 220.0
+const CHRONOS_STUN := 3.0
+const HYPERDRIVE_TIME := 6.0
+const BOX_RADIUS := 2.4
+## Items in the boxes: name shown, and how long the effects last.
+const ITEMS := {
+	&"turbo": "TURBO", &"missile": "MISSILE", &"shield": "BOUCLIER",
+	&"mines": "MINES", &"emp": "ONDE EMP", &"ghost": "FANTÔME",
+}
+const ITEM_TIME := 3.0
+## What a box may hold: ships at the back get the attacks more often.
+const ITEMS_FRONT := [&"shield", &"mines", &"ghost", &"turbo", &"emp"]
+const ITEMS_BACK := [&"turbo", &"missile", &"missile", &"emp", &"turbo", &"ghost"]
 const CAMERA_BACK := 9.0
 const CAMERA_UP := 3.0
 ## Network play: states sent per second, and how long the host waits for
@@ -58,6 +71,13 @@ var _send_left := 0.0
 var _ready_peers := {}
 ## Mines on the track: [distance, offset, node, ship that laid it].
 var _mines: Array[Array] = []
+## The item each ship holds (&"" for none), and how long a computer waits
+## before using its own.
+var _items := {}
+var _item_wait := {}
+var _environment := Environment.new()
+var _circuit_panel := PanelContainer.new()
+var _item_label := Label.new()
 
 var _layer := CanvasLayer.new()
 var _touch := TouchControls.new()
@@ -78,11 +98,73 @@ func _ready() -> void:
 	_build_world()
 	_online = Net.is_online()
 	var seed_value := Net.seed_value if _online else randi()
+	# Online, the host's seed picks the circuit; solo, the player does.
+	var circuit := posmod(seed_value, RaceTrack.CIRCUITS.size()) if _online else -1
 	for argument in OS.get_cmdline_user_args():
-		if argument.begins_with("--track="):
-			seed_value = argument.get_slice("=", 1).to_int()
-	_track.build(seed_value)
+		if argument.begins_with("--circuit="):
+			circuit = argument.get_slice("=", 1).to_int()
+	if circuit >= 0:
+		_setup(circuit, seed_value)
+	else:
+		_show_circuits(seed_value)
+
+
+## Solo: the circuits, to pick one before the race.
+func _show_circuits(seed_value: int) -> void:
+	add_child(_layer)
+	var backdrop := ColorRect.new()
+	backdrop.color = Color(0.02, 0.01, 0.06)
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_layer.add_child(backdrop)
+	_circuit_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	_circuit_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_circuit_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 10)
+	_circuit_panel.add_child(box)
+	var title := Label.new()
+	_style(title, 36, Color(0.16, 0.9, 1.0))
+	title.reparent(box)
+	title.text = "CIRCUIT"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	for i in RaceTrack.CIRCUITS.size():
+		var button := Button.new()
+		button.text = RaceTrack.CIRCUITS[i].name.to_upper()
+		button.custom_minimum_size = Vector2(460, 64)
+		button.add_theme_font_size_override("font_size", 24)
+		button.add_theme_color_override("font_color", RaceTrack.CIRCUITS[i].gates)
+		button.pressed.connect(func() -> void:
+			backdrop.queue_free()
+			_circuit_panel.queue_free()
+			_setup(i, seed_value))
+		box.add_child(button)
+	var random := Button.new()
+	random.text = "AU HASARD"
+	random.custom_minimum_size = Vector2(460, 64)
+	random.add_theme_font_size_override("font_size", 24)
+	random.pressed.connect(func() -> void:
+		backdrop.queue_free()
+		_circuit_panel.queue_free()
+		_setup(randi() % RaceTrack.CIRCUITS.size(), seed_value))
+	box.add_child(random)
+	var back := Button.new()
+	back.text = "MENU"
+	back.custom_minimum_size = Vector2(460, 56)
+	back.add_theme_font_size_override("font_size", 22)
+	back.pressed.connect(get_tree().change_scene_to_file.bind(MENU_SCENE), CONNECT_DEFERRED)
+	box.add_child(back)
+	_layer.add_child(_circuit_panel)
+
+
+## Builds circuit `circuit` and its pilots, then starts (or waits for the others).
+func _setup(circuit: int, seed_value: int) -> void:
+	_track.build(circuit)
 	add_child(_track)
+	_environment.background_color = _track.circuit.sky
+	if _track.circuit.has("fog"):
+		_environment.fog_enabled = true
+		_environment.fog_light_color = _track.circuit.fog
+		_environment.fog_density = 0.0015
 	# Each pilot flies a different ship: the player the one chosen in the
 	# armory, the computers the others, shuffled with the track's seed.
 	var others := Loadout.SHIPS.filter(func(item: Dictionary) -> bool: return item.id != Loadout.selected_ship().id)
@@ -108,7 +190,7 @@ func _ready() -> void:
 				var info: Dictionary = Net.players[ids[i]]
 				ship.peer_id = ids[i]
 				ship.display_name = info.name
-				ship.configure(Loadout.find(info.get("ship", "ship_dart")).item)
+				ship.configure(Loadout.fair(Loadout.find(info.get("ship", "ship_dart")).item))
 				ship.skill = 1.0
 				ship.is_player = ids[i] == Net.my_id()
 			ship.remote = not ship.is_player and not (ship.peer_id == 0 and Net.is_host())
@@ -119,6 +201,8 @@ func _ready() -> void:
 		add_child(ship)
 		_ships.append(ship)
 		_ai_fire_left[ship] = randf_range(1.0, 3.0)
+		_items[ship] = &""
+		_item_wait[ship] = 0.0
 		_passed[ship] = {"gate": 0, "pad": -1}
 		ship.fly(0.0, Vector2.ZERO, _track)
 	_player = _ships[0]
@@ -146,7 +230,7 @@ func _ready() -> void:
 
 
 func _build_world() -> void:
-	var environment := Environment.new()
+	var environment := _environment
 	environment.background_mode = Environment.BG_COLOR
 	environment.background_color = Color(0.02, 0.01, 0.06)
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
@@ -162,6 +246,8 @@ func _build_world() -> void:
 
 
 func _countdown() -> void:
+	_show_center(_track.circuit.name.to_upper())
+	await get_tree().create_timer(1.2, false).timeout
 	for i in range(COUNTDOWN, 0, -1):
 		_show_center(str(i))
 		await get_tree().create_timer(1.0, false).timeout
@@ -173,6 +259,8 @@ func _countdown() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if _player == null:
+		return  # the circuit is not chosen yet
 	if not _started or (_paused and not _online):
 		_place_camera(delta)
 		return
@@ -187,6 +275,7 @@ func _physics_process(delta: float) -> void:
 	for ship in _ships:
 		if not ship.remote:
 			_check_track(ship)
+		_check_boxes(ship)
 	if _online:
 		_send_states(delta)
 	_check_mines()
@@ -203,6 +292,8 @@ func _steer_player(delta: float) -> void:
 		steer = Vector2(Input.get_axis("move_left", "move_right"), Input.get_axis("move_back", "move_forward"))
 		if Input.is_action_just_pressed("ultimate") and _player.boost_charge >= 1.0 and _player.is_flying():
 			_trigger_special(_player)
+		if Input.is_action_just_pressed("melee") and _items[_player] != &"" and _player.is_flying():
+			_use_item(_player)
 		_laser_left -= delta
 		if (Input.is_action_pressed("fire") or Input.is_action_pressed("jump")) and _laser_left <= 0.0 and _player.is_flying():
 			_laser_left = LASER_INTERVAL / _player.fire_rate
@@ -228,6 +319,10 @@ func _steer_computers(delta: float) -> void:
 		ship.skill = PILOTS[_ships.find(ship)][2] * (1.06 if gap > 60.0 else (0.95 if gap < -80.0 else 1.0))
 		if ship.boost_charge >= 1.0 and randf() < 0.01 and ship.is_flying():
 			_trigger_special(ship)
+		if _items[ship] != &"" and ship.is_flying():
+			_item_wait[ship] -= delta
+			if _item_wait[ship] <= 0.0:
+				_use_item(ship)
 		ship.fly(delta, steer, _track)
 		_ai_fire_left[ship] -= delta
 		if _ai_fire_left[ship] <= 0.0 and ship.is_flying():
@@ -287,12 +382,18 @@ func _apply_special(ship: RaceShip) -> void:
 		&"surboost":
 			ship.boost(SPECIAL_TIME)
 		&"salvo":
-			for target in _ships:
-				var ahead := target.distance - ship.distance
-				if target != ship and ahead > 0.0 and ahead < SALVO_RANGE and target.is_flying() and not target.is_untouchable():
-					Effects.tracer(self, ship.global_position, target.global_position, ship.color)
-					target.hit()
-					_warn(target, ship, info[0])
+			_hit_ahead(ship, SALVO_RANGE, 1, info[0])
+		&"blackhole":
+			Effects.burst(self, ship.global_position, Color.BLACK, 60)
+			_hit_ahead(ship, BLACKHOLE_RANGE, 2, info[0])
+		&"hyperdrive":
+			ship.boost(HYPERDRIVE_TIME)
+			ship.raise_shield(HYPERDRIVE_TIME)
+		&"chronos":
+			for other in _ships:
+				if other != ship and not other.is_untouchable():
+					other.stun_left = CHRONOS_STUN
+					_warn(other, ship, info[0])
 		&"rampart":
 			ship.raise_shield(SPECIAL_TIME)
 		&"cloak":
@@ -302,26 +403,105 @@ func _apply_special(ship: RaceShip) -> void:
 			ship.distance += WARP_DISTANCE
 			ship.boost(1.0)
 		&"missile":
-			var target: RaceShip = null
-			for other in _ships:
-				var ahead := other.distance - ship.distance
-				if other != ship and ahead > 0.0 and ahead < MISSILE_RANGE and other.is_flying() and not other.is_untouchable():
-					if target == null or ahead < target.distance - ship.distance:
-						target = other
-			if target:
-				Effects.tracer(self, ship.global_position, target.global_position, Color(1.0, 0.6, 0.2))
-				target.hit()
-				target.hit()
-				_warn(target, ship, info[0])
+			_missile(ship, info[0])
 		&"emp":
-			_emp_ring(ship)
-			for other in _ships:
-				if other != ship and absf(other.distance - ship.distance) < EMP_RANGE and not other.is_untouchable():
-					other.stun_left = EMP_STUN
-					_warn(other, ship, info[0])
+			_emp(ship, info[0])
 		&"mines":
-			for i in 3:
-				_lay_mine(ship, ship.distance - 6.0 - 5.0 * i, ship.offset + Vector2((i - 1) * 3.0, 0))
+			_three_mines(ship)
+
+
+## Hits `times` times every ship ahead within `range_ahead`.
+func _hit_ahead(ship: RaceShip, range_ahead: float, times: int, what: String) -> void:
+	for target in _ships:
+		var ahead := target.distance - ship.distance
+		if target != ship and ahead > 0.0 and ahead < range_ahead and target.is_flying() and not target.is_untouchable():
+			Effects.tracer(self, ship.global_position, target.global_position, ship.color)
+			for i in times:
+				target.hit()
+			_warn(target, ship, what)
+
+
+## A homing missile: two hits on the nearest ship ahead.
+func _missile(ship: RaceShip, what: String) -> void:
+	var target: RaceShip = null
+	for other in _ships:
+		var ahead := other.distance - ship.distance
+		if other != ship and ahead > 0.0 and ahead < MISSILE_RANGE and other.is_flying() and not other.is_untouchable():
+			if target == null or ahead < target.distance - ship.distance:
+				target = other
+	if target:
+		Effects.tracer(self, ship.global_position, target.global_position, Color(1.0, 0.6, 0.2))
+		target.hit()
+		target.hit()
+		_warn(target, ship, what)
+
+
+func _emp(ship: RaceShip, what: String) -> void:
+	_emp_ring(ship)
+	for other in _ships:
+		if other != ship and absf(other.distance - ship.distance) < EMP_RANGE and not other.is_untouchable():
+			other.stun_left = EMP_STUN
+			_warn(other, ship, what)
+
+
+func _three_mines(ship: RaceShip) -> void:
+	for i in 3:
+		_lay_mine(ship, ship.distance - 6.0 - 5.0 * i, ship.offset + Vector2((i - 1) * 3.0, 0))
+
+
+# --- Items --------------------------------------------------------------------
+
+## A ship flying through a box takes it; one flown on this device gets an
+## item if its hands are free. Every device hides the box.
+func _check_boxes(ship: RaceShip) -> void:
+	if not ship.is_flying():
+		return
+	var lap_distance := fposmod(ship.distance, _track.length)
+	for i in _track.boxes.size():
+		var box: Array = _track.boxes[i]
+		if _track.box_ready(i) and absf(lap_distance - box[0]) < 2.0 and ship.offset.distance_to(box[1]) < BOX_RADIUS:
+			_track.take_box(i)
+			if not ship.remote and _items[ship] == &"":
+				var place := _standings().find(ship)
+				var pool: Array = ITEMS_BACK if place * 2 >= _ships.size() else ITEMS_FRONT
+				_items[ship] = pool[randi() % pool.size()]
+				_item_wait[ship] = randf_range(1.0, 4.0)
+				if ship == _player:
+					_show_center(ITEMS[_items[ship]], 0.8)
+
+
+func _use_item(ship: RaceShip) -> void:
+	var kind: StringName = _items[ship]
+	_items[ship] = &""
+	if _online:
+		_item_used.rpc(_ships.find(ship), kind)
+	else:
+		_apply_item(ship, kind)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _item_used(index: int, kind: StringName) -> void:
+	if index >= 0 and index < _ships.size() and ITEMS.has(kind):
+		_apply_item(_ships[index], kind)
+
+
+func _apply_item(ship: RaceShip, kind: StringName) -> void:
+	var what: String = ITEMS[kind]
+	if ship == _player:
+		_show_center(what + " !", 0.8)
+	match kind:
+		&"turbo":
+			ship.boost(ITEM_TIME)
+		&"missile":
+			_missile(ship, what)
+		&"shield":
+			ship.raise_shield(ITEM_TIME)
+		&"mines":
+			_three_mines(ship)
+		&"emp":
+			_emp(ship, what)
+		&"ghost":
+			ship.cloak_left = ITEM_TIME
 
 
 ## Tells the player who just got them, and with what.
@@ -463,10 +643,12 @@ func _place_camera(delta: float) -> void:
 # --- Interface ----------------------------------------------------------------
 
 func _build_ui() -> void:
-	add_child(_layer)
+	if not _layer.is_inside_tree():
+		add_child(_layer)
 	_touch.buttons = [
 		{"action": "fire", "label": "TIR", "radius": TouchControls.FIRE_RADIUS, "offset": Vector2.ZERO, "toggle": false},
 		{"action": "ultimate", "label": "CAPACITÉ", "radius": 60.0, "offset": Vector2(-170, 20), "toggle": false},
+		{"action": "melee", "label": "OBJET", "radius": 55.0, "offset": Vector2(-60, -170), "toggle": false},
 	]
 	_touch.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_touch.visible = DisplayServer.is_touchscreen_available()
@@ -497,6 +679,13 @@ func _build_ui() -> void:
 	_boost_bar.max_value = 1.0
 	_boost_bar.show_percentage = false
 	_layer.add_child(_boost_bar)
+	_style(_item_label, 26, Color(1.0, 0.8, 0.25))
+	_item_label.anchor_left = 0.5
+	_item_label.anchor_right = 0.5
+	_item_label.offset_left = -260
+	_item_label.offset_right = 260
+	_item_label.offset_top = 24
+	_item_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_style(_center_label, 96, Color(1.0, 0.24, 0.95))
 	_center_label.anchor_right = 1.0
 	_center_label.anchor_top = 0.3
@@ -533,6 +722,9 @@ func _refresh_ui() -> void:
 	_shield_label.text = "BOUCLIER %d / %d" % [_player.shield, _player.max_shield] if _player.is_flying() else "RÉPARATION..."
 	_speed_label.text = "%d KM/H" % int(_player.speed * 3.6 * 3.0)
 	_boost_bar.value = _player.boost_charge
+	var item: StringName = _items.get(_player, &"")
+	var key := "" if DisplayServer.is_touchscreen_available() else "  (F)"
+	_item_label.text = "OBJET : %s%s" % [ITEMS[item], key] if item != &"" else ""
 	_boost_bar.modulate = Color(1.0, 0.8, 0.25) if _player.boost_charge >= 1.0 else Color.WHITE
 
 
@@ -702,3 +894,10 @@ func _unhandled_input(event: InputEvent) -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		_toggle_pause()
+	elif what == NOTIFICATION_PREDELETE:
+		# Left on the circuit choice: what the race would have used was never
+		# added to the scene, so it is not freed with it.
+		for node: Node in [_track, _camera, _touch, _place_label, _lap_label, _speed_label, _center_label,
+				_boost_bar, _shield_label, _end_panel, _end_text, _pause_panel, _item_label]:
+			if is_instance_valid(node) and node.get_parent() == null:
+				node.free()

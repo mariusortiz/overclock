@@ -26,6 +26,7 @@ var _mode_panel := Control.new()
 
 
 func _ready() -> void:
+	Loadout.fair_play = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Music.play_track(Music.Track.MAIN)
 	_stage.show_loadout()

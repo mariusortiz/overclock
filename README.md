@@ -54,7 +54,7 @@ JOUER propose le mode à lancer :
 
 - **Vagues** : le mode d'origine, des vagues d'ennemis et un boss toutes les cinq vagues, jusqu'au Titan.
 - **Capture de zone** : ton équipe (toi et 3 bots alliés) contre 4 bots adverses, dans une arène tirée au hasard. Trois zones, A, B et C : seul dans une zone, ton équipe la prend en 5 s (plus vite à plusieurs) ; à plusieurs camps dedans, elle est disputée et ne bouge plus. Chaque zone tenue rapporte un point par seconde ; la première équipe à 150 gagne. On réapparaît à sa base 5 s après être tombé. Le score vient des éliminations (100), des zones prises en étant dedans (250) et de la victoire (1500) ; une défaite ne rapporte que la moitié de l'XP et des crédits. Les alliés ont un losange cyan au-dessus de la tête, les adversaires un rouge ; la mini-carte montre les zones et les alliés.
-- **Course de vaisseaux** : 3 tours d'un circuit dans l'espace (sa forme change à chaque course) contre 5 pilotes. Le vaisseau avance tout seul ; on le dirige dans le tube du circuit (joystick ou ZQSD). Les plaques cyan donnent un boost ; chaque anneau traversé remplit la jauge de la capacité spéciale du vaisseau, à lancer avec CAPACITÉ (touche E). TIR (clic ou espace) envoie un laser droit devant : le vaisseau touché ralentit, et explose au troisième tir avant de repartir. L'XP et les crédits dépendent de la place (3000 points pour la 1re, 600 pour la 6e). Les vaisseaux sont faits de formes simples en attendant un modèle 3D : un fichier .glb, .gltf ou .fbx déposé dans `assets/models/ships/` (nez vers -Z) le remplace automatiquement.
+- **Course de vaisseaux** : 3 tours d'un circuit dans l'espace contre 5 pilotes. Avant la course, on choisit l'un des 5 circuits (ou au hasard) : Anneau d'Orion, Nébuleuse (brume rose, gros dénivelés), Ceinture d'astéroïdes (rochers tout près de la piste), Soleil rouge (longues courbes rapides) et Labyrinthe de glace (virages serrés). En multijoueur, le circuit est tiré au sort. Des caisses lumineuses, par rangées de trois, donnent un objet à utiliser avec OBJET (touche F) : turbo, missile (deux tirs sur le vaisseau devant), bouclier, mines, onde EMP ou fantôme (invisible et intouchable 3 s). Les derniers reçoivent plus souvent les objets d'attaque. Le vaisseau avance tout seul ; on le dirige dans le tube du circuit (joystick ou ZQSD). Les plaques cyan donnent un boost ; chaque anneau traversé remplit la jauge de la capacité spéciale du vaisseau, à lancer avec CAPACITÉ (touche E). TIR (clic ou espace) envoie un laser droit devant : le vaisseau touché ralentit, et explose au troisième tir avant de repartir. L'XP et les crédits dépendent de la place (3000 points pour la 1re, 600 pour la 6e). Les vaisseaux sont faits de formes simples en attendant un modèle 3D : un fichier .glb, .gltf ou .fbx déposé dans `assets/models/ships/` (nez vers -Z) le remplace automatiquement.
 
 ### Vaisseaux
 
@@ -70,6 +70,9 @@ Huit vaisseaux pour la course, choisis dans l'onglet VAISSEAU de l'arsenal. Le D
 | Frelon | 100 % | 110 % | 3 | 160 % | Missile guidé : deux touches sur le vaisseau devant |
 | Tempête | 98 % | 100 % | 4 | 100 % | Onde EMP : ralentit les vaisseaux à moins de 45 m |
 | Nova | 102 % | 100 % | 3 | 110 % | Mines : trois mines derrière soi |
+| Oméga (boutique, ULTRA) | 122 % | 135 % | 6 | 180 % | Hyperdrive : 6 s de vitesse maximale, intouchable |
+| Faucheuse (boutique, ULTRA) | 118 % | 120 % | 4 | 220 % | Trou noir : touche deux fois tous les vaisseaux devant |
+| Aurore (boutique, ULTRA) | 120 % | 150 % | 5 | 150 % | Chronos : ralentit tous les autres 3 s |
 
 ## Cartes à collectionner
 
@@ -240,13 +243,25 @@ Les boss gardent leur propre chute. Le skin Champion ne s'obtient qu'en battant 
 
 La boutique, accessible depuis l'accueil, vend du contenu qu'on ne trouve pas dans le passe de combat : 6 armes exotiques, 5 skins à finition animée et 6 personnages à ulti boostée. Un achat est équipé tout de suite et reste dans l'arsenal.
 
-Elle a cinq onglets. **Du jour** montre quatre offres, les mêmes pour tous les joueurs, renouvelées à minuit ; la première est à -30 %. **Héros**, **Armes** et **Skins** forment le catalogue permanent. **Gemmes** vend des packs de gemmes contre de l'argent réel (Android uniquement, voir « Paiements » plus bas).
+**Du jour** montre quatre offres, les mêmes pour tous les joueurs, renouvelées à minuit ; la première est à -30 %. **Héros**, **Armes**, **Skins** et **Vaisseaux** forment le catalogue permanent ; **Cartes** vend des boosters. **Gemmes** vend des packs de gemmes contre de l'argent réel (Android uniquement, voir « Paiements » plus bas).
 
 Deux monnaies :
 - les **crédits** se gagnent en jouant : un dixième du score à chaque partie (divisé par deux si tu meurs ou quittes) ;
 - les **gemmes** s'achètent, et se gagnent aussi en petite quantité : 3 par boss vaincu, 10 quand les trois défis du jour sont réussis.
 
-Chaque article se paie au choix en crédits ou en gemmes : personnage 6000 crédits ou 450 gemmes, arme 3500 ou 260, skin 2500 ou 180.
+Chaque article se paie au choix en crédits ou en gemmes : personnage 6000 crédits ou 450 gemmes, arme 3500 ou 260, skin 2500 ou 180, vaisseau 8000 ou 600.
+
+**Articles ULTRA** (en magenta dans la boutique) : nettement plus forts que tout le reste, et trois fois plus chers. En multijoueur, les héros, armes et vaisseaux ULTRA reviennent au niveau des autres, pour qu'un achat ne décide pas du match.
+
+| Article ULTRA | Type | Ce qu'il a de plus |
+|---|---|---|
+| Le Directeur | héros | Arrêt du temps boosté ×3 |
+| Commandant | héros | Frappe aérienne boostée ×3 |
+| Annihilateur | arme | 12 dégâts, 5 tirs/s, explosion de 5 m, finition Plasma |
+| Pistolet d'or | arme | 99 dégâts (un tir, un ennemi), transperce, finition Or |
+| Foudre | skin | éclairs animés |
+| Trou noir | skin | anneau de feu qui tourbillonne sur fond noir |
+| Oméga, Faucheuse, Aurore | vaisseaux | voir « Course de vaisseaux » |
 
 | Arme exotique | Particularité | Cadence | Dégâts | Chargeur |
 |---|---|---|---|---|

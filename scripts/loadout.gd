@@ -27,6 +27,10 @@ const CHARACTERS := [
 	{"id": "paladin", "ulti": &"blessing", "name": "Paladine d'or", "model": "Knight_Golden_Female.fbx", "shop": true, "boost": 1.5},
 	{"id": "godfather", "ulti": &"deadeye", "name": "Le Parrain", "model": "OldClassy_Male.fbx", "shop": true, "boost": 2.0},
 	{"id": "sand_ghost", "ulti": &"timestop", "name": "Ombre des sables", "model": "Ninja_Sand_Female.fbx", "shop": true, "boost": 1.6},
+	# Overpowered ("op"): far above the rest, sold dear. "fair" is what they
+	# become in multiplayer, so that a purchase does not decide the match.
+	{"id": "directeur", "ulti": &"timestop", "name": "Le Directeur", "model": "Suit_Male.fbx", "shop": true, "op": true, "boost": 3.0, "fair": {"boost": 1.6}},
+	{"id": "commander", "ulti": &"airstrike", "name": "Commandant", "model": "BlueSoldier_Male.fbx", "shop": true, "op": true, "boost": 3.0, "fair": {"boost": 1.6}},
 ]
 
 ## Weapon skins are finishes: they keep the gun's shape. A skin with a pattern
@@ -57,6 +61,8 @@ const SKINS := [
 	{"id": "skin_plasma", "kill": &"burn", "name": "Plasma", "pattern": true, "fx": 2, "colors": [Color(1.0, 0.45, 0.05), Color(0.9, 0.05, 0.6)], "glow": 0.0, "scope": false, "silencer": false, "shot": Color(1.0, 0.35, 0.6), "shop": true},
 	{"id": "skin_glitch", "kill": &"pixelate", "name": "Glitch", "pattern": true, "fx": 3, "colors": [Color(0.1, 1.0, 0.4), Color(1.0, 0.1, 0.5)], "glow": 0.0, "scope": false, "silencer": true, "shot": Color(0.3, 1.0, 0.5), "shop": true},
 	{"id": "skin_prism", "kill": &"confetti", "name": "Prisme", "pattern": true, "fx": 4, "colors": [Color.WHITE, Color.WHITE], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 1.0, 1.0), "shop": true},
+	{"id": "skin_storm", "kill": &"vanish", "name": "Foudre", "pattern": true, "fx": 5, "colors": [Color(0.75, 0.9, 1.0), Color(0.03, 0.04, 0.12)], "glow": 0.0, "scope": true, "silencer": false, "shot": Color(0.7, 0.9, 1.0), "shop": true, "op": true},
+	{"id": "skin_void", "kill": &"ascend", "name": "Trou noir", "pattern": true, "fx": 6, "colors": [Color(1.0, 0.45, 0.1), Color(0.0, 0.0, 0.0)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 0.5, 0.15), "shop": true, "op": true},
 	# Not sold: earned by completing the card album (see Cards).
 	{"id": "skin_collector", "kill": &"ascend", "name": "Collectionneur", "pattern": true, "fx": 1, "colors": [Color(1.0, 0.85, 0.35), Color(0.2, 0.08, 0.02)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 0.85, 0.35)},
 ]
@@ -141,6 +147,10 @@ const WEAPONS := [
 	{"id": "flamer", "name": "Lance-flammes", "model": "Blaster_Flame", "length": 0.6, "fire_rate": 8.0, "damage": 1, "magazine": 60, "reload_time": 2.0, "zoom_fov": 40.0, "pellets": 2, "spread": 9.0, "range": 11.0, "ignite": 1, "shop": true},
 	{"id": "flechette", "name": "Lance-fléchettes", "model": "Blaster_Flechette", "length": 0.7, "fire_rate": 3.0, "damage": 2, "magazine": 10, "reload_time": 1.6, "zoom_fov": 36.0, "pellets": 5, "spread": 2.5, "pierce": true, "shop": true},
 	{"id": "minigun", "name": "Minigun", "model": "Blaster_Minigun", "length": 1.0, "fire_rate": 24.0, "damage": 1, "magazine": 150, "reload_time": 3.2, "zoom_fov": 44.0, "shop": true},
+	{"id": "annihilator", "name": "Annihilateur", "model": "Blaster_Plasma", "length": 0.8, "fire_rate": 5.0, "damage": 12, "magazine": 30, "reload_time": 1.0, "zoom_fov": 36.0, "blast_radius": 5.0, "shop": true, "op": true, "finish": "skin_plasma",
+		"fair": {"fire_rate": 2.2, "damage": 5, "magazine": 8, "reload_time": 1.8, "blast_radius": 3.0}},
+	{"id": "golden_gun", "name": "Pistolet d'or", "model": "Pistol_6", "length": 0.49, "fire_rate": 2.5, "damage": 99, "magazine": 6, "reload_time": 0.8, "zoom_fov": 30.0, "pierce": true, "shop": true, "op": true, "finish": "skin_gold",
+		"fair": {"fire_rate": 2.0, "damage": 6, "pierce": false}},
 ]
 
 ## Ships of the race. "design" is the hull (RaceShip._build_model);
@@ -157,6 +167,13 @@ const SHIPS := [
 	{"id": "ship_hornet", "name": "Frelon", "design": 6, "color": Color(0.5, 1.0, 0.3), "velocity": 1.0, "handling": 1.1, "shield": 3, "fire": 1.6, "special": &"missile"},
 	{"id": "ship_storm", "name": "Tempête", "design": 2, "color": Color(0.3, 0.6, 1.0), "velocity": 0.98, "handling": 1.0, "shield": 4, "fire": 1.0, "special": &"emp"},
 	{"id": "ship_nova", "name": "Nova", "design": 7, "color": Color(1.0, 0.35, 0.75), "velocity": 1.02, "handling": 1.0, "shield": 3, "fire": 1.1, "special": &"mines"},
+	# Sold in the shop, overpowered; "hull" darkens or tints the body.
+	{"id": "ship_omega", "name": "Oméga", "design": 7, "color": Color(1.0, 0.8, 0.25), "hull": Color(0.1, 0.1, 0.12), "velocity": 1.22, "handling": 1.35, "shield": 6, "fire": 1.8, "special": &"hyperdrive", "shop": true, "op": true,
+		"fair": {"velocity": 1.04, "handling": 1.1, "shield": 3, "fire": 1.1, "special": &"surboost"}},
+	{"id": "ship_reaper", "name": "Faucheuse", "design": 1, "color": Color(1.0, 0.1, 0.15), "hull": Color(0.18, 0.05, 0.07), "velocity": 1.18, "handling": 1.2, "shield": 4, "fire": 2.2, "special": &"blackhole", "shop": true, "op": true,
+		"fair": {"velocity": 1.04, "handling": 1.1, "shield": 3, "fire": 1.1, "special": &"salvo"}},
+	{"id": "ship_aurora", "name": "Aurore", "design": 4, "color": Color(0.3, 1.0, 0.85), "hull": Color(0.95, 0.97, 1.0), "velocity": 1.2, "handling": 1.5, "shield": 5, "fire": 1.5, "special": &"chronos", "shop": true, "op": true,
+		"fair": {"velocity": 1.04, "handling": 1.1, "shield": 3, "fire": 1.1, "special": &"emp"}},
 ]
 ## What each special does, for the armory and the race.
 const SHIP_SPECIALS := {
@@ -168,6 +185,9 @@ const SHIP_SPECIALS := {
 	&"missile": ["MISSILE GUIDÉ", "Ne rate jamais le vaisseau devant toi"],
 	&"emp": ["ONDE EMP", "Ralentit tous les vaisseaux proches"],
 	&"mines": ["MINES", "Sème 3 mines derrière toi"],
+	&"hyperdrive": ["HYPERDRIVE", "6 s de vitesse maximale, intouchable"],
+	&"blackhole": ["TROU NOIR", "Touche deux fois tous les vaisseaux devant toi"],
+	&"chronos": ["CHRONOS", "Ralentit tous les autres vaisseaux 3 s"],
 }
 
 const GUN_DIR := "res://assets/models/guns/"
@@ -259,11 +279,11 @@ static func is_unlocked(item: Dictionary) -> bool:
 
 
 static func selected_character() -> Dictionary:
-	return _selected(CHARACTERS, CHARACTER_KEY)
+	return fair(_selected(CHARACTERS, CHARACTER_KEY))
 
 
 static func selected_weapon() -> Dictionary:
-	return _selected(WEAPONS, WEAPON_KEY)
+	return fair(_selected(WEAPONS, WEAPON_KEY))
 
 
 static func selected_melee() -> Dictionary:
@@ -280,6 +300,20 @@ static func selected_melee_skin() -> Dictionary:
 
 static func selected_ship() -> Dictionary:
 	return _selected(SHIPS, SHIP_KEY)
+
+
+## On during a multiplayer match (set by Net): overpowered items play as
+## their "fair" version.
+static var fair_play := false
+
+
+## The item as it plays now: its "fair" version in multiplayer.
+static func fair(item: Dictionary) -> Dictionary:
+	if not fair_play or not item.has("fair"):
+		return item
+	var played := item.duplicate()
+	played.merge(item.fair, true)
+	return played
 
 
 static func select(key: String, item: Dictionary) -> void:
@@ -320,6 +354,9 @@ static func weapon_layout(item: Dictionary, skin: Dictionary) -> Dictionary:
 static func instantiate_weapon(item: Dictionary, skin := {}) -> Node3D:
 	if skin.is_empty():
 		skin = selected_skin()
+	# Some guns come with their own finish, worn unless another skin is chosen.
+	if item.has("finish") and skin.id == SKINS[0].id:
+		skin = find(item.finish).item
 	var layout := weapon_layout(item, skin)
 	var gun := Node3D.new()
 	_add_part(gun, item.model, layout.basis, Vector3.ZERO)

@@ -114,6 +114,8 @@ func start_game(game_mode: String) -> void:
 func _start(game_mode: String, game_seed: int) -> void:
 	mode = game_mode
 	seed_value = game_seed
+	# Overpowered shop items play as their fair version against other players.
+	Loadout.fair_play = true
 	get_tree().change_scene_to_file.call_deferred(SCENES[game_mode])
 
 

@@ -38,6 +38,8 @@ var velocity := 1.0
 var handling := 1.0
 var fire_rate := 1.0
 var special := &"surboost"
+## The body's color (dark for some shop ships).
+var hull_color := Color(0.86, 0.88, 0.93)
 ## Special effects running: untouchable, invisible.
 var shielded_left := 0.0
 var cloak_left := 0.0
@@ -99,6 +101,7 @@ func configure(item: Dictionary) -> void:
 	shield = max_shield
 	fire_rate = item.fire
 	special = item.special
+	hull_color = item.get("hull", hull_color)
 
 
 ## Laser hits pass through it (rampart, cloak).
@@ -251,7 +254,7 @@ func _load_model() -> Node3D:
 func _build_model() -> void:
 	if design < 0:
 		design = int(absf(color.h * 7.0 + color.s * 3.0)) % 3
-	var hull := _material(Color(0.86, 0.88, 0.93), 0.5, 0.3)
+	var hull := _material(hull_color, 0.5, 0.3)
 	var dark := _material(Color(0.12, 0.13, 0.18), 0.6, 0.4)
 	var accent := _material(color, 0.2, 0.4, 1.0)
 	var glass := _material(Color(0.25, 0.75, 1.0), 0.1, 0.05, 0.6)

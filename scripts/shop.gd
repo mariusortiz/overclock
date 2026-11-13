@@ -11,7 +11,10 @@ const PRICES := {
 	"Personnage": [6000, 450],
 	"Arme": [3500, 260],
 	"Skin d'arme": [2500, 180],
+	"Vaisseau": [8000, 600],
 }
+## Overpowered items ("op" in Loadout): this many times the price of their kind.
+const OP_PRICE := 3.0
 
 ## Gem packs, as Play Console product ids (managed products, consumed when
 ## bought so that they can be bought again).
@@ -25,11 +28,12 @@ const GEM_PACKS: Array[Dictionary] = [
 ## Every item for sale, as {"item", "kind", "credits", "gems"}.
 static func catalog() -> Array[Dictionary]:
 	var offers: Array[Dictionary] = []
-	for group: Array in [["Personnage", Loadout.CHARACTERS], ["Arme", Loadout.WEAPONS], ["Skin d'arme", Loadout.SKINS]]:
+	for group: Array in [["Personnage", Loadout.CHARACTERS], ["Arme", Loadout.WEAPONS], ["Skin d'arme", Loadout.SKINS], ["Vaisseau", Loadout.SHIPS]]:
 		for item: Dictionary in group[1]:
 			if item.get("shop", false):
 				var price: Array = PRICES[group[0]]
-				offers.append({"item": item, "kind": group[0], "credits": price[0], "gems": price[1], "discount": false})
+				var factor := OP_PRICE if item.get("op", false) else 1.0
+				offers.append({"item": item, "kind": group[0], "credits": roundi(price[0] * factor), "gems": roundi(price[1] * factor), "discount": false})
 	return offers
 
 

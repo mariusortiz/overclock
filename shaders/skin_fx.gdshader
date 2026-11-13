@@ -3,7 +3,7 @@ render_mode cull_disabled;
 // Animated weapon finishes of the shop skins (Loadout.SKINS, key "fx").
 // The pattern follows the model (object space), so it stays on the gun.
 // mode 0: hologram scanlines, 1: twinkling galaxy, 2: flowing plasma,
-// 3: glitch blocks, 4: rainbow prism.
+// 3: glitch blocks, 4: rainbow prism, 5: lightning, 6: black hole.
 
 uniform int mode = 0;
 uniform vec3 color_a : source_color = vec3(0.0, 0.9, 1.0);
@@ -52,6 +52,20 @@ void fragment() {
 		color = r > 0.8 ? color_b : (r > 0.6 ? color_a : vec3(0.04));
 		float flash = step(0.97, hash(block + 3.0));
 		glow = color * 0.6 + vec3(flash);
+	} else if (mode == 5) {
+		// Lightning: dark storm, thin bright veins that flicker and move.
+		float veins = abs(sin(p.x * 3.1 + sin(p.y * 4.3 + t * 2.0) * 1.6 + sin(p.z * 2.7 - t * 1.3)));
+		float bolt = smoothstep(0.08, 0.0, veins);
+		float flicker = step(0.35, fract(sin(floor(t * 12.0)) * 43758.5));
+		color = mix(color_b, color_a * 0.4, 0.2);
+		glow = color_a * bolt * (1.2 + 2.0 * flicker) + color_a * 0.04;
+	} else if (mode == 6) {
+		// Black hole: pitch black, a glowing ring of fire that swirls in.
+		float r = length(p.xy);
+		float swirl = sin(atan(p.y, p.x) * 3.0 + r * 4.0 - t * 3.0);
+		float ring = smoothstep(0.6, 1.0, swirl) * (0.5 + 0.5 * sin(r * 2.0 - t * 2.0));
+		color = color_b;
+		glow = color_a * ring * 1.6;
 	} else {
 		color = hue(fract((p.x + p.y) * 0.25 - t * 0.25));
 		glow = color * 0.45;
