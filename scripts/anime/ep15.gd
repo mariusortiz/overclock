@@ -27,7 +27,7 @@ func _story() -> void:
 
 	# 12.6 s: he appears in front of them.
 	_glitch(1.0)
-	var creator := _creator(Vector3(0, 0, -4), 0.0)
+	var creator := _creator(Vector3(0, 0, -4), PI)
 	_appear(creator, 0.9)
 	_dolly(Vector3(0, 1.4, 4), Vector3(0, 1.5, 3), Vector3(0, 1.5, -4), Vector3(0, 1.6, -4), 5.0)
 	await _until(14.0)
@@ -60,12 +60,12 @@ func _story() -> void:
 	# A gesture, and the hall changes: a moment in the volcano, a moment in the jungle.
 	_load_arena(3)
 	_embers(true)
-	var ghost := _creator(STAGE, 0.0)
+	var ghost := _creator(STAGE, PI)
 	_dolly(STAGE + Vector3(0, 1.6, 4), STAGE + Vector3(0, 1.7, 3.4), STAGE + Vector3(0, 1.5, 0), STAGE + Vector3(0, 1.5, 0), 2.0, true)
 	await _until(42.4)
 	_embers(false)
 	_load_arena(2)
-	ghost = _creator(STAGE, 0.0)
+	ghost = _creator(STAGE, PI)
 	_dolly(STAGE + Vector3(0, 1.6, 4), STAGE + Vector3(0, 1.7, 3.4), STAGE + Vector3(0, 1.5, 0), STAGE + Vector3(0, 1.5, 0), 2.0, true)
 	await _until(44.0)
 	_glitch(0.6)
@@ -73,7 +73,7 @@ func _story() -> void:
 	squad.clear()
 	for index in ids.size():
 		squad[ids[index]] = _hero(ids[index], Vector3(-4.8 + 1.6 * index, 0, 0), PI, "none")
-	creator = _creator(Vector3(0, 0, -4), 0.0)
+	creator = _creator(Vector3(0, 0, -4), PI)
 	_dolly(Vector3(3.2, 1.6, 2.4), Vector3(2.8, 1.6, 2.0), Vector3(1.6, 1.4, 0), Vector3(1.6, 1.4, 0), 6.0)
 	await _until(45.0)
 	_say(squad.sand_ghost, "... D'accord. On te croit.", 2.2, 1.0)

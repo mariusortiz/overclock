@@ -38,7 +38,7 @@ func _story() -> void:
 	_stomp(STAGE + Vector3(0, 0, -12), 1.2)
 	_impact_frame()
 	await _until(19.6)
-	_dolly(STAGE + Vector3(2.4, 1.5, 5.0), STAGE + Vector3(2.0, 1.5, 4.4), STAGE + Vector3(0, 1.4, 1.6), STAGE + Vector3(0, 1.4, 1.6), 4.0, true)
+	_dolly(STAGE + Vector3(2.4, 1.6, -2.2), STAGE + Vector3(2.0, 1.6, -1.8), STAGE + Vector3(0, 1.4, 1.6), STAGE + Vector3(0, 1.4, 1.6), 4.0, true)
 	_say(captain, "C'est un Titan... en pire.", 2.2, -1.0)
 	await _until(22.2)
 	_say(calamity, "Feu à volonté !", 1.8, 1.0)
@@ -66,15 +66,15 @@ func _story() -> void:
 	_impact_frame()
 	_shake = 0.35
 	await _until(38.6)
-	_dolly(STAGE + Vector3(-2, 0.5, 5), STAGE + Vector3(-1.6, 0.6, 4.4), STAGE + Vector3(0, 0.5, 1.5), STAGE + Vector3(0, 0.5, 1.5), 4.0, true)
+	_dolly(STAGE + Vector3(-2, 0.8, -1.5), STAGE + Vector3(-1.6, 0.8, -1.0), STAGE + Vector3(0, 0.5, 1.5), STAGE + Vector3(0, 0.5, 1.5), 4.0, true)
 	_say(captain, "Repli ! Repli !", 1.8, -1.0)
 	await _until(41.0)
 
 	# 41 s: on the dune, a man in a suit.
 	_glitch(0.8)
-	var creator := _creator(STAGE + Vector3(7, 0, 4), -PI / 2.0)
+	var creator := _creator(STAGE + Vector3(7, 0, 4), PI / 2.0)
 	_appear(creator)
-	_dolly(STAGE + Vector3(10, 1.6, 7), STAGE + Vector3(9.4, 1.6, 6.4), STAGE + Vector3(7, 1.5, 4), STAGE + Vector3(7, 1.5, 4), 5.0, true)
+	_dolly(STAGE + Vector3(4.4, 1.6, 5.6), STAGE + Vector3(4.8, 1.6, 5.2), STAGE + Vector3(7, 1.5, 4), STAGE + Vector3(7, 1.5, 4), 5.0, true)
 	await _until(42.6)
 	_say(creator, "Vous ne pouvez pas le battre.", 2.4, -1.0)
 	await _until(45.4)
@@ -110,7 +110,9 @@ func _story() -> void:
 	await _until(71.0)
 	_vanish(creator)
 	await _until(72.4)
-	_dolly(STAGE + Vector3(0, 1.4, 6), STAGE + Vector3(0, 1.6, 5), STAGE + Vector3(0, 1.4, 1.6), STAGE + Vector3(0, 1.4, 1.6), 6.0, true)
+	for hero in [calamity, captain, ronin]:
+		hero.get_parent().rotation.y = PI
+	_dolly(STAGE + Vector3(0, 1.6, 6), STAGE + Vector3(0, 1.6, 5), STAGE + Vector3(0, 1.4, 1.6), STAGE + Vector3(0, 1.4, 1.6), 6.0, true)
 	_say(calamity, "Bon. On a un dieu à tête de vache.", 2.6, 1.0)
 	await _until(75.6)
 	_say(captain, "Et un virus qu'on ne peut pas toucher.", 2.4, -1.0)

@@ -97,7 +97,7 @@ func _story() -> void:
 	# 50.4 s: a figure on the roof.
 	_dolly(STAGE + Vector3(0, 1.4, 4), STAGE + Vector3(0, 1.6, 3), STAGE + Vector3(0, 2, -4), STAGE + Vector3(4, 7, -16), 3.0, true)
 	await _until(51.0)
-	var creator := _creator(STAGE + Vector3(4, 6.0, -16), 0.0)
+	var creator := _creator(STAGE + Vector3(4, 6.0, -16), PI)
 	_appear(creator)
 	await _until(53.4)
 	_dolly(STAGE + Vector3(4.6, 7.2, -13.2), STAGE + Vector3(4.4, 7.0, -13.6), STAGE + Vector3(4, 7.2, -16), STAGE + Vector3(4, 7.2, -16), 4.0)
