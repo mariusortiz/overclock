@@ -13,6 +13,12 @@ on:
       - .github/workflows/trailer.yml
   workflow_dispatch:
 
+# A newer render replaces one still running, so an older render never
+# overwrites a newer one on the site.
+concurrency:
+  group: trailer
+  cancel-in-progress: true
+
 env:
   GODOT_VERSION: "4.5.1"
   GODOT_RELEASE: "stable"

@@ -2,8 +2,19 @@ name: Build
 
 on:
   push:
+    # Files that change neither the game nor the site.
+    paths-ignore:
+      - README.md
+      - CREDITS.md
+      - merch/**
+      - tools/make_merch*
   pull_request:
   workflow_dispatch:
+
+# A newer push replaces a build still running on the same branch.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   GODOT_VERSION: "4.5.1"
