@@ -29,6 +29,8 @@ Tous les fichiers externes du jeu sont sous licence [CC0 1.0](https://creativeco
 | Musique du circuit Soleil rouge | [Cyber Runner Music](https://opengameart.org/content/cyber-runner-music) | ansimuz | `assets/audio/music/cyber_runner.ogg` |
 | Musique du circuit Labyrinthe de glace | [Fields of Ice](https://opengameart.org/content/fields-of-ice) | Jonathan So | `assets/audio/music/fields_of_ice.ogg` (réencodée en Ogg) |
 | Musique du mode histoire | [Destiny Formation](https://opengameart.org/content/destiny-formation) | Bobjt | `assets/audio/music/destiny_formation.ogg` (réencodée en Ogg) |
+| Fanfare des cartes légendaires | [Win Jingle](https://opengameart.org/content/win-jingle) | Fupi | `assets/audio/fanfare_legendary.ogg` |
+| Fanfare des cartes mythiques | [Hyper Ultra Fanfare](https://opengameart.org/content/hyper-ultra-fanfare) | Zane Little Music | `assets/audio/fanfare_mythic.ogg` (réencodée en Ogg) |
 | Musique de boss | [Boss Battle (loop)](https://opengameart.org/content/boss-battle-loop) | Alex McCulloch | `assets/audio/music/` |
 | Musique de défaite | [Game Over Theme (No Hope)](https://opengameart.org/content/game-over-theme) | Cleyton Kauffman | `assets/audio/music/` |
 | Musique de l'anime | [The Rush](https://opengameart.org/content/the-rush) | tebr | `tools/anime_music.mp3` |

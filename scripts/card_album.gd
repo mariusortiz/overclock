@@ -8,6 +8,10 @@ const CYAN := Color(0.16, 0.83, 1.0)
 const MAGENTA := Color(1.0, 0.24, 0.95)
 const GOLD := Color(1.0, 0.8, 0.25)
 const CARD_SIZE := Vector2(150, 210)
+## A card of the booster's pile.
+const PILE_CARD := Vector2(280, 392)
+const FANFARE_LEGENDARY := "res://assets/audio/fanfare_legendary.ogg"
+const FANFARE_MYTHIC := "res://assets/audio/fanfare_mythic.ogg"
 
 var _series := 0
 var _top := HBoxContainer.new()
@@ -267,7 +271,10 @@ func _show_sent(card: Dictionary, code: String) -> void:
 	_button(row, "FERMER", _close_overlay)
 
 
-## Opens a booster: three cards face down, each turned with a tap.
+## Opens a booster: the sealed pack first, then its cards in a pile, face
+## down, the rarest at the bottom. A tap turns the top card over; another
+## sends it aside, until the pile is empty and the three are laid out.
+## Legendary and mythic cards come with a show (see _celebrate).
 func _open(kind: String) -> void:
 	var drawn := Cards.open_booster(kind)
 	if drawn.is_empty():
@@ -284,91 +291,276 @@ func _open(kind: String) -> void:
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_size_override("font_size", 18)
 	box.add_child(hint)
+	# "New" for the first copy of a card the player did not have before this booster.
+	var news := []
+	var seen := {}
+	for card: Dictionary in drawn:
+		var in_booster := drawn.filter(func(other: Dictionary) -> bool: return other.id == card.id).size()
+		news.append(Cards.count(card.id) == in_booster and not seen.has(card.id))
+		seen[card.id] = true
+	# The rarest last, for the suspense.
+	var order := range(drawn.size())
+	order.sort_custom(func(a: int, b: int) -> bool: return drawn[a].rarity > drawn[b].rarity)
+	var pile := Control.new()
+	pile.custom_minimum_size = PILE_CARD + Vector2(40, 40)
+	pile.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	pile.visible = false
+	box.add_child(pile)
+	var views: Array[CardView] = []
+	for slot in order.size():
+		var view := CardView.new(drawn[order[slot]], true, 0)
+		view.face_down = true
+		view.size = PILE_CARD
+		view.pivot_offset = PILE_CARD / 2.0
+		# Untidy, like a real pile.
+		view.position = Vector2(20, 20) + Vector2(-6, -4) * slot
+		view.rotation = [-0.05, 0.04, -0.02][slot % 3]
+		view.set_meta("new", news[order[slot]])
+		pile.add_child(view)
+		views.append(view)
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 24)
+	row.visible = false
 	box.add_child(row)
 	var done := _button(box, "CONTINUER", _close_overlay)
 	done.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	done.custom_minimum_size.x = 300
-	# The sealed pack first; the cards come out once it is torn.
+	done.visible = false
 	var pack := BoosterPack.new(kind)
 	pack.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	box.add_child(pack)
-	box.move_child(pack, row.get_index())
-	row.visible = false
-	done.visible = false
+	box.move_child(pack, pile.get_index())
 	pack.opened.connect(func() -> void:
-		hint.text = "Touche une carte pour la retourner"
+		hint.text = "Touche la pile pour retourner la carte"
 		await get_tree().create_timer(0.35).timeout
 		pack.queue_free()
-		row.visible = true
-		done.visible = true
-		# The cards rise from where the pack was, one after the other.
-		for index in row.get_child_count():
-			var view: Control = row.get_child(index).get_child(0)
-			view.position.y = 160.0
+		pile.visible = true
+		# The cards rise out of the pack, one after the other.
+		for index in views.size():
+			var view := views[index]
+			var rest := view.position
+			view.position.y += 160.0
 			view.modulate.a = 0.0
 			var tween := view.create_tween()
 			tween.tween_interval(0.08 * index)
-			tween.tween_property(view, "position:y", 0.0, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+			tween.tween_property(view, "position", rest, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 			tween.parallel().tween_property(view, "modulate:a", 1.0, 0.2))
-	var seen := {}
-	for card: Dictionary in drawn:
-		# "New" for the first copy of a card the player did not have before
-		# this booster.
-		var in_booster := drawn.filter(func(other: Dictionary) -> bool: return other.id == card.id).size()
-		var is_new: bool = Cards.count(card.id) == in_booster and not seen.has(card.id)
-		seen[card.id] = true
-		var holder := Control.new()
-		holder.custom_minimum_size = Vector2(200, 280)
-		row.add_child(holder)
-		var view := CardView.new(card, true, 0)
-		view.face_down = true
-		view.size = Vector2(200, 280)
-		view.pivot_offset = view.size / 2.0
-		holder.add_child(view)
-		view.gui_input.connect(func(event: InputEvent) -> void:
-			if view.face_down and event is InputEventMouseButton and event.pressed:
-				_turn(view, holder, is_new))
+	pile.gui_input.connect(func(event: InputEvent) -> void:
+		if not (event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
+			return
+		if views.is_empty() or pile.has_meta("busy"):
+			return
+		var top: CardView = views[-1]
+		if top.face_down:
+			pile.set_meta("busy", true)
+			await _reveal(top, pile)
+			pile.remove_meta("busy")
+			hint.text = "Touche la carte pour la suivante" if views.size() > 1 else "Touche la carte pour voir le tirage"
+			return
+		# Sent aside; once the pile is empty, the three cards side by side.
+		views.pop_back()
+		var out := top.create_tween()
+		out.tween_property(top, "position", top.position + Vector2(520, -60), 0.3).set_ease(Tween.EASE_IN)
+		out.parallel().tween_property(top, "rotation", 0.5, 0.3)
+		out.parallel().tween_property(top, "modulate:a", 0.0, 0.3)
+		out.tween_callback(top.queue_free)
+		if views.is_empty():
+			await out.finished
+			pile.visible = false
+			hint.text = ""
+			_lay_out(row, drawn, news)
+			row.visible = true
+			done.visible = true)
 
 
-## Turns a card over: it narrows, shows its face, widens; a burst in its
-## rarity's color, bigger for the rarer ones.
-func _turn(view: CardView, holder: Control, is_new: bool) -> void:
+## Turns a card of the pile over. Legendary and mythic ones build up first,
+## then burst (see _celebrate); the others get a spray in their color.
+func _reveal(view: CardView, pile: Control) -> void:
+	var rarity: int = view.card.rarity
+	if rarity >= Cards.Rarity.LEGENDARY:
+		await _celebrate(view, pile)
 	var tween := create_tween()
 	tween.tween_property(view, "scale:x", 0.0, 0.15)
 	tween.tween_callback(func() -> void:
 		view.face_down = false
+		view.rotation = 0.0
 		view.queue_redraw())
 	tween.tween_property(view, "scale:x", 1.0, 0.15)
 	tween.tween_property(view, "scale", Vector2.ONE * 1.08, 0.12)
 	tween.tween_property(view, "scale", Vector2.ONE, 0.12)
-	var color: Color = Cards.RARITY[view.card.rarity].color
-	var sparks := CPUParticles2D.new()
-	sparks.one_shot = true
-	sparks.explosiveness = 0.9
-	sparks.amount = 30 + 40 * int(view.card.rarity)
-	sparks.lifetime = 0.9
-	sparks.position = view.size / 2.0
-	sparks.spread = 180.0
-	sparks.gravity = Vector2(0, 200)
-	sparks.initial_velocity_min = 150.0
-	sparks.initial_velocity_max = 380.0 + 80.0 * int(view.card.rarity)
-	sparks.scale_amount_min = 3.0
-	sparks.scale_amount_max = 7.0
-	sparks.color = color
-	holder.add_child(sparks)
-	sparks.emitting = true
-	if is_new:
+	_sparks(pile, view.position + view.size / 2.0, Cards.RARITY[rarity].color, 30 + 40 * rarity, 380.0 + 80.0 * rarity)
+	await tween.finished
+	if view.get_meta("new", false):
 		var badge := Label.new()
 		badge.text = "NOUVELLE !"
-		badge.add_theme_font_size_override("font_size", 22)
+		badge.add_theme_font_size_override("font_size", 26)
 		badge.add_theme_color_override("font_color", MAGENTA)
 		badge.add_theme_color_override("font_outline_color", Color.BLACK)
 		badge.add_theme_constant_override("outline_size", 8)
-		badge.position = Vector2(16, 12)
-		holder.add_child(badge)
+		badge.position = Vector2(18, -6)
+		badge.rotation = -0.12
+		view.add_child(badge)
+
+
+## The show of a legendary or mythic card: it trembles and glows, columns of
+## light rise behind it, then a flash, confetti and a fanfare as it turns.
+func _celebrate(view: CardView, pile: Control) -> void:
+	var mythic: bool = view.card.rarity == Cards.Rarity.MYTHIC
+	var colors: Array = [Color(1.0, 0.24, 0.95), GOLD, Color(0.3, 1.0, 0.6), CYAN, Color(0.7, 0.4, 1.0)] if mythic else [GOLD, Color(1.0, 0.95, 0.7)]
+	# Columns of light, behind the pile.
+	var beams := Control.new()
+	beams.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	beams.position = view.position + view.size / 2.0
+	pile.add_child(beams)
+	pile.move_child(beams, 0)
+	var glow := CanvasItemMaterial.new()
+	glow.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	var fade := Gradient.new()
+	fade.set_color(0, Color(1, 1, 1, 0))
+	fade.set_color(1, Color(1, 1, 1, 0))
+	fade.add_point(0.5, Color(1, 1, 1, 0.9))
+	var texture := GradientTexture2D.new()
+	texture.gradient = fade
+	texture.fill_from = Vector2(0, 0)
+	texture.fill_to = Vector2(1, 0)
+	for index in 7:
+		var beam := TextureRect.new()
+		beam.texture = texture
+		beam.material = glow
+		beam.stretch_mode = TextureRect.STRETCH_SCALE
+		beam.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		beam.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		beam.size = Vector2(60 + 30 * (index % 2), 1400)
+		beam.pivot_offset = Vector2(beam.size.x / 2.0, 1400)
+		beam.position = Vector2(-beam.size.x / 2.0, -1400 + view.size.y * 0.3)
+		beam.rotation = (index - 3) * 0.28
+		beam.modulate = Color(colors[index % colors.size()], 0.0)
+		beam.scale.y = 0.0
+		beams.add_child(beam)
+		var rise := beam.create_tween()
+		rise.tween_interval(0.06 * index)
+		rise.tween_property(beam, "scale:y", 1.0, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		rise.parallel().tween_property(beam, "modulate:a", 0.75, 0.4)
+		# They sway, then fade away slowly.
+		rise.tween_property(beam, "rotation", beam.rotation + 0.12, 1.2).set_trans(Tween.TRANS_SINE)
+		rise.tween_property(beam, "modulate:a", 0.0, 1.4)
+	beams.create_tween().tween_interval(4.0).finished.connect(beams.queue_free)
+	# The card trembles and glows, more and more.
+	var shake := view.create_tween()
+	for i in 10:
+		shake.tween_property(view, "rotation", 0.06 if i % 2 == 0 else -0.06, 0.06)
+		shake.parallel().tween_property(view, "scale", Vector2.ONE * (1.0 + 0.012 * i), 0.06)
+	shake.parallel().tween_property(view, "modulate", Color(1.6, 1.5, 1.2), 0.3)
+	_play_fanfare(mythic)
+	await shake.finished
+	view.modulate = Color.WHITE
+	# The burst: a white flash over everything, confetti raining down.
+	var flash := ColorRect.new()
+	flash.color = Color(1, 1, 1, 0.85)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_overlay.add_child(flash)
+	flash.create_tween().tween_property(flash, "color:a", 0.0, 0.5).finished.connect(flash.queue_free)
+	_confetti(colors, 160 if mythic else 100)
+	_sparks(pile, view.position + view.size / 2.0, colors[0], 120, 700.0)
+	if Settings.vibration_enabled:
+		Input.vibrate_handheld(120)
+
+
+## Confetti falling over the whole screen, from above it.
+func _confetti(colors: Array, amount: int) -> void:
+	var screen := get_viewport_rect().size
+	var ramp := Gradient.new()
+	ramp.interpolation_mode = Gradient.GRADIENT_INTERPOLATE_CONSTANT
+	var offsets := PackedFloat32Array()
+	var tints := PackedColorArray()
+	for index in colors.size():
+		offsets.append(float(index) / colors.size())
+		tints.append(colors[index])
+	ramp.offsets = offsets
+	ramp.colors = tints
+	var confetti := CPUParticles2D.new()
+	confetti.one_shot = true
+	confetti.explosiveness = 0.7
+	confetti.amount = amount
+	confetti.lifetime = 3.2
+	confetti.position = Vector2(screen.x / 2.0, -20)
+	confetti.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	confetti.emission_rect_extents = Vector2(screen.x / 2.0, 10)
+	confetti.direction = Vector2(0, 1)
+	confetti.spread = 30.0
+	confetti.gravity = Vector2(0, 260)
+	confetti.initial_velocity_min = 80.0
+	confetti.initial_velocity_max = 260.0
+	confetti.angular_velocity_min = -360.0
+	confetti.angular_velocity_max = 360.0
+	confetti.scale_amount_min = 6.0
+	confetti.scale_amount_max = 11.0
+	confetti.color_initial_ramp = ramp
+	_overlay.add_child(confetti)
+	confetti.emitting = true
+	confetti.finished.connect(confetti.queue_free)
+
+
+func _sparks(parent: Control, at: Vector2, color: Color, amount: int, speed: float) -> void:
+	var sparks := CPUParticles2D.new()
+	sparks.one_shot = true
+	sparks.explosiveness = 0.9
+	sparks.amount = amount
+	sparks.lifetime = 0.9
+	sparks.position = at
+	sparks.spread = 180.0
+	sparks.gravity = Vector2(0, 200)
+	sparks.initial_velocity_min = 150.0
+	sparks.initial_velocity_max = speed
+	sparks.scale_amount_min = 3.0
+	sparks.scale_amount_max = 7.0
+	sparks.color = color
+	parent.add_child(sparks)
+	sparks.emitting = true
+	sparks.finished.connect(sparks.queue_free)
+
+
+## The fanfare, over the music turned down for a moment.
+func _play_fanfare(mythic: bool) -> void:
+	var player := AudioStreamPlayer.new()
+	player.stream = load(FANFARE_MYTHIC if mythic else FANFARE_LEGENDARY)
+	add_child(player)
+	player.play()
+	var level: float = Music.volume_db
+	var duck := Music.create_tween()
+	duck.tween_property(Music, "volume_db", level - 18.0, 0.2)
+	duck.tween_interval(player.stream.get_length() - 0.4)
+	duck.tween_property(Music, "volume_db", level, 0.8)
+	player.finished.connect(player.queue_free)
+
+
+## The booster's three cards side by side, once all are turned.
+func _lay_out(row: HBoxContainer, drawn: Array[Dictionary], news: Array) -> void:
+	for index in drawn.size():
+		var holder := Control.new()
+		holder.custom_minimum_size = Vector2(200, 280)
+		row.add_child(holder)
+		var view := CardView.new(drawn[index], true, 0)
+		view.size = Vector2(200, 280)
+		view.pivot_offset = view.size / 2.0
+		holder.add_child(view)
+		if news[index]:
+			var badge := Label.new()
+			badge.text = "NOUVELLE !"
+			badge.add_theme_font_size_override("font_size", 20)
+			badge.add_theme_color_override("font_color", MAGENTA)
+			badge.add_theme_color_override("font_outline_color", Color.BLACK)
+			badge.add_theme_constant_override("outline_size", 8)
+			badge.position = Vector2(14, -30)
+			holder.add_child(badge)
+		view.scale = Vector2.ONE * 0.6
+		view.modulate.a = 0.0
+		var tween := view.create_tween()
+		tween.tween_interval(0.1 * index)
+		tween.tween_property(view, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tween.parallel().tween_property(view, "modulate:a", 1.0, 0.2)
 
 
 func _flash_message(text: String) -> void:
