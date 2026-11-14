@@ -146,6 +146,14 @@ static var LIST: Array[Dictionary] = [
 		],
 	},
 	{
+		# Valentine's Day: the arms make a heart over the head, swaying.
+		"id": "dance_heart", "shop": true, "event": "valentine", "name": "CŒUR", "snap": false, "bounce": 0.04, "spin": 0.0,
+		"poses": [
+			PoseLayer.symmetric({"UpperArm": Vector3(0, 0, 150), "LowerArm": Vector3(0, 0, 70)}, {"Torso": Vector3(0, 0, 8), "Head": Vector3(0, 0, -8)}),
+			PoseLayer.symmetric({"UpperArm": Vector3(0, 0, 150), "LowerArm": Vector3(0, 0, 70)}, {"Torso": Vector3(0, 0, -8), "Head": Vector3(0, 0, 8)}),
+		],
+	},
+	{
 		# The sleigh ride: holding the reins, bouncing on the bumps.
 		"id": "dance_sleigh", "shop": true, "event": "christmas", "name": "TRAÎNEAU", "snap": false, "bounce": 0.1, "spin": 0.0,
 		"poses": [

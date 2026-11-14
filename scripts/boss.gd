@@ -12,7 +12,8 @@ signal cores_requested(count: int)
 ## FROST, the Père Glaçon, only comes in the Christmas waves (see Events).
 ## GUARDIAN, the portal's guardian of season 3, guards the crystal planet.
 ## LEVIATHAN is the raid's boss (see Raid), in the abyss only.
-enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER, TITAN, VIRUS, FROST, GUARDIAN, LEVIATHAN }
+## CUPID, the Cupidon de fer, only comes in the Valentine waves (see Events).
+enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER, TITAN, VIRUS, FROST, GUARDIAN, LEVIATHAN, CUPID }
 
 ## The bosses in the order of the arenas.
 const ORDER: Array[Kind] = [Kind.COLOSSUS, Kind.BRUTE, Kind.ARTILLERY, Kind.SUMMONER, Kind.VIRUS, Kind.GUARDIAN, Kind.TITAN]
@@ -29,6 +30,7 @@ const INFO := {
 	Kind.FROST: {"name": "PÈRE GLAÇON", "model": "monsters/Skeleton.fbx", "height": 2.2, "hover": 0.0, "health": 90, "speed": 3.4, "fire_interval": 1.3, "range": 16.0},
 	Kind.GUARDIAN: {"name": "LE GARDIEN", "model": "characters/Wizard.fbx", "height": 3.0, "hover": 0.0, "health": 180, "speed": 2.4, "fire_interval": 1.5, "range": 20.0},
 	Kind.LEVIATHAN: {"name": "LE LÉVIATHAN", "model": "monsters/Dragon.fbx", "height": 3.6, "hover": 1.2, "health": 420, "speed": 0.0, "fire_interval": 1.7, "range": 32.0},
+	Kind.CUPID: {"name": "CUPIDON DE FER", "model": "mechs/George.fbx", "height": 2.3, "hover": 0.0, "health": 95, "speed": 3.2, "fire_interval": 1.3, "range": 20.0},
 	Kind.VIRUS: {"name": "LE VIRUS", "model": "mechs/George.fbx", "height": 2.3, "hover": 0.0, "health": 150, "speed": 3.2, "fire_interval": 1.2, "range": 18.0},
 }
 ## The Virus jumps next to the player now and then (more often when hurt),
@@ -55,6 +57,11 @@ const CRYSTAL_COLOR := Color(0.45, 0.85, 1.0)
 ## have to be shot down first), then calling adds and a rain of strikes, and
 ## below LEVIATHAN_LASER_BELOW of its life a laser sweeping the floor around
 ## it (jump over it, or stay up on a platform).
+## The Cupidon de fer: a fan of arrows, and every third shot a heart that
+## charms the player (reversed controls) for CHARM_TIME.
+const CUPID_COLOR := Color(1.0, 0.35, 0.6)
+const CHARM_TIME := 2.0
+const CHARM_RANGE := 26.0
 const LEVIATHAN_CORES := 4
 const LEVIATHAN_COLOR := Color(0.1, 0.95, 0.8)
 const LEVIATHAN_LASER_BELOW := 0.4
@@ -117,6 +124,9 @@ func _ready() -> void:
 		_dress_frost()
 	if kind == Kind.GUARDIAN:
 		dress_guardian(_model)
+	if kind == Kind.CUPID:
+		_dress_titan()
+		dress_cupid(_model)
 	if kind == Kind.LEVIATHAN:
 		dress_leviathan(_model)
 		_shield = _create_shield()
@@ -190,6 +200,12 @@ func _attack() -> void:
 					_call_mortar(_player.global_position + (spread if i > 0 else Vector3.ZERO))
 		Kind.LEVIATHAN:
 			_shoot_fan()
+		Kind.CUPID:
+			_attack_count += 1
+			_shoot_fan()
+			if _attack_count % 3 == 0 and _player and _player.global_position.distance_to(global_position) <= CHARM_RANGE:
+				_player.charmed_left = CHARM_TIME
+				Effects.burst(get_tree().current_scene, _player.global_position + Vector3.UP * 1.6, CUPID_COLOR, 30)
 		Kind.GUARDIAN:
 			_attack_count += 1
 			_shoot_fan()
@@ -340,6 +356,46 @@ func _laser_touches(at: Vector3) -> bool:
 	var near_x := absf(local.z) < 0.6 and absf(local.x) < LEVIATHAN_LASER_LENGTH
 	var near_z := absf(local.x) < 0.6 and absf(local.z) < LEVIATHAN_LASER_LENGTH
 	return near_x or near_z
+
+
+## Pink and white iron, two white wings on its back and a pink glow: the
+## Cupidon de fer's look (the boss, its card).
+static func dress_cupid(model: Node3D) -> void:
+	var body := StandardMaterial3D.new()
+	body.albedo_color = Color(1.0, 0.62, 0.75)
+	body.albedo_texture = load(TITAN_TEXTURE)
+	body.metallic = 0.6
+	body.roughness = 0.3
+	var glow := StandardMaterial3D.new()
+	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	glow.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	glow.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	glow.albedo_color = Color(CUPID_COLOR, 0.15)
+	var bounds := AABB()
+	var first := true
+	var to_model := model.global_transform.affine_inverse() if model.is_inside_tree() else Transform3D.IDENTITY
+	for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		mesh.material_override = body
+		mesh.material_overlay = glow
+		# Its bounds in the model's own space (the meshes of an FBX may be turned).
+		var box: AABB = (to_model * mesh.global_transform) * mesh.get_aabb() if mesh.is_inside_tree() else mesh.get_aabb()
+		bounds = box if first else bounds.merge(box)
+		first = false
+	var wing_material := StandardMaterial3D.new()
+	wing_material.albedo_color = Color(1.0, 0.97, 0.98)
+	wing_material.emission_enabled = true
+	wing_material.emission = Color(1.0, 0.8, 0.9)
+	wing_material.emission_energy_multiplier = 0.3
+	var height := bounds.size.y
+	for side in [-1.0, 1.0]:
+		var wing := BoxMesh.new()
+		wing.size = Vector3(height * 0.32, height * 0.2, height * 0.03)
+		wing.material = wing_material
+		var part := MeshInstance3D.new()
+		part.mesh = wing
+		part.position = Vector3(side * height * 0.2, bounds.position.y + height * 0.7, bounds.get_center().z - height * 0.18)
+		part.rotation = Vector3(0, side * 0.5, side * 0.35)
+		model.add_child(part)
 
 
 ## Deep-sea colors and a glow of teal: the Léviathan's look (the boss, its

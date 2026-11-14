@@ -70,6 +70,7 @@ const LIST: Array[Dictionary] = [
 	{"id": "rush", "name": "Contre la montre", "text": "Termine le boss rush", "kind": "flag", "flag": "rush_done", "gems": 150, "extra": true},
 	{"id": "raid", "name": "Chasseur d'abysses", "text": "Bats le Léviathan en raid", "kind": "flag", "flag": "raid_win", "gems": 150, "extra": true},
 	{"id": "royale", "name": "Top 1", "text": "Gagne une partie de battle royale", "kind": "flag", "flag": "royale_win", "gems": 150, "extra": true},
+	{"id": "valentine", "name": "Cœur de fer", "text": "Termine les vagues de la Saint-Valentin", "kind": "flag", "flag": "valentine", "gems": 100, "extra": true},
 	{"id": "pet_race", "name": "Écurie gagnante", "text": "Gagne une course d'animaux", "kind": "flag", "flag": "pet_race_win", "gems": 75, "extra": true},
 	{"id": "platinum", "name": "Platine", "text": "Débloque les 49 succès de base (tous sauf Éleveur)", "kind": "all", "gems": 1000},
 ]

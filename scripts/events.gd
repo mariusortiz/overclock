@@ -5,6 +5,10 @@ class_name Events
 ## the Père Glaçon), the shop's Christmas items, Christmas daily challenges,
 ## a gift every day, snow and music on the home screen, and the "Noël" cards
 ## in the boosters. What was bought or won stays after it.
+##
+## Valentine's Day runs from February 7th to 21st: the Valentine waves (10
+## waves in the garden of hearts against the Cupidon de fer), its shop items
+## and its cards. The test code turns it on too.
 
 const FORCE_KEY := "event_christmas_forced"
 const GIFT_KEY := "event_christmas_gift"
@@ -15,8 +19,16 @@ const SNOW_ARENA := 8
 const CHRISTMAS_WAVES := 10
 const CLEAR_GEMS := 300
 
+const VALENTINE_FORCE_KEY := "event_valentine_forced"
+const VALENTINE_CLEARED_KEY := "event_valentine_cleared"
+## The garden of hearts (see scenes/arenas/garden.tscn) in Main.ARENAS.
+const GARDEN_ARENA := 10
+const VALENTINE_WAVES := 10
+
 ## Set by the menu: the game starting is the Christmas waves.
 static var christmas_run := false
+## Set by the menu: the game starting is the Valentine waves.
+static var valentine_run := false
 
 
 static func is_christmas() -> bool:
@@ -26,9 +38,29 @@ static func is_christmas() -> bool:
 	return date.month == 12 or (date.month == 1 and date.day <= 6)
 
 
+static func is_valentine() -> bool:
+	if SaveData.load_progress(VALENTINE_FORCE_KEY, false):
+		return true
+	var date := Time.get_date_dict_from_system()
+	return date.month == 2 and date.day >= 7 and date.day <= 21
+
+
 ## Is the item (or card) of event `event` available now? Items without one always are.
 static func is_on(event: String) -> bool:
-	return event == "" or (event == "christmas" and is_christmas())
+	return event == "" or (event == "christmas" and is_christmas()) or (event == "valentine" and is_valentine())
+
+
+## The Valentine waves are won: gems and a booster the first time each year.
+static func valentine_reward() -> String:
+	var year := str(Time.get_date_dict_from_system().year)
+	if SaveData.load_progress(VALENTINE_CLEARED_KEY, "") == year:
+		Wallet.add_credits(200)
+		return "200 crédits"
+	SaveData.save_progress(VALENTINE_CLEARED_KEY, year)
+	Achievements.set_flag("valentine")
+	Wallet.add_gems(CLEAR_GEMS)
+	Cards.give_booster("rare")
+	return "%d gemmes et un booster rare" % CLEAR_GEMS
 
 
 ## Today's gift is still to open.

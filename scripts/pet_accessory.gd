@@ -56,6 +56,17 @@ static func build(id: String) -> Node3D:
 			_part(root, _cylinder(0.85, 0.85, 0.06), _color(0.3, 0.18, 0.1), Vector3(0, 0.04, 0))
 			_part(root, _cylinder(0.34, 0.4, 0.45), _color(0.3, 0.18, 0.1), Vector3(0, 0.27, 0))
 			_part(root, _cylinder(0.41, 0.41, 0.08), _color(0.85, 0.65, 0.3), Vector3(0, 0.1, 0))
+		"acc_wings":
+			# Two white wings on the back, a little apart.
+			for side in [-1.0, 1.0]:
+				var wing := _part(root, _box(Vector3(0.75, 0.5, 0.06)), _color(1.0, 0.97, 0.98), Vector3(side * 0.42, 0.25, 0.45))
+				wing.rotation = Vector3(0, side * 0.6, side * 0.4)
+		"acc_roses":
+			_part(root, _torus(0.36, 0.46), _color(0.2, 0.55, 0.25), Vector3(0, 0.05, 0))
+			for index in 7:
+				var angle := TAU * index / 7.0
+				var color := _color(1.0, 0.2, 0.4) if index % 2 == 0 else _color(1.0, 0.6, 0.75)
+				_part(root, _sphere(0.1), color, Vector3(cos(angle) * 0.41, 0.12, sin(angle) * 0.41))
 		"acc_crown":
 			var gold := _color(1.0, 0.8, 0.2)
 			gold.metallic = 0.7

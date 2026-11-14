@@ -43,6 +43,7 @@ func _ready() -> void:
 	move_child(_arena, 0)
 	Music.play_track(_arena.music_track)
 	_arena.apply_quality(Settings.high_quality)
+	Weather.apply(_arena)
 	# Weapons come from the crates; the island's chests are not for this mode.
 	for chest in get_tree().get_nodes_in_group("chests"):
 		chest.queue_free()

@@ -699,8 +699,46 @@ def island(b):
                ("chest", (0, 0.0, -50)), ("chest", (0, 0.0, 50)), ("chest", (-50, 0.0, 0)), ("chest", (50, 0.0, 0))]
 
 
+def garden(b):
+    """The garden of hearts (Valentine's Day only): a fountain in the
+    middle, rows of hedges to hide behind, rose arches, a pink gazebo up on
+    a terrace reached by two ramps, flower beds everywhere."""
+    hedge, rose, stone = b.m["hedge"], b.m["rose"], b.m["block"]
+    # The fountain: two tiers and its pool.
+    b.block(0, 0, 7, 7, 0.8, material=stone)
+    b.block(0, 0, 2.4, 2.4, 2.2, material=stone)
+    b.box((1.2, 0.6, 1.2), (0, 2.5, 0), rose)
+    b.water.append((0, 0, 6.2, 6.2))
+    # Hedges in rows, gaps to run through.
+    for x, z, w, d in [(-14, -8, 8, 1.2), (14, -8, 8, 1.2), (-14, 8, 8, 1.2), (14, 8, 8, 1.2), (-8, -16, 1.2, 6),
+                       (8, -16, 1.2, 6), (-8, 18, 1.2, 6), (8, 18, 1.2, 6), (-24, 0, 1.2, 10), (24, 0, 1.2, 10)]:
+        b.box((w, 1.5, d), (x, 0.75, z), hedge)
+        b._footprint(x - w / 2, z - d / 2, x + w / 2, z + d / 2, 0.5)
+    # Rose arches over the paths.
+    for x, z, along_x in [(0, -10, True), (0, 11, True), (-12, 0, False), (12, 0, False)]:
+        for side in (-1, 1):
+            px, pz = (x + side * 1.8, z) if along_x else (x, z + side * 1.8)
+            b.box((0.4, 3.2, 0.4), (px, 1.6, pz), stone)
+        b.box((4.0 if along_x else 0.5, 0.5, 0.5 if along_x else 4.0), (x, 3.3, z), rose)
+    # The gazebo on its terrace, to the north, and its two ramps.
+    b.slab(0, -22, 10, 6, 3.0, gaps=[("e", -23.6, -20.4), ("w", -23.6, -20.4)], material=stone)
+    for side in (-1, 1):
+        b.ramp((side * 13, -22), (side * 5, -22), 0, 3.0, 3.0, material=stone)
+        b.box((0.4, 3.0, 0.4), (side * 4.2, 4.5, -24.2), stone, collide=False)
+        b.box((0.4, 3.0, 0.4), (side * 4.2, 4.5, -19.8), stone, collide=False)
+    b.box((9.6, 0.4, 5.6), (0, 6.2, -22), rose, collide=False)
+    # Flower beds and trees.
+    for x, z in [(-20, -20), (20, -20), (-20, 20), (20, 20), (-4, 24), (4, 24), (-26, -14), (26, 14)]:
+        b.box((3.0, 0.3, 3.0), (x, 0.15, z), b.m["soil"])
+        for dx, dz, model in [(-0.8, -0.8, "flower_redA"), (0.8, -0.6, "flower_purpleA"), (-0.6, 0.8, "flower_yellowB"), (0.7, 0.7, "flower_redA")]:
+            b.prop(NATURE + model + ".glb", x + dx, z + dz, 0.6, 0, collision=0.0, y=0.3, check=False)
+    for x, z, model, height in [(-26, -26, "tree_oak", 5.0), (26, -26, "tree_detailed", 5.5), (-26, 26, "tree_fat", 4.5), (26, 26, "tree_oak", 5.0)]:
+        b.prop(NATURE + model + ".glb", x, z, height, 0, collision=0.3)
+    b.loot += [("pad", (0, 3.05, -22)), ("chest", (-20, 0.3, 0)), ("chest", (20, 0.3, 0))]
+
+
 LAYOUTS = {"station": station, "desert": desert, "jungle": jungle, "volcano": volcano, "matrix": matrix, "city": city, "snow": snow,
-           "crystal": crystal, "ruins": ruins, "abyss": abyss, "island": island}
+           "crystal": crystal, "ruins": ruins, "abyss": abyss, "island": island, "garden": garden}
 
 ARENAS = {
     "station": {
@@ -818,8 +856,20 @@ ARENAS = {
         "spawns": [(55.0, 0.1, 0.0), (53.1, 0.1, 14.2), (47.6, 0.1, 27.5), (38.9, 0.1, 38.9), (27.5, 0.1, 47.6), (14.2, 0.1, 53.1), (0.0, 0.1, 55.0), (-14.2, 0.1, 53.1), (-27.5, 0.1, 47.6), (-38.9, 0.1, 38.9), (-47.6, 0.1, 27.5), (-53.1, 0.1, 14.2), (-55.0, 0.1, 0.0), (-53.1, 0.1, -14.2), (-47.6, 0.1, -27.5), (-38.9, 0.1, -38.9), (-27.5, 0.1, -47.6), (-14.2, 0.1, -53.1), (-0.0, 0.1, -55.0), (14.2, 0.1, -53.1), (27.5, 0.1, -47.6), (38.9, 0.1, -38.9), (47.6, 0.1, -27.5), (53.1, 0.1, -14.2)],
         "boss": (0, 0.1, 30),
     },
+    # Valentine's Day only (scripts/events.gd).
+    "garden": {
+        "name": "JARDIN DES CŒURS", "music": 3, "enemy": "Suit_Male.fbx", "enemy_weapon": "revolver_1",
+        "enemy_glow": (1.0, 0.4, 0.65, 0.2),
+        "sky_top": (0.45, 0.55, 0.9), "sky_horizon": (1.0, 0.75, 0.82), "ambient": (0.9, 0.78, 0.85), "ambient_energy": 0.45,
+        "sun": (1, 0.92, 0.9), "sun_energy": 1.0, "floor": "grass", "wall": ("panel_light", (0.95, 0.75, 0.82)),
+        "materials": {"struct": ("panel_light", (0.95, 0.88, 0.9)), "block": ("panel_light", (0.92, 0.88, 0.86)),
+                      "trim": ("panel_light", (0.85, 0.7, 0.75)), "rail": ("panel_light", (1.0, 0.6, 0.75)),
+                      "hedge": ("grass", (0.3, 0.55, 0.3)), "rose": ("@glow", (1.0, 0.35, 0.6)), "soil": ("sand", (0.45, 0.32, 0.22))},
+        "spawns": [(-12, 0.1, -27), (12, 0.1, -27), (-27, 0.1, -20), (27, 0.1, -20), (-27, 0.1, 12), (27, 0.1, 12), (-12, 0.1, 27)],
+        "boss": (0, 0.1, 8),
+    },
 }
-ORDER = ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow", "abyss", "island"]
+ORDER = ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow", "abyss", "island", "garden"]
 
 
 def sun_basis():

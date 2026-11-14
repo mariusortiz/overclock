@@ -15,10 +15,12 @@ var camera_shake := true
 var show_fps := false
 ## Off: no shadows, no glow and a lower 3D resolution, for slower phones.
 var high_quality := true
+## Day, dusk or night, rain, fog or storm, drawn for each arena (see Weather).
+var weather := true
 
 
 func _ready() -> void:
-	for property: StringName in [&"sensitivity", &"music_enabled", &"vibration_enabled", &"camera_shake", &"high_quality", &"show_fps"]:
+	for property: StringName in [&"sensitivity", &"music_enabled", &"vibration_enabled", &"camera_shake", &"high_quality", &"show_fps", &"weather"]:
 		set(property, SaveData.load_setting(property, get(property)))
 	_apply()
 

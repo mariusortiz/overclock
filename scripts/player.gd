@@ -47,6 +47,10 @@ const SHAKE_DECAY := 3.5
 var health := 0
 ## Set once the game is won: nothing can hurt the player anymore.
 var invulnerable := false
+## Seconds left under the Cupidon de fer's charm: the controls are reversed.
+var charmed_left := 0.0
+## Multiplies the damage taken (0.1 in a mech, see Mech).
+var damage_factor := 1.0
 ## Perk.Type -> level. Shared with the weapon.
 var perks := {}
 
@@ -152,6 +156,8 @@ func take_damage(amount: int, from := Vector3.INF) -> void:
 		amount = ceili(amount / 2.0)
 	# The pet's wool or shield.
 	amount = Pets.filter_damage(amount)
+	if damage_factor < 1.0 and amount > 0:
+		amount = maxi(roundi(amount * damage_factor), 1)
 	if amount <= 0:
 		return
 	health = maxi(health - amount, 0)
@@ -294,6 +300,9 @@ func _physics_process(delta: float) -> void:
 		_squash(LAND_SQUASH * 0.5)
 
 	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	if charmed_left > 0.0:
+		charmed_left -= delta
+		input = -input
 	var target := transform.basis * Vector3(input.x, 0.0, input.y) * move_speed
 	target *= 1.0 + Perk.SWIFT_BONUS * perks.get(Perk.Type.SWIFT, 0)
 	if has_effect(PowerUp.Type.SPEED):

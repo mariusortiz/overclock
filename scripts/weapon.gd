@@ -99,6 +99,13 @@ func equip_temporary(data: Dictionary) -> void:
 	_equip(data)
 
 
+## Drops a temporary gun at once (the mech's, when it is left).
+func end_temporary() -> void:
+	if _temporary_magazines > 0:
+		_temporary_magazines = 0
+		_equip(_own_data)
+
+
 func _equip(data: Dictionary) -> void:
 	current_data = data
 	_reloading = false
@@ -366,6 +373,8 @@ func _find_assist_hit(origin: Vector3, direction: Vector3) -> Dictionary:
 	var best_angle := deg_to_rad(aim_assist_deg)
 	for target: Node3D in get_tree().get_nodes_in_group("targets"):
 		var to_target: Vector3 = target.get_aim_position() - origin
+		if Weather.fog() and to_target.length() > Weather.FOG_ASSIST_RANGE:
+			continue
 		var angle := direction.angle_to(to_target)
 		if angle >= best_angle:
 			continue

@@ -51,6 +51,7 @@ func _ready() -> void:
 	_arena = load("res://scenes/arenas/%s.tscn" % ARENAS[index]).instantiate()
 	Enemy.corrupted = _arena.corrupted
 	Enemy.arena_glow = _arena.enemy_glow
+	Weather.apply(_arena)
 	add_child(_arena)
 	move_child(_arena, 0)
 	Music.play_track(Music.Track.CAPTURE)

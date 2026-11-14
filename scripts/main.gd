@@ -43,6 +43,8 @@ const ARENAS: Array[PackedScene] = [
 	preload("res://scenes/arenas/snow.tscn"),
 	# The raid's abyss (Raid.ARENA).
 	preload("res://scenes/arenas/abyss.tscn"),
+	# Valentine's Day only (Events.GARDEN_ARENA).
+	preload("res://scenes/arenas/garden.tscn"),
 ]
 ## The arenas that follow one another in a game.
 const ROTATION := 7
@@ -72,6 +74,12 @@ var _last_kill_time := -100.0
 var _pet: Pet
 ## Boss rush (see BossRush): seconds played, pauses excluded.
 var _rush_time := 0.0
+## A mech came already in this game (one per game, see Mech).
+var _mech_done := false
+## Test option "--mech": the mech comes with the first wave.
+var _force_mech := false
+## Test option "--weather=night" (or dusk, rain, fog, storm).
+var _forced_weather := ""
 
 @onready var player: Player = $Player
 @onready var hud: Hud = $HUD
@@ -86,12 +94,19 @@ func _ready() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--arena="):
 			first_arena = argument.get_slice("=", 1).to_int()
+		elif argument.begins_with("--weather="):
+			_forced_weather = argument.get_slice("=", 1)
+		elif argument == "--mech":
+			_force_mech = true
 		elif argument == "--raid":
 			# Test option: the raid, alone with the bots.
 			Raid.active = true
 		elif argument == "--rush":
 			# Test option: the boss rush.
 			BossRush.active = true
+		elif argument == "--valentine":
+			# Test option: the Valentine waves.
+			Events.valentine_run = true
 		elif argument == "--christmas":
 			# Test option: the Christmas waves.
 			Events.christmas_run = true
@@ -110,6 +125,9 @@ func _ready() -> void:
 	if Events.christmas_run:
 		first_arena = Events.SNOW_ARENA
 		waves.boss_kind = Boss.Kind.FROST
+	if Events.valentine_run:
+		first_arena = Events.GARDEN_ARENA
+		waves.boss_kind = Boss.Kind.CUPID
 	if Net.is_online():
 		Raid.active = Net.mode == "raid"
 	if Raid.active:
@@ -185,7 +203,7 @@ func _ready() -> void:
 		_spawn_raid_allies()
 	if Story.is_active():
 		_start_story_mission()
-	elif Tutorial.is_needed() and not _coop and not BossRush.active and not Raid.active:
+	elif Tutorial.is_needed() and not _coop and not BossRush.active and not Raid.active and not Events.valentine_run:
 		var tutorial := Tutorial.new()
 		add_child(tutorial)
 		tutorial.setup(player, hud, waves)
@@ -262,6 +280,11 @@ func _load_arena(index: int) -> void:
 	# The Matrice's enemies, and those of season 2's story, are the Virus'.
 	Enemy.corrupted = _arena.corrupted or (Story.is_active() and Story.mission().get("virus", false))
 	Enemy.arena_glow = _arena.enemy_glow
+	var weather := Weather.apply(_arena, _forced_weather)
+	if weather != "":
+		hud.show_banner.call_deferred(weather)
+	if Weather.time == Weather.Hour.NIGHT and _arena.enemy_glow.a == 0.0 and not Enemy.corrupted:
+		Enemy.arena_glow = Weather.NIGHT_GLOW
 	player.global_position = _arena.player_spawn_position()
 	player.velocity = Vector3.ZERO
 	_apply_quality()
@@ -297,11 +320,30 @@ func _on_wave_started(number: int) -> void:
 		hud.show_banner("BOSS %d / %d  ·  %s" % [number, BossRush.STAGES.size(), BossRush.clock(_rush_time)])
 	else:
 		hud.show_banner("VAGUE %d  ·  BOSS" % number if waves.is_boss_wave() else "VAGUE %d" % number)
+	_maybe_send_mech(number)
 	# One weapon crate per wave, a moment after it starts.
 	var arena := _arena
 	await get_tree().create_timer(CRATE_DELAY, false).timeout
 	if arena == _arena and not _arena_change_pending:
 		_drop_crate()
+
+
+## Once in a game of waves, between waves 8 and 30, a mech to climb into
+## (always at wave 15 if it has not come yet). Not in the special games.
+func _maybe_send_mech(number: int) -> void:
+	if _mech_done or waves.is_boss_wave() or Story.is_active() or BossRush.active or Raid.active or Events.christmas_run or Events.valentine_run:
+		return
+	if not _force_mech and (number < 8 or number > 30 or (number != 15 and randf() > 0.2)):
+		return
+	_mech_done = true
+	var mech := Mech.new()
+	var offset := Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU) * 7.0
+	var at := player.global_position + offset
+	mech.position = NavigationServer3D.map_get_closest_point(_arena.get_navigation_map(), at)
+	add_child(mech)
+	mech.boarded.connect(func() -> void: hud.show_banner("MECH : %d S DE PUISSANCE" % int(Mech.PILOT_TIME)))
+	mech.left.connect(func() -> void: hud.show_banner("LE MECH EXPLOSE"))
+	hud.show_banner("UN MECH EST ARRIVÉ : MONTE DEDANS")
 
 
 ## Drops a weapon crate a few meters from the player.
@@ -387,6 +429,8 @@ func _on_boss_killed(kind: Boss.Kind) -> void:
 		_win()
 	if Events.christmas_run and waves.wave >= Events.CHRISTMAS_WAVES:
 		_win_christmas()
+	if Events.valentine_run and waves.wave >= Events.VALENTINE_WAVES:
+		_win_valentine()
 
 
 # --- Co-op (see WavesNet) ------------------------------------------------------------
@@ -479,6 +523,8 @@ func _on_menu_pressed() -> void:
 ## The arena after a boss: the next of the round, or the village again in
 ## the Christmas waves.
 func _next_arena() -> int:
+	if Events.valentine_run:
+		return Events.GARDEN_ARENA
 	if BossRush.active:
 		return BossRush.STAGES[mini(waves.wave, BossRush.STAGES.size() - 1)][1]
 	return Events.SNOW_ARENA if Events.christmas_run else (_arena_index + 1) % ROTATION
@@ -520,6 +566,24 @@ func _spawn_raid_allies() -> void:
 		ally.weapon_id = ["heavy", "smg"][i]
 		ally.position = player.global_position + Vector3(ally.side * 2.5, 0, 1.5)
 		add_child(ally)
+
+
+## The Valentine waves are won: the last Cupidon de fer is down. A shower of
+## hearts, the reward, then the end screen.
+func _win_valentine() -> void:
+	_won = true
+	waves.stop()
+	player.invulnerable = true
+	for enemy in get_tree().get_nodes_in_group("targets"):
+		enemy.take_damage(9999)
+	var top := _boss.global_position + Vector3.UP * 3.0
+	Effects.flash(self, top, Boss.CUPID_COLOR, 10.0, 1.2)
+	for burst in 3:
+		Effects.spray(self, top + Vector3.UP * burst, [Boss.CUPID_COLOR, Color(1.0, 0.15, 0.3), Color.WHITE],
+				90, Vector3(0.16, 0.16, 0.02), Vector2(4.0, 8.0), Vector3(0, -3.0, 0), 70.0, 3.0)
+	hud.show_banner("BONNE SAINT-VALENTIN !   " + Events.valentine_reward().to_upper())
+	await get_tree().create_timer(VICTORY_TIME).timeout
+	_on_exit_chosen(true)
 
 
 ## The boss rush is won: the last boss is down. The time is saved, and the

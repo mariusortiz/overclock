@@ -74,6 +74,8 @@ const ACCESSORIES := [
 	{"id": "acc_santa", "name": "Bonnet de Noël", "shop": true, "event": "christmas"},
 	{"id": "acc_scarf", "name": "Écharpe de Noël", "neck": true, "shop": true, "event": "christmas"},
 	{"id": "acc_antlers", "name": "Bois de renne", "shop": true, "event": "christmas"},
+	{"id": "acc_wings", "name": "Ailes d'ange", "neck": true, "shop": true, "event": "valentine"},
+	{"id": "acc_roses", "name": "Couronne de roses", "shop": true, "event": "valentine"},
 	{"id": "acc_sunglasses", "name": "Lunettes de soleil", "shop": true},
 	{"id": "acc_bowtie", "name": "Nœud papillon", "neck": true, "shop": true},
 	{"id": "acc_tophat", "name": "Haut-de-forme", "shop": true},
@@ -360,6 +362,8 @@ static func accessory_owned(accessory: Dictionary) -> bool:
 static func accessory_text(accessory: Dictionary) -> String:
 	if accessory.get("event", "") == "christmas":
 		return "Boutique de Noël (1er décembre – 6 janvier)"
+	if accessory.get("event", "") == "valentine":
+		return "Boutique de la Saint-Valentin (7 – 21 février)"
 	if accessory.get("shop", false):
 		return "En vente à la boutique"
 	if accessory.get("egg", false):

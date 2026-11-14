@@ -200,6 +200,15 @@ func _subject(kind: String, reference: String) -> Node3D:
 			var guardian := _character(Boss.MODEL_DIR + str(Boss.INFO[Boss.Kind.GUARDIAN].model), &"idle")
 			Boss.dress_guardian.call_deferred(guardian.get_child(0))
 			return guardian
+		"cupid":
+			# The iron Cupid of Valentine's Day (see Boss.dress_cupid).
+			var cupid := _character(Boss.MODEL_DIR + str(Boss.INFO[Boss.Kind.CUPID].model), &"idle")
+			var texture := StandardMaterial3D.new()
+			texture.albedo_texture = load(Boss.TITAN_TEXTURE)
+			for mesh: MeshInstance3D in cupid.find_children("*", "MeshInstance3D", true, false):
+				mesh.material_override = texture
+			Boss.dress_cupid.call_deferred(cupid.get_child(0))
+			return cupid
 		"frost":
 			# The giant skeleton in ice (see Boss._dress_frost).
 			var frost := _character(Boss.MODEL_DIR + str(Boss.INFO[Boss.Kind.FROST].model), &"idle")

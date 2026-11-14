@@ -39,10 +39,12 @@ var _mode_panel := Control.new()
 func _ready() -> void:
 	Loadout.fair_play = false
 	Story.leave()
+	Weather.reset()
 	# Le Créateur's later gifts (his capybara, its card), for those who have him.
 	Cards.sync_hacker()
 	Events.christmas_run = false
 	BossRush.active = false
+	Events.valentine_run = false
 	Raid.active = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Music.play_track(Music.Track.CHRISTMAS if Events.is_christmas() else Music.Track.MAIN)
@@ -185,6 +187,8 @@ func _build_mode_panel() -> void:
 	var modes := MODES.duplicate()
 	if Events.is_christmas():
 		modes.push_front(["VAGUES DE NOËL", "10 vagues · le Père Glaçon", GAME_SCENE, "christmas"])
+	if Events.is_valentine():
+		modes.push_front(["SAINT-VALENTIN", "10 vagues au jardin · Cupidon de fer", GAME_SCENE, "valentine"])
 	var grid := GridContainer.new()
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 12)
@@ -199,6 +203,7 @@ func _build_mode_panel() -> void:
 		var flag: String = mode[3]
 		button.pressed.connect(func() -> void:
 			Events.christmas_run = flag == "christmas"
+			Events.valentine_run = flag == "valentine"
 			BossRush.active = flag == "rush"
 			Raid.active = flag == "raid"
 			get_tree().change_scene_to_file(mode[2]), CONNECT_DEFERRED)

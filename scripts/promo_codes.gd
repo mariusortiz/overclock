@@ -85,6 +85,7 @@ static func redeem(code: String) -> Array:
 		given.append("%d booster%s%s" % [boosters[kind], plural, (adjective + plural) if adjective != "" else ""])
 	if reward.get("christmas", false):
 		SaveData.save_progress(Events.FORCE_KEY, true)
+		SaveData.save_progress(Events.VALENTINE_FORCE_KEY, true)
 		given.append("l'événement de Noël")
 	if reward.get("pass_complete", false):
 		for season in BattlePass.SEASON_NAMES.size():
