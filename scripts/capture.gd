@@ -5,7 +5,7 @@ extends Node3D
 ## at their base after a few seconds.
 
 const MENU_SCENE := "res://scenes/menu.tscn"
-const ARENAS := ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow"]
+const ARENAS := ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "mirror", "snow"]
 const ENEMY_SCENE := preload("res://scenes/enemy.tscn")
 const TEAM_SIZE := 4
 const WIN_SCORE := 150

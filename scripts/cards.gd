@@ -31,7 +31,7 @@ const SERIES := [
 	["Mythiques", 5000, 250],
 	# The "Saison 2" expansion (EXPANSION): its own numbers, outside the 99.
 	["Matrice", 1500, 60], ["Anime S2", 2500, 100], ["Combat", 1500, 60], ["Boutique", 1800, 70], ["Noël", 1500, 80], ["Passe S2", 2000, 90],
-	["Portail", 1800, 70], ["Anime S3", 2500, 100], ["Compagnons", 2500, 100], ["Accessoires", 1500, 70], ["Saint-Valentin", 1500, 80],
+	["Portail", 1800, 70], ["Anime S3", 2500, 100], ["Compagnons", 2500, 100], ["Accessoires", 1500, 70], ["Saint-Valentin", 1500, 80], ["Anime S4", 2500, 100], ["Raid et miroirs", 1800, 70],
 	# Le Créateur's: only through his code, outside the album's count.
 	["Hacker", 10000, 500],
 ]
@@ -269,6 +269,19 @@ const EXPANSION := [
 	{"id": "card_dance_heart", "name": "Danse Cœur", "series": "Saint-Valentin", "rarity": R, "art": ["dance", "dance_heart:soldier"], "event": "valentine"},
 	{"id": "card_acc_wings", "name": "Ailes d'ange", "series": "Saint-Valentin", "rarity": R, "art": ["pet_accessory", "acc_wings"], "event": "valentine"},
 	{"id": "card_acc_roses", "name": "Couronne de roses", "series": "Saint-Valentin", "rarity": C, "art": ["pet_accessory", "acc_roses"], "event": "valentine"},
+	# Season 4 of the anime, and its bosses (with the raid's).
+	{"id": "card_ep32", "name": "Le Reflet", "series": "Anime S4", "rarity": E, "art": ["image", "ep32"]},
+	{"id": "card_ep33", "name": "Les Doubles", "series": "Anime S4", "rarity": E, "art": ["image", "ep33"]},
+	{"id": "card_ep34", "name": "Sans double", "series": "Anime S4", "rarity": E, "art": ["image", "ep34"]},
+	{"id": "card_ep35", "name": "De l'autre côté", "series": "Anime S4", "rarity": E, "art": ["image", "ep35"]},
+	{"id": "card_ep36", "name": "Le monde sans code", "series": "Anime S4", "rarity": E, "art": ["image", "ep36"]},
+	{"id": "card_ep37", "name": "Échange", "series": "Anime S4", "rarity": E, "art": ["image", "ep37"]},
+	{"id": "card_ep38", "name": "Le Reflet (II)", "series": "Anime S4", "rarity": E, "art": ["image", "ep38"]},
+	{"id": "card_ep39", "name": "Le Miroir-Titan", "series": "Anime S4", "rarity": E, "art": ["image", "ep39"]},
+	{"id": "card_ep40", "name": "Fusion", "series": "Anime S4", "rarity": E, "art": ["image", "ep40"]},
+	{"id": "card_ep41", "name": "Les Miroirs", "series": "Anime S4", "rarity": E, "art": ["image", "ep41"]},
+	{"id": "card_reflect", "name": "Le Reflet", "series": "Raid et miroirs", "rarity": L, "art": ["reflect", ""]},
+	{"id": "card_leviathan", "name": "Le Léviathan", "series": "Raid et miroirs", "rarity": L, "art": ["leviathan", ""]},
 ]
 
 ## Every card there is: the album, the expansion, Le Créateur's.
@@ -356,7 +369,7 @@ static func ability(card: Dictionary) -> Array:
 			var pet := Pets.find(reference)
 			var perk: Array = Pets.PERKS[pet.perk]
 			return ["COMPAGNON · " + str(perk[0]).to_upper(), perk[1]]
-		"boss", "titan", "virus", "frost", "guardian", "cupid":
+		"boss", "titan", "virus", "frost", "guardian", "cupid", "reflect", "leviathan":
 			return ["BOSS", FLAVOR.get(card.id, "Garde la fin d'une arène.")]
 		"dance":
 			var dance: Dictionary = Dances.find(reference.split(":")[0])
@@ -410,6 +423,8 @@ const FLAVOR := {
 	"card_volcano": "Rivière de lave et plateaux de basalte.",
 	"card_city": "Rues, pont routier et toits accessibles.",
 	"card_squad": "Soldat, Kunoichi, Capitaine, Ronin. Prochaine vague ?",
+	"card_reflect": "Il copie ton arme. Pas ton équipe.",
+	"card_leviathan": "Le boss du raid : quatre cœurs, des renforts, un laser au ras du sol.",
 	"card_cupid": "Ses flèches charment : deux secondes à marcher à l'envers.",
 	"card_rivals": "« Alors, cette revanche ? » « Quand tu veux. »",
 	"card_directeur": "A construit les Titans. Doit de l'argent au Parrain.",

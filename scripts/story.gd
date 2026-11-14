@@ -1,6 +1,7 @@
 class_name Story
 ## The story mode: the anime's seasons, one chapter per episode (season 1:
-## chapters 1 to 10, season 2: 11 to 20, season 3: 21 to 30). A chapter is a short scene played
+## chapters 1 to 10, season 2: 11 to 20, season 3: 21 to 30, season 4: 31 to
+## 40, the anime's episodes 32 to 41). A chapter is a short scene played
 ## by the engine (scripts/story/chNN.gd), then a mission in one of the game's
 ## modes with the episode's hero. A mission gives 1 to 3 stars; the first win
 ## pays the chapter's rewards, the last chapter of a season a bigger prize.
@@ -18,6 +19,7 @@ const FINAL_GEMS := 500
 const SEASON_SIZE := 10
 const SEASON_2_FINAL_GEMS := 1000
 const SEASON_3_FINAL_GEMS := 1500
+const SEASON_4_FINAL_GEMS := 2000
 
 ## Each chapter: title, hero (Loadout id), mode, arena or circuit, what to
 ## do, and the line that closes it. A race is won in the first `place`;
@@ -115,6 +117,38 @@ const CHAPTERS := [
 	{"title": "Retour", "hero": "sand_ghost", "mode": "race", "circuit": 0, "place": 1, "ship": "ship_scarlet",
 		"goal": "Rentrés à la station, Vipère réclame sa revanche promise. Gagne la course.",
 		"outro": "Personne ne crée seul. Le code est revenu, la revanche est gagnée. Fin de la saison 3."},
+	# Season 4: Les Miroirs. "mirror": the enemies glow violet, come from the
+	# mirror world.
+	{"title": "Le Reflet", "hero": "soldier", "mode": "capture", "arena": 0,
+		"goal": "Des doubles sortent d'un miroir, à la station. Tiens les zones.",
+		"outro": "Le reflet du Soldat sort du verre et s'enfuit. « Celui-là avait une ombre. »"},
+	{"title": "Les Doubles", "hero": "kunoichi", "mode": "waves", "arena": 1, "level": 2, "boss": Boss.Kind.BRUTE, "mirror": true,
+		"goal": "Les doubles sabotent le temple du désert. Repousse-les jusqu'à leur colosse.",
+		"outro": "Les doubles se brisent comme du verre. Dans un éclat, une ville à l'envers."},
+	{"title": "Sans double", "hero": "sand_ghost", "mode": "race", "circuit": 1, "place": 2, "ship": "ship_scarlet",
+		"goal": "Le capybara a filé à travers le miroir. Rattrape-le : termine 2e ou mieux.",
+		"outro": "Il revient avec une deuxième mandarine. Ce que Le Créateur n'a pas écrit passe sans changer."},
+	{"title": "De l'autre côté", "hero": "ronin", "mode": "waves", "arena": 11, "level": 3, "boss": Boss.Kind.SUMMONER, "mirror": true,
+		"goal": "Le monde-miroir. Ses gardiens ne veulent pas de visiteurs : tiens jusqu'à leur reine.",
+		"outro": "La même ville, à l'envers. Ici, personne n'a jamais écrit de jeu."},
+	{"title": "Le monde sans code", "hero": "captain", "mode": "capture", "arena": 8,
+		"goal": "Protège le Créateur d'en face pendant qu'il parle. Tiens les zones de la ville-miroir.",
+		"outro": "Un Créateur qui fait pousser des fleurs. « Le Reflet veut votre monde. »"},
+	{"title": "Échange", "hero": "witch", "mode": "capture", "arena": 8,
+		"goal": "Les doubles de l'Écarlate sont de votre côté. Reprenez les rues au Reflet.",
+		"outro": "Les ennemis deviennent des alliés. Le Reflet est dans la tour."},
+	{"title": "Le Reflet", "hero": "soldier", "mode": "waves", "arena": 11, "level": 4, "boss": Boss.Kind.REFLECT, "mirror": true,
+		"goal": "Le sommet de la tour. Le Reflet copie ton arme : bats-le avec la tienne.",
+		"outro": "Il copie ce qu'il voit. Il faudra lui montrer tout le monde à la fois."},
+	{"title": "Le Miroir-Titan", "hero": "paladin", "mode": "race", "circuit": 3, "place": 2,
+		"goal": "Le Reflet devient Titan. La flotte attaque ensemble : termine 2e ou mieux.",
+		"outro": "Sept attaques à la fois. Le Miroir-Titan éclate, et les deux mondes se touchent."},
+	{"title": "Fusion", "hero": "cowgirl", "mode": "waves", "arena": 6, "level": 5, "boss": Boss.Kind.TITAN, "mirror": true,
+		"goal": "La ville est à moitié à l'envers. Tiens jusqu'au Titan des deux mondes.",
+		"outro": "L'autre Créateur traverse. « Ensemble, ils seraient complets. »"},
+	{"title": "Les Miroirs", "hero": "soldier", "mode": "waves", "arena": 11, "level": 6, "boss": Boss.Kind.REFLECT, "mirror": true,
+		"goal": "Le dernier combat, héros et doubles côte à côte. Bats le Reflet pour de bon.",
+		"outro": "Le Reflet vole en éclats, les mondes fusionnent. Fin de la saison 4."},
 ]
 
 ## The chapter being played (-1: none), and the result of the last mission
@@ -223,7 +257,7 @@ static func _pay(index: int) -> Array[String]:
 	Wallet.add_gems(gems)
 	Cards.give_booster("rare")
 	var given: Array[String] = ["%d gemmes" % gems, "1 booster rare"]
-	var card_id := "card_ep%02d" % (index + 1)
+	var card_id := "card_ep%02d" % episode_of(index)
 	if not Cards.find(card_id).is_empty():
 		Cards.add(card_id)
 		given.append("la carte %s" % Cards.find(card_id).name)
@@ -241,7 +275,18 @@ static func _pay(index: int) -> Array[String]:
 		Cards.give_booster("legend")
 		given.append("%d gemmes de plus" % SEASON_3_FINAL_GEMS)
 		given.append("1 booster légendaire")
+	elif index == 4 * SEASON_SIZE - 1:
+		Wallet.add_gems(SEASON_4_FINAL_GEMS)
+		Cards.give_booster("legend")
+		given.append("%d gemmes de plus" % SEASON_4_FINAL_GEMS)
+		given.append("1 booster légendaire")
 	return given
+
+
+## The anime episode of chapter `index` (the episode 31 is a special without
+## a chapter: season 4's chapters are its episodes 32 to 41).
+static func episode_of(index: int) -> int:
+	return index + 1 if index < 3 * SEASON_SIZE else index + 2
 
 
 static func gems_for(index: int) -> int:
@@ -251,7 +296,7 @@ static func gems_for(index: int) -> int:
 ## What a first win of chapter `index` gives, for the story screen.
 static func rewards_text(index: int) -> String:
 	var parts := ["%d gemmes" % gems_for(index), "un booster rare"]
-	if not Cards.find("card_ep%02d" % (index + 1)).is_empty():
+	if not Cards.find("card_ep%02d" % episode_of(index)).is_empty():
 		parts.append("la carte de l'épisode")
 	if index == SEASON_SIZE - 1:
 		parts.append("le vaisseau Écarlate")
@@ -259,6 +304,8 @@ static func rewards_text(index: int) -> String:
 		parts.append("%d gemmes de plus et un booster légendaire" % SEASON_2_FINAL_GEMS)
 	elif index == 3 * SEASON_SIZE - 1:
 		parts.append("%d gemmes de plus et un booster légendaire" % SEASON_3_FINAL_GEMS)
+	elif index == 4 * SEASON_SIZE - 1:
+		parts.append("%d gemmes de plus et un booster légendaire" % SEASON_4_FINAL_GEMS)
 	return ", ".join(parts)
 
 

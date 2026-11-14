@@ -13,7 +13,8 @@ signal cores_requested(count: int)
 ## GUARDIAN, the portal's guardian of season 3, guards the crystal planet.
 ## LEVIATHAN is the raid's boss (see Raid), in the abyss only.
 ## CUPID, the Cupidon de fer, only comes in the Valentine waves (see Events).
-enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER, TITAN, VIRUS, FROST, GUARDIAN, LEVIATHAN, CUPID }
+## REFLECT, Le Reflet of season 4, guards the mirror world (story mode).
+enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER, TITAN, VIRUS, FROST, GUARDIAN, LEVIATHAN, CUPID, REFLECT }
 
 ## The bosses in the order of the arenas.
 const ORDER: Array[Kind] = [Kind.COLOSSUS, Kind.BRUTE, Kind.ARTILLERY, Kind.SUMMONER, Kind.VIRUS, Kind.GUARDIAN, Kind.TITAN]
@@ -30,6 +31,7 @@ const INFO := {
 	Kind.FROST: {"name": "PÈRE GLAÇON", "model": "monsters/Skeleton.fbx", "height": 2.2, "hover": 0.0, "health": 90, "speed": 3.4, "fire_interval": 1.3, "range": 16.0},
 	Kind.GUARDIAN: {"name": "LE GARDIEN", "model": "characters/Wizard.fbx", "height": 3.0, "hover": 0.0, "health": 180, "speed": 2.4, "fire_interval": 1.5, "range": 20.0},
 	Kind.LEVIATHAN: {"name": "LE LÉVIATHAN", "model": "monsters/Dragon.fbx", "height": 3.6, "hover": 1.2, "health": 420, "speed": 0.0, "fire_interval": 1.7, "range": 32.0},
+	Kind.REFLECT: {"name": "LE REFLET", "model": "characters/Soldier_Male.fbx", "height": 2.6, "hover": 0.0, "health": 160, "speed": 3.6, "fire_interval": 1.0, "range": 22.0},
 	Kind.CUPID: {"name": "CUPIDON DE FER", "model": "mechs/George.fbx", "height": 2.3, "hover": 0.0, "health": 95, "speed": 3.2, "fire_interval": 1.3, "range": 20.0},
 	Kind.VIRUS: {"name": "LE VIRUS", "model": "mechs/George.fbx", "height": 2.3, "hover": 0.0, "health": 150, "speed": 3.2, "fire_interval": 1.2, "range": 18.0},
 }
@@ -57,6 +59,11 @@ const CRYSTAL_COLOR := Color(0.45, 0.85, 1.0)
 ## have to be shot down first), then calling adds and a rain of strikes, and
 ## below LEVIATHAN_LASER_BELOW of its life a laser sweeping the floor around
 ## it (jump over it, or stay up on a platform).
+## Le Reflet: the player's own hero, in mirror glass, twice as tall. It
+## copies the player's gun (rate of fire, the color of its shots), and from
+## its second phase on it calls its doubles (summon) now and then.
+const REFLECT_COLOR := Color(0.75, 0.6, 1.0)
+const REFLECT_SUMMON_INTERVAL := 10.0
 ## The Cupidon de fer: a fan of arrows, and every third shot a heart that
 ## charms the player (reversed controls) for CHARM_TIME.
 const CUPID_COLOR := Color(1.0, 0.35, 0.6)
@@ -98,6 +105,9 @@ func configure(boss_kind: Kind, health_scale: float) -> void:
 	fire_interval = info.fire_interval
 	attack_range = info.range
 	model_scene = load(MODEL_DIR + info.model)
+	if kind == Kind.REFLECT:
+		# Le Reflet takes the player's own hero.
+		model_scene = load(Loadout.CHARACTER_DIR + str(Loadout.selected_character().model))
 	model_height = info.height
 	model_hover = info.hover
 	drop_chance = 1.0
@@ -124,6 +134,11 @@ func _ready() -> void:
 		_dress_frost()
 	if kind == Kind.GUARDIAN:
 		dress_guardian(_model)
+	if kind == Kind.REFLECT:
+		dress_reflect(_model)
+		# The player's gun, copied: its pace (within reason).
+		var gun := Loadout.selected_weapon()
+		fire_interval = clampf(1.6 / maxf(float(gun.fire_rate), 1.0), 0.35, 1.4)
 	if kind == Kind.CUPID:
 		_dress_titan()
 		dress_cupid(_model)
@@ -165,6 +180,12 @@ func _physics_process(delta: float) -> void:
 			_update_guardian(delta)
 		Kind.LEVIATHAN:
 			_update_leviathan(delta)
+		Kind.REFLECT:
+			if _phase() >= 2:
+				_summon_left -= delta
+				if _summon_left <= 0.0:
+					_summon_left = REFLECT_SUMMON_INTERVAL
+					summon_requested.emit(SUMMON_COUNT)
 
 
 func _update_summoner(delta: float) -> void:
@@ -200,6 +221,11 @@ func _attack() -> void:
 					_call_mortar(_player.global_position + (spread if i > 0 else Vector3.ZERO))
 		Kind.LEVIATHAN:
 			_shoot_fan()
+		Kind.REFLECT:
+			_attack_count += 1
+			var forward := _muzzle.global_position.direction_to(_player.get_aim_position())
+			for angle in [-6.0, 0.0, 6.0]:
+				_spawn_projectile(forward.rotated(Vector3.UP, deg_to_rad(angle)))
 		Kind.CUPID:
 			_attack_count += 1
 			_shoot_fan()
@@ -356,6 +382,23 @@ func _laser_touches(at: Vector3) -> bool:
 	var near_x := absf(local.z) < 0.6 and absf(local.x) < LEVIATHAN_LASER_LENGTH
 	var near_z := absf(local.x) < 0.6 and absf(local.z) < LEVIATHAN_LASER_LENGTH
 	return near_x or near_z
+
+
+## Mirror glass: pale violet, shiny, glowing at the edges (the boss, its
+## card, the anime's doubles use the same).
+static func dress_reflect(model: Node3D) -> void:
+	var glass := StandardMaterial3D.new()
+	glass.albedo_color = Color(0.78, 0.74, 0.95)
+	glass.metallic = 0.9
+	glass.roughness = 0.08
+	var glow := StandardMaterial3D.new()
+	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	glow.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	glow.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	glow.albedo_color = Color(REFLECT_COLOR, 0.22)
+	for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		mesh.material_override = glass
+		mesh.material_overlay = glow
 
 
 ## Pink and white iron, two white wings on its back and a pink glow: the

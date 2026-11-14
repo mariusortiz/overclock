@@ -119,7 +119,7 @@ jobs:
           godot --headless --fixed-fps 60 --quit-after 2400 res://scenes/fight.tscn 2>&1 | tee -a run.log
           # The story mode: its screen, then each chapter's scene played through.
           godot --headless --fixed-fps 60 --quit-after 120 res://scenes/story.tscn 2>&1 | tee -a run.log
-          for chapter in $(seq 1 30); do
+          for chapter in $(seq 1 40); do
             godot --headless --fixed-fps 60 --quit-after 2400 res://scenes/story_cutscene.tscn -- --chapter=$chapter 2>&1 | tee -a run.log
           done
           # The ship race: the circuit choice, a whole race on the first circuit

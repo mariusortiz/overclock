@@ -54,7 +54,8 @@ jobs:
               if echo "$changed" | grep -qE "ep${nn}\.(gd|tscn)" || echo " $lines " | tr '\n' ' ' | grep -qw "$n" \
                   || { [ "$n" = 1 ] && echo "$changed" | grep -qE 'anime_music|tools/anime.html'; } \
                   || { [ "$n" -ge 11 ] && echo "$changed" | grep -q 'anime/season2.gd'; } \
-                  || { [ "$n" -ge 21 ] && echo "$changed" | grep -q 'anime/season3.gd'; }; then
+                  || { [ "$n" -ge 21 ] && echo "$changed" | grep -q 'anime/season3.gd'; } \
+                  || { [ "$n" -ge 32 ] && echo "$changed" | grep -q 'anime/season4.gd'; }; then
                 picked="$picked $n"
               fi
             done

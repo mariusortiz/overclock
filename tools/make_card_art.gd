@@ -200,6 +200,16 @@ func _subject(kind: String, reference: String) -> Node3D:
 			var guardian := _character(Boss.MODEL_DIR + str(Boss.INFO[Boss.Kind.GUARDIAN].model), &"idle")
 			Boss.dress_guardian.call_deferred(guardian.get_child(0))
 			return guardian
+		"reflect":
+			# Le Reflet: the soldier in mirror glass (see Boss.dress_reflect).
+			var reflect := _character(Loadout.CHARACTER_DIR + "Soldier_Male.fbx", &"idle")
+			Boss.dress_reflect.call_deferred(reflect.get_child(0))
+			return reflect
+		"leviathan":
+			# The raid's dragon of the deep (see Boss.dress_leviathan).
+			var leviathan := _character(Boss.MODEL_DIR + str(Boss.INFO[Boss.Kind.LEVIATHAN].model), &"idle")
+			Boss.dress_leviathan.call_deferred(leviathan.get_child(0))
+			return leviathan
 		"cupid":
 			# The iron Cupid of Valentine's Day (see Boss.dress_cupid).
 			var cupid := _character(Boss.MODEL_DIR + str(Boss.INFO[Boss.Kind.CUPID].model), &"idle")

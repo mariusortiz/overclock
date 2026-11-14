@@ -45,6 +45,8 @@ const ARENAS: Array[PackedScene] = [
 	preload("res://scenes/arenas/abyss.tscn"),
 	# Valentine's Day only (Events.GARDEN_ARENA).
 	preload("res://scenes/arenas/garden.tscn"),
+	# Season 4's mirror world: story mode only.
+	preload("res://scenes/arenas/mirror.tscn"),
 ]
 ## The arenas that follow one another in a game.
 const ROTATION := 7
@@ -280,6 +282,9 @@ func _load_arena(index: int) -> void:
 	# The Matrice's enemies, and those of season 2's story, are the Virus'.
 	Enemy.corrupted = _arena.corrupted or (Story.is_active() and Story.mission().get("virus", false))
 	Enemy.arena_glow = _arena.enemy_glow
+	# Season 4's story: the enemies come from the mirror world.
+	if Story.is_active() and Story.mission().get("mirror", false):
+		Enemy.arena_glow = Color(0.6, 0.35, 1.0, 0.3)
 	var weather := Weather.apply(_arena, _forced_weather)
 	if weather != "":
 		hud.show_banner.call_deferred(weather)

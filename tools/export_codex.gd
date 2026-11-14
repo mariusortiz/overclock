@@ -5,7 +5,7 @@ extends Node
 ## Run by the build at each publication, so the site is always up to date:
 ##   godot --headless res://scenes/tools/export_codex.tscn -- --out=codex.json
 
-const ARENAS := ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow", "abyss", "island"]
+const ARENAS := ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow", "abyss", "island", "garden", "mirror"]
 const ARENA_TEXTS := {
 	"station": "Tour de contrôle à deux étages, passerelles, quai de chargement.",
 	"desert": "Temple à gradins, plateau rocheux relié par un pont de pierre, oasis.",
@@ -17,6 +17,8 @@ const ARENA_TEXTS := {
 	"ruins": "Une arche de portail, une allée de colonnes, deux salles hautes. Hors des Vagues.",
 	"snow": "Chalets, lac gelé, pont de glace et grand sapin. Seulement à Noël.",
 	"abyss": "La fosse du Léviathan, quatre plateformes reliées par des passerelles. Le raid.",
+	"garden": "Fontaine, haies, arches de roses et kiosque. Seulement à la Saint-Valentin.",
+	"mirror": "La ville, à l'envers : le monde-miroir de la saison 4. Histoire et capture.",
 	"island": "140 m de côté : une ville, des ruines, des cristaux, des huttes, des docks. Le battle royale.",
 }
 ## What a skin does to the enemy it kills (Enemy._play_death).
@@ -62,14 +64,17 @@ func _ready() -> void:
 	var boss_cards := {Boss.Kind.COLOSSUS: "card_dragon", Boss.Kind.BRUTE: "card_skeleton", Boss.Kind.ARTILLERY: "card_giant_bat",
 			Boss.Kind.SUMMONER: "card_slime", Boss.Kind.VIRUS: "card_virus", Boss.Kind.TITAN: "card_titan", Boss.Kind.FROST: "card_frost",
 			Boss.Kind.GUARDIAN: "card_guardian"}
-	boss_cards[Boss.Kind.LEVIATHAN] = ""
-	for kind: Boss.Kind in Boss.ORDER + [Boss.Kind.FROST, Boss.Kind.LEVIATHAN]:
+	boss_cards[Boss.Kind.LEVIATHAN] = "card_leviathan"
+	boss_cards[Boss.Kind.REFLECT] = "card_reflect"
+	boss_cards[Boss.Kind.CUPID] = "card_cupid"
+	for kind: Boss.Kind in Boss.ORDER + [Boss.Kind.FROST, Boss.Kind.CUPID, Boss.Kind.LEVIATHAN, Boss.Kind.REFLECT]:
 		var info: Dictionary = Boss.INFO[kind]
-		var arena_name: String = {Boss.Kind.FROST: "Village enneigé", Boss.Kind.LEVIATHAN: "Abysse"}.get(kind, "")
+		var arena_name: String = {Boss.Kind.FROST: "Village enneigé", Boss.Kind.LEVIATHAN: "Abysse", Boss.Kind.CUPID: "Jardin des cœurs",
+				Boss.Kind.REFLECT: "Monde-miroir"}.get(kind, "")
 		if arena_name == "":
 			arena_name = str(FightSetup.ARENA_NAMES[Boss.ORDER.find(kind)])
 		var wave := 5 * (Boss.ORDER.find(kind) + 1)
-		if kind == Boss.Kind.FROST:
+		if kind in [Boss.Kind.FROST, Boss.Kind.CUPID, Boss.Kind.REFLECT]:
 			wave = 0
 		elif kind == Boss.Kind.LEVIATHAN:
 			wave = -1

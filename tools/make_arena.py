@@ -738,7 +738,7 @@ def garden(b):
 
 
 LAYOUTS = {"station": station, "desert": desert, "jungle": jungle, "volcano": volcano, "matrix": matrix, "city": city, "snow": snow,
-           "crystal": crystal, "ruins": ruins, "abyss": abyss, "island": island, "garden": garden}
+           "crystal": crystal, "ruins": ruins, "abyss": abyss, "island": island, "garden": garden, "mirror": city}
 
 ARENAS = {
     "station": {
@@ -868,8 +868,21 @@ ARENAS = {
         "spawns": [(-12, 0.1, -27), (12, 0.1, -27), (-27, 0.1, -20), (27, 0.1, -20), (-27, 0.1, 12), (27, 0.1, 12), (-12, 0.1, 27)],
         "boss": (0, 0.1, 8),
     },
+    # Season 4: the city of the mirror world, the same streets in reverse
+    # colors (story, capture). Le Reflet's arena.
+    "mirror": {
+        "name": "MONDE-MIROIR", "music": 15, "enemy": "Suit_Male.fbx", "enemy_weapon": "revolver_1",
+        "enemy_glow": (0.6, 0.35, 1.0, 0.3),
+        "sky_top": (0.02, 0.0, 0.06), "sky_horizon": (0.35, 0.15, 0.6), "ambient": (0.55, 0.45, 0.85), "ambient_energy": 0.55,
+        "sun": (0.75, 0.7, 1), "sun_energy": 0.9, "floor": "asphalt", "floor_tint": (0.55, 0.45, 0.75), "wall": ("panel_dark", (0.45, 0.35, 0.65)),
+        "materials": {"struct": ("panel_light", (0.7, 0.65, 0.9)), "block": ("panel_dark", (0.55, 0.45, 0.8)),
+                      "building": ("panel_dark", (0.42, 0.36, 0.62)), "trim": ("panel_light", (0.85, 0.8, 1.0)),
+                      "rail": ("@glow", (0.6, 0.35, 1.0))},
+        "spawns": [(-8, 0.1, -27), (8, 0.1, -27), (-27, 0.1, -8), (27, 0.1, -8), (-27, 0.1, 25), (27, 0.1, 25), (-12, 0.1, 6)],
+        "boss": (10, 0.1, 6),
+    },
 }
-ORDER = ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow", "abyss", "island", "garden"]
+ORDER = ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow", "abyss", "island", "garden", "mirror"]
 
 
 def sun_basis():
