@@ -98,6 +98,8 @@ jobs:
           godot --headless --fixed-fps 60 --quit-after 2400 res://scenes/main.tscn -- --raid 2>&1 | tee -a run.log
           godot --headless --fixed-fps 60 --quit-after 3600 res://scenes/battle_royale.tscn -- --drop=0 2>&1 | tee -a run.log
           godot --headless --fixed-fps 60 --quit-after 1800 res://scenes/pet_race.tscn -- --bet=0 2>&1 | tee -a run.log
+          # Survival: a new world, its clock 40 times as fast (days, nights, creatures).
+          godot --headless --fixed-fps 60 --quit-after 2400 res://scenes/survival.tscn -- --survival-fast 2>&1 | tee -a run.log
           # Weather, the mech, the Valentine waves (and their Cupidon de fer).
           godot --headless --fixed-fps 60 --quit-after 900 res://scenes/main.tscn -- --weather=storm --mech 2>&1 | tee -a run.log
           godot --headless --fixed-fps 60 --quit-after 900 res://scenes/main.tscn -- --weather=night --arena=2 2>&1 | tee -a run.log

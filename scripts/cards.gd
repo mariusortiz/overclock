@@ -62,7 +62,7 @@ const SERIES := [
 	# The "Saison 2" expansion (EXPANSION): its own numbers, outside the 99.
 	["Matrice", 1500, 60], ["Anime S2", 2500, 100], ["Combat", 1500, 60], ["Boutique", 1800, 70], ["Noël", 1500, 80], ["Passe S2", 2000, 90],
 	["Portail", 1800, 70], ["Anime S3", 2500, 100], ["Compagnons", 2500, 100], ["Accessoires", 1500, 70], ["Saint-Valentin", 1500, 80], ["Anime S4", 2500, 100], ["Raid et miroirs", 1800, 70],
-	["Cosmique", 20000, 1000], ["Nouveautés", 2000, 90], ["Coulisses", 1500, 70],
+	["Cosmique", 20000, 1000], ["Nouveautés", 2000, 90], ["Coulisses", 1500, 70], ["Survie", 2000, 90],
 	# Le Créateur's: only through his code, outside the album's count.
 	["Hacker", 10000, 500],
 	# Only with promo codes, outside the album's count.
@@ -346,6 +346,17 @@ const EXPANSION := [
 	{"id": "card_bts_mud", "name": "La boue", "series": "Coulisses", "rarity": C, "art": ["image", "bts_mud"]},
 	{"id": "card_bts_photo", "name": "La photo d'équipe", "series": "Coulisses", "rarity": E, "art": ["image", "bts_photo"]},
 	{"id": "card_bts_pixel", "name": "Le dernier pixel", "series": "Coulisses", "rarity": R, "art": ["gun_skin", "heavy:skin_glitch"]},
+	# The survival mode: its biomes, its nights, what lives there.
+	{"id": "card_sv_forest", "name": "Forêt sauvage", "series": "Survie", "rarity": C, "art": ["image", "sv_forest"]},
+	{"id": "card_sv_jungle", "name": "Jungle sauvage", "series": "Survie", "rarity": C, "art": ["image", "sv_jungle"]},
+	{"id": "card_sv_desert", "name": "Désert brûlant", "series": "Survie", "rarity": R, "art": ["image", "sv_desert"]},
+	{"id": "card_sv_mountain", "name": "Montagnes", "series": "Survie", "rarity": R, "art": ["image", "sv_mountain"]},
+	{"id": "card_sv_snow", "name": "Sommets enneigés", "series": "Survie", "rarity": E, "art": ["image", "sv_snow"]},
+	{"id": "card_sv_base", "name": "Le camp", "series": "Survie", "rarity": R, "art": ["image", "sv_base"]},
+	{"id": "card_sv_night", "name": "La nuit tombe", "series": "Survie", "rarity": E, "art": ["image", "sv_night"]},
+	{"id": "card_sv_shadow", "name": "Ombre de la nuit", "series": "Survie", "rarity": R, "art": ["enemy", "Zombie_Male.fbx"]},
+	{"id": "card_sv_brute", "name": "Brute de la nuit rouge", "series": "Survie", "rarity": L, "art": ["boss", "monsters/Skeleton.fbx"]},
+	{"id": "card_sv_skin", "name": "Skin Survivant", "series": "Survie", "rarity": E, "art": ["gun_skin", "heavy:skin_survivor"]},
 ]
 
 ## Every card there is: the album, the expansion, Le Créateur's.
@@ -530,6 +541,16 @@ const FLAVOR := {
 	"card_promo_vipere": "« La prochaine fois, je ne te laisse pas d'avance. »",
 	"card_promo_squad": "Pour ceux qui étaient là dès l'épisode 1.",
 	"card_promo_signed": "Une signature, un trait, et une tête de vache.",
+	"card_sv_forest": "Du bois, des baies, et des yeux qui brillent la nuit.",
+	"card_sv_jungle": "Les palmiers donnent du bois. Les gobelins, des ennuis.",
+	"card_sv_desert": "Du cactus pour boire, des épaves pour la ferraille.",
+	"card_sv_mountain": "Le métal est là-haut. Prends une pioche.",
+	"card_sv_snow": "Le cristal brille sous la neige.",
+	"card_sv_base": "Quatre murs, une porte, un feu. Ça s'appelle un chez-soi.",
+	"card_sv_night": "Quatre minutes. Elles paraissent bien plus longues.",
+	"card_sv_shadow": "Elle brûle au lever du jour. Encore faut-il y arriver.",
+	"card_sv_brute": "Une nuit sur cinq, le ciel rougit. Et il vient.",
+	"card_sv_skin": "Dix jours sur l'île sauvage. Ça se voit sur l'arme.",
 	"card_reflect": "Il copie ton arme. Pas ton équipe.",
 	"card_leviathan": "Le boss du raid : quatre cœurs, des renforts, un laser au ras du sol.",
 	"card_cupid": "Ses flèches charment : deux secondes à marcher à l'envers.",

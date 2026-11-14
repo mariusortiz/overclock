@@ -57,6 +57,9 @@ var holder: CharacterModel
 var _cooldown := 0.0
 var _reloading := false
 var _muzzle_offset := Vector3.ZERO
+## Survival: where reloads take their bullets (it is given how many are
+## wanted and returns how many it gave); unset, magazines are free.
+var ammo_supply := Callable()
 ## The player's own gun, to come back to after a temporary one.
 var _own_data := {}
 var _temporary_magazines := 0
@@ -353,7 +356,10 @@ func _reload() -> void:
 	await get_tree().create_timer(reload_time, false).timeout
 	if current_data != reloaded:
 		return  # the gun changed while reloading
-	ammo = get_magazine_size()
+	if ammo_supply.is_valid():
+		ammo += int(ammo_supply.call(get_magazine_size() - ammo))
+	else:
+		ammo = get_magazine_size()
 	_reloading = false
 	ammo_changed.emit(ammo, get_magazine_size(), false)
 

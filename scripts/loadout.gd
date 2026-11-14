@@ -85,6 +85,8 @@ const SKINS := [
 	# Valentine's Day's shop (Events.is_valentine).
 	{"id": "skin_heart", "kill": &"petals", "name": "Cœur", "pattern": true, "fx": 8, "colors": [Color(1.0, 0.3, 0.55), Color(1.0, 0.92, 0.95)], "glow": 0.0, "scope": false, "silencer": true, "shot": Color(1.0, 0.4, 0.65), "shop": true, "event": "valentine"},
 	{"id": "skin_cupid", "kill": &"ascend", "name": "Cupidon", "pattern": true, "fx": 1, "colors": [Color(1.0, 0.75, 0.9), Color(0.35, 0.05, 0.2)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 0.55, 0.8), "shop": true, "event": "valentine"},
+	# Not sold: earned by surviving 10 days in the survival mode (see SurvivalSave).
+	{"id": "skin_survivor", "kill": &"leaves", "name": "Survivant", "pattern": true, "fx": 8, "colors": [Color(0.35, 0.5, 0.25), Color(0.55, 0.4, 0.25)], "glow": 0.0, "scope": true, "silencer": false, "shot": Color(0.6, 0.9, 0.4), "rush": true, "survival": true},
 	# Not sold: earned by beating the raid's Léviathan (see Raid).
 	{"id": "skin_abyss", "kill": &"melt", "name": "Abysse", "pattern": true, "fx": 6, "colors": [Color(0.1, 0.95, 0.8), Color(0.0, 0.03, 0.05)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(0.2, 1.0, 0.85), "rush": true, "raid": true},
 	# Not sold: earned by finishing the boss rush (see BossRush).
@@ -538,6 +540,8 @@ static func unlock_text(item: Dictionary) -> String:
 		return "En vente à la boutique"
 	if item.id == CHAMPION_SKIN_ID:
 		return "Bats le boss final de la ville"
+	if item.get("survival", false):
+		return "Survis 10 jours en mode survie"
 	if item.get("raid", false):
 		return "Bats le Léviathan en raid"
 	if item.get("rush", false):

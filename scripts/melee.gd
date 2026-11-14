@@ -42,6 +42,11 @@ func setup(data: Dictionary) -> void:
 	sweep = data.sweep
 	cone_deg = data.cone
 	knockback = data.knockback
+	for old in _model_pivot.get_children():
+		old.queue_free()
+	# Survival's bare hands: no model.
+	if str(data.get("model", "")) == "":
+		return
 	_tip_up = Loadout.is_carried_tip_up(data)
 	_model_pivot.add_child(Loadout.instantiate_melee(data, Loadout.mastery_skin(data, Loadout.selected_melee_skin())))
 
@@ -61,6 +66,13 @@ func _physics_process(delta: float) -> void:
 	_cooldown_left = maxf(_cooldown_left - delta, 0.0)
 	_swing_left = maxf(_swing_left - delta, 0.0)
 	if Input.is_action_just_pressed("melee") and _cooldown_left == 0.0:
+		_swing()
+
+
+## A swing now, if the weapon is ready (survival: the fire button swings
+## the tool in hand).
+func try_swing() -> void:
+	if _cooldown_left == 0.0:
 		_swing()
 
 

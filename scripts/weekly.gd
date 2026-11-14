@@ -20,6 +20,8 @@ const POOL: Array[Dictionary] = [
 	{"id": "crates", "stat": "crates", "goal": 10, "xp": 500, "text": "Ramasse %d caisses d'armes"},
 	{"id": "elites", "stat": "elites", "goal": 12, "xp": 700, "text": "Abats %d ennemis d'élite"},
 	{"id": "games", "stat": "games", "goal": 10, "xp": 500, "text": "Joue %d parties"},
+	{"id": "survival_days", "stat": "survival_days", "goal": 2, "xp": 700, "text": "Survis %d jours en mode survie"},
+	{"id": "crafted", "stat": "crafted", "goal": 15, "xp": 600, "text": "Fabrique %d objets en mode survie"},
 	{"id": "shots", "stat": "shots", "goal": 3000, "xp": 500, "text": "Tire %d balles"},
 ]
 

@@ -70,6 +70,12 @@ const LIST: Array[Dictionary] = [
 	{"id": "rush", "name": "Contre la montre", "text": "Termine le boss rush", "kind": "flag", "flag": "rush_done", "gems": 150, "extra": true},
 	{"id": "raid", "name": "Chasseur d'abysses", "text": "Bats le Léviathan en raid", "kind": "flag", "flag": "raid_win", "gems": 150, "extra": true},
 	{"id": "royale", "name": "Top 1", "text": "Gagne une partie de battle royale", "kind": "flag", "flag": "royale_win", "gems": 150, "extra": true},
+	{"id": "survival_1", "name": "Premier matin", "text": "Survis à ta première nuit en mode survie", "kind": "career", "stat": "survival_days", "goal": 1, "gems": 50, "extra": true},
+	{"id": "survival_10", "name": "Survivant", "text": "Survis 10 jours (donne le skin et le titre Survivant)", "kind": "career", "stat": "survival_days", "goal": 10, "gems": 300, "item": "skin_survivor", "extra": true},
+	{"id": "survival_30", "name": "Robinson", "text": "Survis 30 jours", "kind": "career", "stat": "survival_days", "goal": 30, "gems": 800, "extra": true},
+	{"id": "survival_forge", "name": "Forgeron", "text": "Construis une forge en mode survie", "kind": "flag", "flag": "survival_forge", "gems": 75, "extra": true},
+	{"id": "survival_builder", "name": "Bâtisseur", "text": "Pose 100 pièces dans un monde de survie", "kind": "career", "stat": "survival_best_built", "goal": 100, "gems": 200, "extra": true},
+	{"id": "survival_red", "name": "Nuit rouge", "text": "Abats la brute d'une nuit rouge", "kind": "flag", "flag": "survival_red_night", "gems": 150, "extra": true},
 	{"id": "chroma_1", "name": "Arc-en-ciel", "text": "Obtiens ta première carte chromatique", "kind": "variants", "variant": "chroma", "goal": 1, "gems": 100, "extra": true},
 	{"id": "chroma_10", "name": "Prisme vivant", "text": "Possède 10 cartes chromatiques", "kind": "variants", "variant": "chroma", "goal": 10, "gems": 400, "extra": true},
 	{"id": "signed_1", "name": "Autographe", "text": "Obtiens une carte signée", "kind": "variants", "variant": "signed", "goal": 1, "gems": 300, "extra": true},
@@ -130,6 +136,8 @@ static func progress(achievement: Dictionary) -> Array:
 			return [have, maxi(cosmic.size(), 1) if goal < 0 else goal]
 		"fusions":
 			return [Cards.fusions(), goal]
+		"career":
+			return [int(GameStats.load_career().get(achievement.stat, 0)), goal]
 		"flag":
 			return [1 if _flag(achievement.flag) else 0, 1]
 		"all":

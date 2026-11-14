@@ -7,6 +7,7 @@ const RACE_SCENE := "res://scenes/race.tscn"
 const LOBBY_SCENE := "res://scenes/lobby.tscn"
 const ROYALE_SCENE := "res://scenes/battle_royale.tscn"
 const PET_RACE_SCENE := "res://scenes/pet_race.tscn"
+const SURVIVAL_SCENE := "res://scenes/survival.tscn"
 const CARDS_SCENE := "res://scenes/cards.tscn"
 ## The game modes offered by JOUER: [title, description, scene].
 ## [title, line, scene, flag]: the flag says which special game it is
@@ -14,6 +15,7 @@ const CARDS_SCENE := "res://scenes/cards.tscn"
 const MODES := [
 	["HISTOIRE", "Les 3 saisons de l'anime · 30 chapitres", Story.SCREEN, ""],
 	["VAGUES", "Survis aux vagues · 7 boss", GAME_SCENE, ""],
+	["SURVIE", "Récolte, fabrique, construis · tiens la nuit", SURVIVAL_SCENE, "survival"],
 	["BATTLE ROYALE", "24 combattants · un seul gagnant", ROYALE_SCENE, ""],
 	["BOSS RUSH", "Les 8 boss d'affilée · une vie · chrono", GAME_SCENE, "rush"],
 	["RAID : LE LÉVIATHAN", "Boss géant · 2 bots alliés ou Wi-Fi", GAME_SCENE, "raid"],
@@ -198,6 +200,10 @@ func _build_mode_panel() -> void:
 		button.add_theme_font_size_override("font_size", 17)
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var flag: String = mode[3]
+		if flag == "survival":
+			button.pressed.connect(_open_survival_panel)
+			grid.add_child(button)
+			continue
 		button.pressed.connect(func() -> void:
 			Events.christmas_run = flag == "christmas"
 			Events.valentine_run = flag == "valentine"
@@ -222,6 +228,71 @@ func _refresh_cards_button() -> void:
 	button.text = "CARTES" + (" (%d)" % count if count > 0 else "") + ("  ★" if Cards.daily_ready() else "")
 	if Cards.daily_ready():
 		button.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+
+
+## Survival: carry on with the saved world, or start a new one (its seed,
+## typed or drawn, and its difficulty).
+func _open_survival_panel() -> void:
+	var root := Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(root)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.8)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.add_child(center)
+	var panel := PanelContainer.new()
+	center.add_child(panel)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 12)
+	panel.add_child(box)
+	var title := Label.new()
+	title.text = "SURVIE"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 40)
+	title.add_theme_color_override("font_color", Color(0.4, 1.0, 0.5))
+	box.add_child(title)
+	var start := func(fresh: bool, difficulty: int, world_seed: int) -> void:
+		if fresh:
+			SurvivalSave.start_new(world_seed, difficulty)
+		get_tree().change_scene_to_file.call_deferred(SURVIVAL_SCENE)
+	if SurvivalSave.exists():
+		var resume := Button.new()
+		resume.text = "CONTINUER\n" + SurvivalSave.summary()
+		resume.custom_minimum_size = Vector2(560, 80)
+		resume.add_theme_font_size_override("font_size", 22)
+		resume.pressed.connect(start.bind(false, 1, 0))
+		box.add_child(resume)
+	var seed_field := LineEdit.new()
+	seed_field.placeholder_text = "Graine (vide : au hasard)"
+	seed_field.custom_minimum_size.y = 56
+	seed_field.add_theme_font_size_override("font_size", 22)
+	box.add_child(seed_field)
+	var hint := Label.new()
+	hint.text = "Nouveau monde (remplace le monde sauvegardé) :"
+	hint.add_theme_font_size_override("font_size", 18)
+	box.add_child(hint)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	box.add_child(row)
+	for index in SurvivalGame.DIFFICULTIES.size():
+		var button := Button.new()
+		button.text = str(SurvivalGame.DIFFICULTIES[index]).to_upper()
+		button.custom_minimum_size = Vector2(180, 64)
+		button.add_theme_font_size_override("font_size", 20)
+		button.pressed.connect(func() -> void:
+			var typed := seed_field.text.strip_edges()
+			var world_seed := typed.to_int() if typed.is_valid_int() else (absi(typed.hash()) if typed != "" else randi() % 1000000)
+			start.call(true, index, world_seed))
+		row.add_child(button)
+	var back := Button.new()
+	back.text = "RETOUR"
+	back.custom_minimum_size.y = 56
+	back.add_theme_font_size_override("font_size", 22)
+	back.pressed.connect(root.queue_free)
+	box.add_child(back)
 
 
 ## The code field: a code typed here gives its rewards (see PromoCodes).
