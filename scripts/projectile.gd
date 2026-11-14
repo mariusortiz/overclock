@@ -7,6 +7,8 @@ extends Area3D
 @export var lifetime := 3.0
 
 var direction := Vector3.FORWARD
+## Who fired it, if it can hit its own side (battle royale): never them.
+var shooter: Node3D
 
 
 func _ready() -> void:
@@ -20,6 +22,8 @@ func _physics_process(delta: float) -> void:
 
 
 func _on_body_entered(body: Node3D) -> void:
+	if body == shooter:
+		return
 	if body is Player:
 		body.take_damage(damage, global_position - direction * 4.0)
 	elif body.has_method("take_damage"):

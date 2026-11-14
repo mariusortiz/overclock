@@ -4,7 +4,7 @@ extends Node
 ## tools/make_arena.py). Prints one NAV line per level and exits with an error
 ## if one cannot be reached.
 
-const ARENAS: Array[String] = ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow"]
+const ARENAS: Array[String] = ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow", "abyss", "island"]
 const START := Vector3(0.0, 0.2, 18.0)
 const MAX_WAIT_FRAMES := 600
 

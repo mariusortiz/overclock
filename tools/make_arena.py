@@ -611,8 +611,96 @@ def ruins(b):
         b.prop(NATURE + model + ".glb", x, z, height, yaw)
 
 
+def abyss(b):
+    """The raid's abyss: an open pit floor in the middle where the Léviathan
+    stands (it does not move), four high platforms in the corners, each
+    reached by a ramp, joined two by two by walkways along the north and
+    south walls: up there, its sweeping laser cannot reach. Glowing pools and
+    a few walls to hide behind."""
+    stone = b.m["block"]
+    for sx in (-1, 1):
+        for sz in (-1, 1):
+            x, z = sx * 21, sz * 21
+            b.slab(x, z, 9, 9, 3.5, gaps=[("e" if sx < 0 else "w", z - 1.6, z + 1.6)] + [("s" if sz < 0 else "n", x - 1.6, x + 1.6)],
+                   material=stone)
+            # The ramp comes down toward the middle along z; the walkway
+            # leaves from the inner side.
+            b.ramp((x, z - sz * 4.5), (x, z - sz * 12.5), 3.5, 0, 3.0)
+    for sz in (-1, 1):
+        b.bridge((-16.5, sz * 21), (16.5, sz * 21), 3.5, 3.0, pillar_every=99, material=stone)
+    # Glowing pools at the edges, and cover.
+    b.water += [(-26, 0, 4, 14), (26, 0, 4, 14)]
+    for x, z, w, d in [(-14, 6, 3.5, 1.0), (14, -6, 3.5, 1.0), (-14, -6, 1.0, 3.0), (14, 6, 1.0, 3.0), (0, -15, 4, 1.0), (-6, 14, 1.0, 3.0)]:
+        b.cover(x, z, w, d, 1.3, material=stone)
+    # Teal light strips around the pit.
+    for i in range(12):
+        angle = math.tau * i / 12
+        b.box((0.5, 0.06, 2.0), (math.cos(angle) * 12.5, 0.03, math.sin(angle) * 12.5), b.m["glow"], rot_y(-math.degrees(angle)), collide=False)
+    b.loot += [("pad", (-21, 3.55, -21)), ("pad", (21, 3.55, 21)), ("chest", (21, 3.5, -21))]
+    for x, z, model, height, yaw in [(-27, -27, "rock_tallA", 3.0, 0), (27, 27, "rock_tallB", 3.0, 40), (27, -27, "rock_largeC", 1.6, 0)]:
+        b.prop(NATURE + model + ".glb", x, z, height, yaw)
+
+
+def island(b):
+    """The battle royale's island, 140 m across: a town in the middle
+    (buildings with rooftops, an overpass), ruins to the north-west, a crystal
+    field to the north-east, stilt huts to the south-west, a dock of
+    containers to the south-east, and cover everywhere in between. Loot
+    markers are where the crates and the healing pads go."""
+    rock = b.m["rock"]
+    # The town: a crossroads of buildings, two with a rooftop reached by a ramp.
+    for x, z, w, d, top in [(-10, -10, 8, 8, 6.0), (10, -10, 8, 8, 9.0), (-10, 10, 8, 8, 9.0), (10, 10, 8, 8, 6.0)]:
+        b.block(x, z, w, d, top, material=b.m["building"])
+        b.windows(x, z, w, d, top, 2)
+    for x, z in [(-10, -10), (10, 10)]:
+        b.box((8.2, 0.3, 8.2), (x, 6.15, z), b.m["trim"])
+    b.slab(0, 0, 6, 6, 3.5, gaps=[("n", -1.6, 1.6), ("s", -1.6, 1.6)])
+    b.ramp((0, -11), (0, -3), 0, 3.5, 3.0)
+    b.ramp((0, 11), (0, 3), 0, 3.5, 3.0)
+    # Ruins (north-west): a stepped temple and broken columns.
+    b.block(-42, -42, 14, 14, 4.0, material=rock, roof_rails="nesw", gaps=[("s", -43.6, -40.4)], check=True)
+    b.ramp((-42, -27), (-42, -35), 0, 4.0, 3.0, material=rock)
+    for x, z, top in [(-56, -30, 5.0), (-30, -56, 3.0), (-52, -52, 6.0), (-28, -30, 2.0), (-58, -44, 4.0)]:
+        b.block(x, z, 1.6, 1.6, top, material=rock)
+    # Crystal field (north-east).
+    for x, z, h, yaw in [(40, -40, 7.0, 10), (52, -30, 5.0, 40), (30, -55, 6.0, 70), (55, -55, 9.0, 20), (36, -24, 3.0, 0),
+                         (24, -40, 2.6, 30), (46, -50, 2.4, 60), (58, -42, 3.4, 15)]:
+        crystal_cluster(b, x, z, h, yaw)
+    b.slab(42, -42, 8, 8, 3.5, gaps=[("s", 40.4, 43.6)], material=rock)
+    b.ramp((42, -30), (42, -38), 0, 3.5, 3.0, material=rock)
+    # Stilt huts (south-west), joined by a walkway.
+    for x, z in [(-48, 36), (-30, 48)]:
+        b.slab(x, z, 7, 7, 3.5, gaps=[("n", x - 1.6, x + 1.6), ("e", z - 1.6, z + 1.6)])
+        b.box((7.6, 0.4, 7.6), (x, 6.2, z), b.m["roof"])
+        b.ramp((x, z - 12), (x, z - 3.5), 0, 3.5, 3.0)
+    b.bridge((-44.5, 36), (-33.5, 36), 3.5, 2.6, pillar_every=99)
+    b.water.append((-42, 56, 30, 8))
+    # Container dock (south-east).
+    for x, z, yaw, stack in [(28, 24, 0, 2), (36, 21, 0, 1), (46, 37, 90, 2), (30, 44, 90, 1), (52, 48, 0, 2), (40, 54, 0, 1)]:
+        for level in range(stack):
+            b.box((6.0, 2.6, 2.6), (x, 1.3 + level * 2.6, z), b.m["container"], rot_y(yaw))
+        b._footprint(x - 3.2, z - 3.2, x + 3.2, z + 3.2, 0.5)
+    b.slab(54, 30, 8, 8, 3.5, gaps=[("w", 28.4, 31.6)])
+    b.ramp((42, 30), (50, 30), 0, 3.5, 3.0)
+    # Cover all over the open ground.
+    for x, z, w, d in [(-24, 0, 1.0, 4), (24, 0, 1.0, 4), (0, -26, 4, 1.0), (0, 26, 4, 1.0), (-20, -24, 3, 1.0), (22, 24, 3, 1.0),
+                       (-60, 0, 1.0, 5), (60, 0, 1.0, 5), (0, -60, 5, 1.0), (0, 60, 5, 1.0), (-34, 14, 3, 1.0), (34, -14, 3, 1.0),
+                       (-14, 34, 1.0, 3), (14, -34, 1.0, 3), (-50, 14, 1.0, 3), (50, -14, 1.0, 3)]:
+        b.cover(x, z, w, d, 1.3)
+    for x, z, model, height, yaw in [(-34, -8, "tree_tall", 6.0, 0), (34, 8, "tree_detailed", 6.5, 30), (-8, -40, "tree_oak", 5.5, 0),
+                                      (8, 40, "tree_default", 5.0, 0), (-62, -20, "rock_tallB", 3.0, 0), (62, 20, "rock_tallA", 3.0, 0),
+                                      (-20, 62, "rock_largeC", 1.6, 0), (20, -62, "rock_largeA", 1.6, 0), (-56, 20, "tree_tall", 6.0, 0),
+                                      (56, -18, "tree_oak", 5.0, 0)]:
+        b.prop(NATURE + model + ".glb", x, z, height, yaw, collision=0.3 if "tree" in model else 1.0)
+    # Loot: crates (chest markers) and healing pads.
+    b.loot += [("pad", (0, 3.55, 0)), ("chest", (-10, 9.0, 10)), ("chest", (10, 9.0, -10)), ("chest", (-42, 4.0, -42)),
+               ("pad", (42, 3.55, -42)), ("chest", (-48, 3.5, 36)), ("pad", (-30, 3.55, 48)), ("chest", (54, 3.5, 30)),
+               ("chest", (-24, 0.0, 24)), ("chest", (24, 0.0, -24)), ("pad", (-56, 0.05, -8)), ("pad", (56, 0.05, 8)),
+               ("chest", (0, 0.0, -50)), ("chest", (0, 0.0, 50)), ("chest", (-50, 0.0, 0)), ("chest", (50, 0.0, 0))]
+
+
 LAYOUTS = {"station": station, "desert": desert, "jungle": jungle, "volcano": volcano, "matrix": matrix, "city": city, "snow": snow,
-           "crystal": crystal, "ruins": ruins}
+           "crystal": crystal, "ruins": ruins, "abyss": abyss, "island": island}
 
 ARENAS = {
     "station": {
@@ -705,8 +793,33 @@ ARENAS = {
         "spawns": [(-12, 0.1, -27), (12, 0.1, -27), (-27, 0.1, -20), (27, 0.1, -20), (-27, 0.1, 12), (27, 0.1, 12), (-10, 0.1, 26)],
         "boss": (0, 0.1, 5),
     },
+    # The raid's arena (see Raid): the Léviathan's abyss.
+    "abyss": {
+        "name": "ABYSSE", "music": 11, "enemy": "Pirate_Male.fbx", "enemy_weapon": "smg",
+        "enemy_glow": (0.1, 0.95, 0.8, 0.3),
+        "sky_top": (0.0, 0.02, 0.05), "sky_horizon": (0.02, 0.2, 0.25), "ambient": (0.35, 0.6, 0.65), "ambient_energy": 0.5,
+        "sun": (0.6, 0.9, 1), "sun_energy": 0.7, "floor": "basalt", "floor_tint": (0.25, 0.38, 0.45), "wall": ("basalt", (0.2, 0.3, 0.36)),
+        "materials": {"struct": ("panel_dark", (0.45, 0.6, 0.65)), "block": ("basalt", (0.3, 0.42, 0.48)),
+                      "trim": ("panel_dark", (0.3, 0.42, 0.46)), "rail": ("@glow", (0.1, 0.95, 0.8)), "glow": ("@glow", (0.1, 0.95, 0.8))},
+        "spawns": [(-12, 0.1, -27), (12, 0.1, -27), (-27, 0.1, -12), (27, 0.1, -12), (-27, 0.1, 12), (27, 0.1, 12), (10, 0.1, 26)],
+        "boss": (0, 0.1, 0),
+    },
+    # The battle royale's island (see BattleRoyale), 140 m across: the 24
+    # spawns make a ring.
+    "island": {
+        "name": "L'ÎLE", "music": 7, "enemy": "Pirate_Male.fbx", "enemy_weapon": "smg", "size": 140,
+        "sky_top": (0.2, 0.45, 0.8), "sky_horizon": (0.75, 0.85, 0.95), "ambient": (0.75, 0.78, 0.85), "ambient_energy": 0.45,
+        "sun": (1, 0.95, 0.85), "sun_energy": 1.1, "floor": "grass", "wall": ("basalt", (0.45, 0.42, 0.4)),
+        "materials": {"struct": ("panel_light", (0.8, 0.8, 0.85)), "block": ("panel_light", (0.7, 0.7, 0.75)),
+                      "building": ("panel_light", (0.65, 0.66, 0.74)), "trim": ("panel_dark", (0.6, 0.6, 0.65)),
+                      "rail": ("panel_dark", (0.75, 0.75, 0.8)), "rock": ("basalt", (0.62, 0.55, 0.48)),
+                      "roof": ("melee/wood", (0.6, 0.45, 0.35)), "container": ("panel_dark", (0.75, 0.35, 0.25)),
+                      "crystal": ("@crystal", (0.45, 0.85, 1.0)), "crystal_pink": ("@crystal", (0.95, 0.45, 1.0))},
+        "spawns": [(55.0, 0.1, 0.0), (53.1, 0.1, 14.2), (47.6, 0.1, 27.5), (38.9, 0.1, 38.9), (27.5, 0.1, 47.6), (14.2, 0.1, 53.1), (0.0, 0.1, 55.0), (-14.2, 0.1, 53.1), (-27.5, 0.1, 47.6), (-38.9, 0.1, 38.9), (-47.6, 0.1, 27.5), (-53.1, 0.1, 14.2), (-55.0, 0.1, 0.0), (-53.1, 0.1, -14.2), (-47.6, 0.1, -27.5), (-38.9, 0.1, -38.9), (-27.5, 0.1, -47.6), (-14.2, 0.1, -53.1), (-0.0, 0.1, -55.0), (14.2, 0.1, -53.1), (27.5, 0.1, -47.6), (38.9, 0.1, -38.9), (47.6, 0.1, -27.5), (53.1, 0.1, -14.2)],
+        "boss": (0, 0.1, 30),
+    },
 }
-ORDER = ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow"]
+ORDER = ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow", "abyss", "island"]
 
 
 def sun_basis():
@@ -819,11 +932,13 @@ def build(arena_id, arena):
               f'light_color = {color(arena["sun"])}', f'light_energy = {arena["sun_energy"]}', "shadow_enabled = true", ""]
 
     # --- Boxes: floor, walls, then the layout's. One mesh and one shape per size.
-    boxes = [((SIZE, 1, SIZE), (0, -0.5, 0), "floor_material", IDENTITY, True),
-             ((SIZE, WALL_HEIGHT, 1), (0, WALL_HEIGHT / 2, -HALF - 0.5), "wall_material", IDENTITY, True),
-             ((SIZE, WALL_HEIGHT, 1), (0, WALL_HEIGHT / 2, HALF + 0.5), "wall_material", IDENTITY, True),
-             ((1, WALL_HEIGHT, SIZE + 2), (-HALF - 0.5, WALL_HEIGHT / 2, 0), "wall_material", IDENTITY, True),
-             ((1, WALL_HEIGHT, SIZE + 2), (HALF + 0.5, WALL_HEIGHT / 2, 0), "wall_material", IDENTITY, True)]
+    size = arena.get("size", SIZE)
+    half = size / 2
+    boxes = [((size, 1, size), (0, -0.5, 0), "floor_material", IDENTITY, True),
+             ((size, WALL_HEIGHT, 1), (0, WALL_HEIGHT / 2, -half - 0.5), "wall_material", IDENTITY, True),
+             ((size, WALL_HEIGHT, 1), (0, WALL_HEIGHT / 2, half + 0.5), "wall_material", IDENTITY, True),
+             ((1, WALL_HEIGHT, size + 2), (-half - 0.5, WALL_HEIGHT / 2, 0), "wall_material", IDENTITY, True),
+             ((1, WALL_HEIGHT, size + 2), (half + 0.5, WALL_HEIGHT / 2, 0), "wall_material", IDENTITY, True)]
     boxes += builder.boxes
     mesh_ids, shape_ids = {}, {}
     nodes += ['[node name="Structure" type="Node3D" parent="."]', ""]

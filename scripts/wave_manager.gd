@@ -51,6 +51,9 @@ var remote_blow := 0
 ## Fixed health scale for the bosses (a story mission's: as met the first
 ## time); 0 lets it grow each time the bosses come around.
 var boss_health_scale := 0.0
+## Boss rush (see BossRush): every wave is a lone boss, from this list of
+## kinds, one after the other; empty for the usual waves.
+var rush_kinds: Array = []
 ## Players in a co-op game: more enemies, and tougher, for each one more.
 var coop_players := 1
 
@@ -97,10 +100,12 @@ func resume() -> void:
 # --- Difficulty curve -------------------------------------------------------
 
 func is_boss_wave() -> bool:
-	return wave % BOSS_EVERY == 0
+	return not rush_kinds.is_empty() or wave % BOSS_EVERY == 0
 
 
 func _enemy_count() -> int:
+	if not rush_kinds.is_empty():
+		return 1
 	if is_boss_wave():
 		return 1 + BOSS_ESCORT * coop_players
 	return roundi((3 + 2 * (wave - 1)) * (1.0 + 0.5 * (coop_players - 1)))
@@ -243,13 +248,44 @@ func _create_boss() -> Boss:
 	@warning_ignore("integer_division")
 	var index := wave / BOSS_EVERY - 1
 	var kinds: Array = Boss.ORDER if boss_kind < 0 else [boss_kind]
+	if not rush_kinds.is_empty():
+		kinds = rush_kinds
+		index = wave - 1
 	var boss: Boss = boss_scene.instantiate()
 	@warning_ignore("integer_division")
 	var health_scale := boss_health_scale if boss_health_scale > 0.0 else 1.0 + 0.6 * (index / kinds.size())
 	boss.configure(kinds[index % kinds.size()], health_scale)
 	boss.summon_requested.connect(_on_boss_summon_requested)
+	boss.cores_requested.connect(_spawn_cores.bind(boss))
 	boss.died.connect(boss_killed.emit.bind(boss.kind))
 	return boss
+
+
+## The Léviathan's cores: glowing slimes around it that keep its shield up
+## until they are shot down. They fire back now and then.
+func _spawn_cores(count: int, boss: Boss) -> void:
+	for i in count:
+		var angle := TAU * i / count + PI / 4.0
+		var core: Enemy = enemy_scene.instantiate()
+		core.model_scene = load(Boss.MODEL_DIR + "monsters/Slime.fbx")
+		core.model_height = 1.5
+		core.model_hover = 0.2
+		core.weapon_id = "blaster"
+		core.max_health = 30 * coop_players
+		core.move_speed = 0.0
+		core.fire_interval = 2.6
+		core.attack_range = 30.0
+		core.drop_chance = 0.0
+		core.add_to_group("raid_cores")
+		core.position = boss.global_position + Vector3(cos(angle), 0, sin(angle)) * 8.0
+		core.position.y = boss.global_position.y
+		core.died.connect(_on_enemy_died)
+		get_parent().add_child(core)
+		core._glow(Boss.LEVIATHAN_COLOR, 0.6)
+		enemy_spawned.emit(core)
+		Effects.flash(get_parent(), core.position + Vector3.UP, Boss.LEVIATHAN_COLOR, 3.0, 0.4)
+		_alive += 1
+	enemies_left_changed.emit(_to_spawn + _alive)
 
 
 func _on_boss_summon_requested(count: int) -> void:

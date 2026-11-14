@@ -36,6 +36,17 @@ func _draw() -> void:
 		_draw_dot(player, crate.global_position, SupplyCrate.COLOR, 5.0)
 	for power_up: PowerUp in get_tree().get_nodes_in_group("power_ups"):
 		_draw_dot(player, power_up.global_position, PowerUp.INFO[power_up.type].color, 3.0)
+	# Battle royale: the safe zone's edge.
+	for storm: StormZone in get_tree().get_nodes_in_group("storm_zone"):
+		var offset := storm.global_position - player.global_position
+		var at := center + Vector2(offset.x, offset.z).rotated(player.global_rotation.y) / RANGE * radius
+		# Only the part of the circle inside the radar.
+		var ring := storm.radius / RANGE * radius
+		for i in 96:
+			var a := at + Vector2.from_angle(TAU * i / 96.0) * ring
+			var b := at + Vector2.from_angle(TAU * (i + 1) / 96.0) * ring
+			if a.distance_to(center) < radius and b.distance_to(center) < radius:
+				draw_line(a, b, StormZone.COLOR, 2.0)
 	# Team modes: the zones in their holder's color, the allies in cyan.
 	for zone: CaptureZone in get_tree().get_nodes_in_group("capture_zones"):
 		_draw_dot(player, zone.global_position, zone.color(), 7.0)

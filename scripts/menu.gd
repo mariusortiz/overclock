@@ -5,16 +5,25 @@ const GAME_SCENE := "res://scenes/main.tscn"
 const CAPTURE_SCENE := "res://scenes/capture.tscn"
 const RACE_SCENE := "res://scenes/race.tscn"
 const LOBBY_SCENE := "res://scenes/lobby.tscn"
+const ROYALE_SCENE := "res://scenes/battle_royale.tscn"
+const PET_RACE_SCENE := "res://scenes/pet_race.tscn"
 const CARDS_SCENE := "res://scenes/cards.tscn"
 ## The game modes offered by JOUER: [title, description, scene].
+## [title, line, scene, flag]: the flag says which special game it is
+## ("christmas", "rush", "raid" or "").
 const MODES := [
-	["HISTOIRE", "Les 3 saisons de l'anime, en 30 chapitres", Story.SCREEN],
-	["VAGUES", "Survis aux vagues et bats les 7 boss", GAME_SCENE],
-	["CAPTURE DE ZONE", "4 contre 4 avec des bots · tiens les zones A, B et C", CAPTURE_SCENE],
-	["COURSE DE VAISSEAUX", "3 tours contre 5 pilotes · boost et lasers", RACE_SCENE],
-	["COMBAT", "Un contre un, de profil · IA, 2 joueurs, arcade, Wi-Fi", FightSetup.MENU],
-	["MULTIJOUEUR", "Wi-Fi local · coop en vagues, course, capture, combat", LOBBY_SCENE],
+	["HISTOIRE", "Les 3 saisons de l'anime · 30 chapitres", Story.SCREEN, ""],
+	["VAGUES", "Survis aux vagues · 7 boss", GAME_SCENE, ""],
+	["BATTLE ROYALE", "24 combattants · un seul gagnant", ROYALE_SCENE, ""],
+	["BOSS RUSH", "Les 8 boss d'affilée · une vie · chrono", GAME_SCENE, "rush"],
+	["RAID : LE LÉVIATHAN", "Boss géant · 2 bots alliés ou Wi-Fi", GAME_SCENE, "raid"],
+	["CAPTURE DE ZONE", "4 contre 4 · zones A, B et C", CAPTURE_SCENE, ""],
+	["COURSE DE VAISSEAUX", "3 tours contre 5 pilotes", RACE_SCENE, ""],
+	["COURSE D'ANIMAUX", "Ton animal · mise des crédits", PET_RACE_SCENE, ""],
+	["COMBAT", "Un contre un · IA, arcade, Wi-Fi", FightSetup.MENU, ""],
+	["MULTIJOUEUR", "Wi-Fi local · coop, raid, capture…", LOBBY_SCENE, ""],
 ]
+
 const ARMORY_SCENE := "res://scenes/armory.tscn"
 const PASS_SCENE := "res://scenes/battle_pass.tscn"
 const SHOP_SCENE := "res://scenes/shop.tscn"
@@ -33,6 +42,8 @@ func _ready() -> void:
 	# Le Créateur's later gifts (his capybara, its card), for those who have him.
 	Cards.sync_hacker()
 	Events.christmas_run = false
+	BossRush.active = false
+	Raid.active = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Music.play_track(Music.Track.CHRISTMAS if Events.is_christmas() else Music.Track.MAIN)
 	_stage.show_loadout()
@@ -163,7 +174,7 @@ func _build_mode_panel() -> void:
 	var panel := PanelContainer.new()
 	center.add_child(panel)
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 10 if Events.is_christmas() else 14)
+	box.add_theme_constant_override("separation", 12)
 	panel.add_child(box)
 	var title := Label.new()
 	title.text = "MODE DE JEU"
@@ -173,24 +184,28 @@ func _build_mode_panel() -> void:
 	box.add_child(title)
 	var modes := MODES.duplicate()
 	if Events.is_christmas():
-		modes.push_front(["VAGUES DE NOËL", "10 vagues dans le village enneigé · le Père Glaçon", GAME_SCENE, true])
+		modes.push_front(["VAGUES DE NOËL", "10 vagues · le Père Glaçon", GAME_SCENE, "christmas"])
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 10)
+	box.add_child(grid)
 	for mode: Array in modes:
 		var button := Button.new()
 		button.text = "%s\n%s" % [mode[0], mode[1]]
-		button.custom_minimum_size = Vector2(560, 88)
-		button.add_theme_font_size_override("font_size", 24)
-		# Seven modes at Christmas: a little less tall each.
-		button.custom_minimum_size.y = 64 if modes.size() > 6 else 88
-		if modes.size() > 6:
-			button.add_theme_font_size_override("font_size", 20)
-		var christmas: bool = mode.size() > 3
+		button.custom_minimum_size = Vector2(540, 64)
+		button.add_theme_font_size_override("font_size", 17)
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var flag: String = mode[3]
 		button.pressed.connect(func() -> void:
-			Events.christmas_run = christmas
+			Events.christmas_run = flag == "christmas"
+			BossRush.active = flag == "rush"
+			Raid.active = flag == "raid"
 			get_tree().change_scene_to_file(mode[2]), CONNECT_DEFERRED)
-		box.add_child(button)
+		grid.add_child(button)
 	var back := Button.new()
 	back.text = "RETOUR"
-	back.custom_minimum_size.y = 50 if Events.is_christmas() else 64
+	back.custom_minimum_size.y = 56
 	back.add_theme_font_size_override("font_size", 24)
 	back.pressed.connect(func() -> void: _mode_panel.visible = false)
 	box.add_child(back)

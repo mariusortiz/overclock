@@ -4,12 +4,15 @@ extends Enemy
 ## with its own attack.
 
 signal summon_requested(count: int)
+## The Léviathan wants its armor's cores around it (see WaveManager).
+signal cores_requested(count: int)
 
 ## TITAN is the final boss, met in the last arena; VIRUS guards the Matrice,
 ## just before (it was added last, hence its place in the list: see ORDER).
 ## FROST, the Père Glaçon, only comes in the Christmas waves (see Events).
 ## GUARDIAN, the portal's guardian of season 3, guards the crystal planet.
-enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER, TITAN, VIRUS, FROST, GUARDIAN }
+## LEVIATHAN is the raid's boss (see Raid), in the abyss only.
+enum Kind { COLOSSUS, BRUTE, ARTILLERY, SUMMONER, TITAN, VIRUS, FROST, GUARDIAN, LEVIATHAN }
 
 ## The bosses in the order of the arenas.
 const ORDER: Array[Kind] = [Kind.COLOSSUS, Kind.BRUTE, Kind.ARTILLERY, Kind.SUMMONER, Kind.VIRUS, Kind.GUARDIAN, Kind.TITAN]
@@ -25,6 +28,7 @@ const INFO := {
 	Kind.TITAN: {"name": "TITAN", "model": "mechs/George.fbx", "height": 2.6, "hover": 0.0, "health": 220, "speed": 2.6, "fire_interval": 1.7, "range": 20.0},
 	Kind.FROST: {"name": "PÈRE GLAÇON", "model": "monsters/Skeleton.fbx", "height": 2.2, "hover": 0.0, "health": 90, "speed": 3.4, "fire_interval": 1.3, "range": 16.0},
 	Kind.GUARDIAN: {"name": "LE GARDIEN", "model": "characters/Wizard.fbx", "height": 3.0, "hover": 0.0, "health": 180, "speed": 2.4, "fire_interval": 1.5, "range": 20.0},
+	Kind.LEVIATHAN: {"name": "LE LÉVIATHAN", "model": "monsters/Dragon.fbx", "height": 3.6, "hover": 1.2, "health": 420, "speed": 0.0, "fire_interval": 1.7, "range": 32.0},
 	Kind.VIRUS: {"name": "LE VIRUS", "model": "mechs/George.fbx", "height": 2.3, "hover": 0.0, "health": 150, "speed": 3.2, "fire_interval": 1.2, "range": 18.0},
 }
 ## The Virus jumps next to the player now and then (more often when hurt),
@@ -47,6 +51,19 @@ const TITAN_MORTAR_SPREAD := 5.0
 const GUARDIAN_SONG_INTERVAL := 7.0
 const GUARDIAN_SONG_SHARDS := 14
 const CRYSTAL_COLOR := Color(0.45, 0.85, 1.0)
+## The Léviathan, in three phases: shielded while its four cores live (they
+## have to be shot down first), then calling adds and a rain of strikes, and
+## below LEVIATHAN_LASER_BELOW of its life a laser sweeping the floor around
+## it (jump over it, or stay up on a platform).
+const LEVIATHAN_CORES := 4
+const LEVIATHAN_COLOR := Color(0.1, 0.95, 0.8)
+const LEVIATHAN_LASER_BELOW := 0.4
+const LEVIATHAN_LASER_LENGTH := 26.0
+const LEVIATHAN_LASER_HEIGHT := 0.55
+const LEVIATHAN_LASER_SPEED := 0.85
+const LEVIATHAN_LASER_DAMAGE := 15
+const LEVIATHAN_STRIKE_INTERVAL := 4.5
+const LEVIATHAN_SUMMON_INTERVAL := 10.0
 
 var kind := Kind.COLOSSUS
 
@@ -58,6 +75,10 @@ var _shockwave_left := TITAN_SHOCKWAVE_INTERVAL
 var _attack_count := 0
 var _jump_left := VIRUS_JUMP_INTERVAL
 var _song_left := GUARDIAN_SONG_INTERVAL
+var _cores_called := false
+var _strike_left := LEVIATHAN_STRIKE_INTERVAL
+var _sweep_laser: Node3D
+var _laser_hit_left := 0.0
 
 
 ## Call before adding the boss to the scene. `health_scale` grows each time
@@ -96,6 +117,12 @@ func _ready() -> void:
 		_dress_frost()
 	if kind == Kind.GUARDIAN:
 		dress_guardian(_model)
+	if kind == Kind.LEVIATHAN:
+		dress_leviathan(_model)
+		_shield = _create_shield()
+		_shield.scale = Vector3.ONE * 2.2
+		_shielded = true
+		_shield.visible = true
 
 
 ## Bosses are too heavy to be pushed around.
@@ -126,6 +153,8 @@ func _physics_process(delta: float) -> void:
 			_update_virus(delta)
 		Kind.GUARDIAN:
 			_update_guardian(delta)
+		Kind.LEVIATHAN:
+			_update_leviathan(delta)
 
 
 func _update_summoner(delta: float) -> void:
@@ -159,6 +188,8 @@ func _attack() -> void:
 				for i in 2 if _phase() == 1 else 4:
 					var spread := Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * 4.0
 					_call_mortar(_player.global_position + (spread if i > 0 else Vector3.ZERO))
+		Kind.LEVIATHAN:
+			_shoot_fan()
 		Kind.GUARDIAN:
 			_attack_count += 1
 			_shoot_fan()
@@ -239,6 +270,93 @@ func _update_guardian(delta: float) -> void:
 		if _summon_left <= 0.0:
 			_summon_left = SUMMON_INTERVAL
 			summon_requested.emit(SUMMON_COUNT)
+
+
+func _update_leviathan(delta: float) -> void:
+	if not _cores_called:
+		_cores_called = true
+		cores_requested.emit(LEVIATHAN_CORES)
+		return
+	# Phase 1: the cores keep its shield up.
+	var cores := get_tree().get_nodes_in_group("raid_cores").filter(func(core: Node) -> bool: return not core._dead)
+	if not cores.is_empty():
+		return
+	if _shielded:
+		_shielded = false
+		_shield.visible = false
+		Effects.flash(get_tree().current_scene, global_position + Vector3.UP * 3.0, LEVIATHAN_COLOR, 12.0, 0.8)
+		_model.play(&"jump", true)
+		_shoot_animation_left = 0.8
+	# Phase 2 on: adds, and strikes raining around the player.
+	_summon_left -= delta
+	if _summon_left <= 0.0:
+		_summon_left = LEVIATHAN_SUMMON_INTERVAL
+		summon_requested.emit(SUMMON_COUNT)
+	_strike_left -= delta
+	if _strike_left <= 0.0 and _player:
+		_strike_left = LEVIATHAN_STRIKE_INTERVAL
+		for i in 3:
+			var spread := Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * 5.0
+			_call_mortar(_player.global_position + (spread if i > 0 else Vector3.ZERO))
+	# Phase 3: the sweeping laser.
+	if float(_health) / max_health < LEVIATHAN_LASER_BELOW:
+		if _sweep_laser == null:
+			_sweep_laser = _create_laser()
+		_sweep_laser.rotate_y(LEVIATHAN_LASER_SPEED * delta)
+		_laser_hit_left -= delta
+		if _laser_hit_left <= 0.0 and _player and _laser_touches(_player.global_position):
+			_laser_hit_left = 0.6
+			_player.take_damage(LEVIATHAN_LASER_DAMAGE, global_position)
+
+
+## Two beams across the floor, level with the shins, turning around the boss.
+func _create_laser() -> Node3D:
+	var pivot := Node3D.new()
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = Color(1.0, 0.2, 0.3)
+	var beam := BoxMesh.new()
+	beam.size = Vector3(LEVIATHAN_LASER_LENGTH * 2.0, 0.18, 0.18)
+	beam.material = material
+	for angle in [0.0, PI / 2.0]:
+		var part := MeshInstance3D.new()
+		part.mesh = beam
+		part.rotation.y = angle
+		part.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		pivot.add_child(part)
+	pivot.top_level = true
+	add_child(pivot)
+	pivot.global_position = Vector3(global_position.x, global_position.y + LEVIATHAN_LASER_HEIGHT, global_position.z)
+	Effects.flash(get_tree().current_scene, pivot.global_position, Color(1.0, 0.2, 0.3), 8.0, 0.5)
+	return pivot
+
+
+## Whether a point (a player's feet) is on one of the beams: near its line,
+## and not above it (a jump, or a platform, clears it).
+func _laser_touches(at: Vector3) -> bool:
+	var local := _sweep_laser.global_transform.affine_inverse() * at
+	if local.y > 0.1 or local.y < -1.5:
+		return false
+	var near_x := absf(local.z) < 0.6 and absf(local.x) < LEVIATHAN_LASER_LENGTH
+	var near_z := absf(local.x) < 0.6 and absf(local.z) < LEVIATHAN_LASER_LENGTH
+	return near_x or near_z
+
+
+## Deep-sea colors and a glow of teal: the Léviathan's look (the boss, its
+## card, the trailer).
+static func dress_leviathan(model: Node3D) -> void:
+	var body := StandardMaterial3D.new()
+	body.albedo_color = Color(0.08, 0.2, 0.28)
+	body.metallic = 0.4
+	body.roughness = 0.35
+	var glow := StandardMaterial3D.new()
+	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	glow.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	glow.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	glow.albedo_color = Color(LEVIATHAN_COLOR, 0.18)
+	for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		mesh.material_override = body
+		mesh.material_overlay = glow
 
 
 ## The song: shards fly out all around, level with the player's chest.
@@ -444,6 +562,8 @@ func _dress_titan() -> void:
 func _die() -> void:
 	if _shield:
 		_shield.visible = false
+	if _sweep_laser:
+		_sweep_laser.queue_free()
 	super()
 
 

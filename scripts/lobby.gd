@@ -120,6 +120,8 @@ func _show_room() -> void:
 		_button("LANCER LA CAPTURE DE ZONE", Net.start_game.bind("capture"), CYAN)
 		var coop := _button("LANCER LES VAGUES EN COOP (2 à 4)", Net.start_game.bind("waves"), CYAN)
 		coop.disabled = Net.players.size() < 2 or Net.players.size() > 4
+		var raid := _button("LANCER LE RAID : LE LÉVIATHAN (2 à 4)", Net.start_game.bind("raid"), CYAN)
+		raid.disabled = coop.disabled
 		var fight := _button("LANCER LE COMBAT (2 joueurs)", Net.start_game.bind("fight"), CYAN)
 		fight.disabled = Net.players.size() != 2
 	else:

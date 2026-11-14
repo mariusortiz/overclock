@@ -93,6 +93,11 @@ jobs:
           for wave in 5 10 15 20 25 30 35; do
             godot --headless --fixed-fps 60 --quit-after 1200 res://scenes/main.tscn -- --start-wave=$wave 2>&1 | tee -a run.log
           done
+          # The new modes: boss rush, raid with its bots, battle royale, pet race.
+          godot --headless --fixed-fps 60 --quit-after 1800 res://scenes/main.tscn -- --rush 2>&1 | tee -a run.log
+          godot --headless --fixed-fps 60 --quit-after 2400 res://scenes/main.tscn -- --raid 2>&1 | tee -a run.log
+          godot --headless --fixed-fps 60 --quit-after 3600 res://scenes/battle_royale.tscn -- --drop=0 2>&1 | tee -a run.log
+          godot --headless --fixed-fps 60 --quit-after 1800 res://scenes/pet_race.tscn -- --bet=0 2>&1 | tee -a run.log
           # The pets whose perk acts by itself, 15 s each in a boss wave.
           for pet in pet_drone pet_wolf pet_eagle pet_dragon pet_shard pet_slime pet_llama pet_bat pet_capybara; do
             godot --headless --fixed-fps 60 --quit-after 900 res://scenes/main.tscn -- --pet=$pet --start-wave=5 2>&1 | tee -a run.log

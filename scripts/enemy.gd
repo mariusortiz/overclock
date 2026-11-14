@@ -104,6 +104,8 @@ var _player: Player
 ## Who this one fights: "enemy" (the player's foes, the default) or "ally"
 ## (on the player's side, in team modes). Set before it enters the tree.
 var team := &"enemy"
+## Battle royale: everyone for themselves, its bolts hit the other bots too.
+var free_for_all := false
 ## What it shoots at and walks to this frame (see _pick_target), or null.
 var _target: Node3D
 var _model: CharacterModel
@@ -575,6 +577,9 @@ func _spawn_projectile(direction: Vector3) -> void:
 	projectile.direction = direction
 	# Bolts hit the walls and the other side only.
 	projectile.collision_mask = WORLD_MASK | (TARGETS_LAYER if team == &"ally" else PLAYER_LAYER | ALLY_LAYER)
+	if free_for_all:
+		projectile.collision_mask |= TARGETS_LAYER
+		projectile.shooter = self
 	get_tree().current_scene.add_child(projectile)
 
 

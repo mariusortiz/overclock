@@ -82,6 +82,10 @@ const SKINS := [
 	{"id": "skin_kernel", "kill": &"ascend", "name": "Noyau", "pattern": true, "fx": 6, "colors": [Color(0.2, 1.0, 0.45), Color(0.0, 0.0, 0.0)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(0.3, 1.0, 0.5)},
 	# Not sold: the fiftieth achievement, Platine (see Achievements).
 	{"id": "skin_platinum", "kill": &"flare", "name": "Platine", "pattern": true, "fx": 1, "colors": [Color(0.95, 0.97, 1.0), Color(0.35, 0.38, 0.45)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(0.9, 0.95, 1.0)},
+	# Not sold: earned by beating the raid's Léviathan (see Raid).
+	{"id": "skin_abyss", "kill": &"melt", "name": "Abysse", "pattern": true, "fx": 6, "colors": [Color(0.1, 0.95, 0.8), Color(0.0, 0.03, 0.05)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(0.2, 1.0, 0.85), "rush": true, "raid": true},
+	# Not sold: earned by finishing the boss rush (see BossRush).
+	{"id": "skin_chrono", "kill": &"vanish", "name": "Chrono", "pattern": true, "fx": 0, "colors": [Color(1.0, 0.6, 0.1), Color(0.12, 0.05, 0.0)], "glow": 0.0, "scope": true, "silencer": false, "shot": Color(1.0, 0.65, 0.2), "rush": true},
 	# Not sold: earned by completing the card album (see Cards).
 	{"id": "skin_collector", "kill": &"ascend", "name": "Collectionneur", "pattern": true, "fx": 1, "colors": [Color(1.0, 0.85, 0.35), Color(0.2, 0.08, 0.02)], "glow": 0.0, "scope": true, "silencer": true, "shot": Color(1.0, 0.85, 0.35)},
 ]
@@ -314,6 +318,8 @@ static func is_unlocked(item: Dictionary) -> bool:
 		return Wallet.owns(item.id)
 	if item.id == CHAMPION_SKIN_ID:
 		return SaveData.load_progress(CHAMPION_KEY, false)
+	if item.get("rush", false):
+		return Wallet.owns(item.id)
 	if item.get("story", false):
 		return Story.season_done()
 	if item.get("code", false):
@@ -527,6 +533,10 @@ static func unlock_text(item: Dictionary) -> String:
 		return "En vente à la boutique"
 	if item.id == CHAMPION_SKIN_ID:
 		return "Bats le boss final de la ville"
+	if item.get("raid", false):
+		return "Bats le Léviathan en raid"
+	if item.get("rush", false):
+		return "Termine le boss rush"
 	if item.get("story", false):
 		return "Termine la saison 1 du mode histoire"
 	if item.get("code", false):

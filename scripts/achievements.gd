@@ -1,5 +1,5 @@
 class_name Achievements
-## Fifty-one achievements: fifty goals, measured on what the game already
+## Fifty-five achievements: fifty-four goals, measured on what the game already
 ## keeps (career stats, battle pass tiers, cards, story stars) and on a few
 ## feats ("flag"), each paying gems once; the fiftieth, Platine, for all the
 ## others, gives the Platine skin. check() is called on the home screen and at
@@ -67,6 +67,10 @@ const LIST: Array[Dictionary] = [
 	{"id": "shopper", "name": "Client fidèle", "text": "Achète 5 objets à la boutique", "kind": "owned", "goal": 5, "gems": 50},
 	{"id": "breeder", "name": "Éleveur", "text": "Possède 10 animaux de compagnie (donne la Couronne)", "kind": "pets", "goal": 10,
 		"gems": 200, "item": "acc_crown", "extra": true},
+	{"id": "rush", "name": "Contre la montre", "text": "Termine le boss rush", "kind": "flag", "flag": "rush_done", "gems": 150, "extra": true},
+	{"id": "raid", "name": "Chasseur d'abysses", "text": "Bats le Léviathan en raid", "kind": "flag", "flag": "raid_win", "gems": 150, "extra": true},
+	{"id": "royale", "name": "Top 1", "text": "Gagne une partie de battle royale", "kind": "flag", "flag": "royale_win", "gems": 150, "extra": true},
+	{"id": "pet_race", "name": "Écurie gagnante", "text": "Gagne une course d'animaux", "kind": "flag", "flag": "pet_race_win", "gems": 75, "extra": true},
 	{"id": "platinum", "name": "Platine", "text": "Débloque les 49 succès de base (tous sauf Éleveur)", "kind": "all", "gems": 1000},
 ]
 

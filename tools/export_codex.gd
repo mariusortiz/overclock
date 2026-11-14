@@ -5,7 +5,7 @@ extends Node
 ## Run by the build at each publication, so the site is always up to date:
 ##   godot --headless res://scenes/tools/export_codex.tscn -- --out=codex.json
 
-const ARENAS := ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow"]
+const ARENAS := ["station", "desert", "jungle", "volcano", "matrix", "crystal", "city", "ruins", "snow", "abyss", "island"]
 const ARENA_TEXTS := {
 	"station": "Tour de contrôle à deux étages, passerelles, quai de chargement.",
 	"desert": "Temple à gradins, plateau rocheux relié par un pont de pierre, oasis.",
@@ -16,6 +16,8 @@ const ARENA_TEXTS := {
 	"city": "Carrefour sous un pont routier, immeubles au toit accessible, voitures.",
 	"ruins": "Une arche de portail, une allée de colonnes, deux salles hautes. Hors des Vagues.",
 	"snow": "Chalets, lac gelé, pont de glace et grand sapin. Seulement à Noël.",
+	"abyss": "La fosse du Léviathan, quatre plateformes reliées par des passerelles. Le raid.",
+	"island": "140 m de côté : une ville, des ruines, des cristaux, des huttes, des docks. Le battle royale.",
 }
 ## What a skin does to the enemy it kills (Enemy._play_death).
 const KILLS := {
@@ -60,12 +62,20 @@ func _ready() -> void:
 	var boss_cards := {Boss.Kind.COLOSSUS: "card_dragon", Boss.Kind.BRUTE: "card_skeleton", Boss.Kind.ARTILLERY: "card_giant_bat",
 			Boss.Kind.SUMMONER: "card_slime", Boss.Kind.VIRUS: "card_virus", Boss.Kind.TITAN: "card_titan", Boss.Kind.FROST: "card_frost",
 			Boss.Kind.GUARDIAN: "card_guardian"}
-	for kind: Boss.Kind in Boss.ORDER + [Boss.Kind.FROST]:
+	boss_cards[Boss.Kind.LEVIATHAN] = ""
+	for kind: Boss.Kind in Boss.ORDER + [Boss.Kind.FROST, Boss.Kind.LEVIATHAN]:
 		var info: Dictionary = Boss.INFO[kind]
-		var arena_name := "Village enneigé" if kind == Boss.Kind.FROST else str(FightSetup.ARENA_NAMES[Boss.ORDER.find(kind)])
-		codex.bosses.append({"name": info.name, "health": info.health, "arena": arena_name,
-				"wave": 0 if kind == Boss.Kind.FROST else 5 * (Boss.ORDER.find(kind) + 1),
-				"text": Cards.FLAVOR.get(boss_cards[kind], ""), "image": _image(boss_cards[kind])})
+		var arena_name: String = {Boss.Kind.FROST: "Village enneigé", Boss.Kind.LEVIATHAN: "Abysse"}.get(kind, "")
+		if arena_name == "":
+			arena_name = str(FightSetup.ARENA_NAMES[Boss.ORDER.find(kind)])
+		var wave := 5 * (Boss.ORDER.find(kind) + 1)
+		if kind == Boss.Kind.FROST:
+			wave = 0
+		elif kind == Boss.Kind.LEVIATHAN:
+			wave = -1
+		codex.bosses.append({"name": info.name, "health": info.health, "arena": arena_name, "wave": wave,
+				"text": Cards.FLAVOR.get(boss_cards[kind], "Le boss du raid : quatre cœurs, des renforts, un laser au ras du sol."),
+				"image": _image(boss_cards[kind]) if boss_cards[kind] != "" else ""})
 	for id: String in ARENAS:
 		var arena: Arena = load("res://scenes/arenas/%s.tscn" % id).instantiate()
 		codex.arenas.append({"name": arena.display_name, "text": ARENA_TEXTS[id], "weapon": arena.enemy_weapon,

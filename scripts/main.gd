@@ -41,6 +41,8 @@ const ARENAS: Array[PackedScene] = [
 	preload("res://scenes/arenas/ruins.tscn"),
 	# Christmas only (Events.SNOW_ARENA): never in the usual round of arenas.
 	preload("res://scenes/arenas/snow.tscn"),
+	# The raid's abyss (Raid.ARENA).
+	preload("res://scenes/arenas/abyss.tscn"),
 ]
 ## The arenas that follow one another in a game.
 const ROTATION := 7
@@ -68,6 +70,8 @@ var _stats := GameStats.new()
 var _streak := 0
 var _last_kill_time := -100.0
 var _pet: Pet
+## Boss rush (see BossRush): seconds played, pauses excluded.
+var _rush_time := 0.0
 
 @onready var player: Player = $Player
 @onready var hud: Hud = $HUD
@@ -82,6 +86,12 @@ func _ready() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--arena="):
 			first_arena = argument.get_slice("=", 1).to_int()
+		elif argument == "--raid":
+			# Test option: the raid, alone with the bots.
+			Raid.active = true
+		elif argument == "--rush":
+			# Test option: the boss rush.
+			BossRush.active = true
 		elif argument == "--christmas":
 			# Test option: the Christmas waves.
 			Events.christmas_run = true
@@ -100,6 +110,14 @@ func _ready() -> void:
 	if Events.christmas_run:
 		first_arena = Events.SNOW_ARENA
 		waves.boss_kind = Boss.Kind.FROST
+	if Net.is_online():
+		Raid.active = Net.mode == "raid"
+	if Raid.active:
+		first_arena = Raid.ARENA
+		waves.rush_kinds = [Boss.Kind.LEVIATHAN]
+	if BossRush.active:
+		first_arena = BossRush.STAGES[0][1]
+		waves.rush_kinds = BossRush.STAGES.map(func(stage: Array) -> Boss.Kind: return stage[0])
 	_load_arena(first_arena)
 
 	hud.touch_controls.look.connect(_on_touch_look)
@@ -155,7 +173,7 @@ func _ready() -> void:
 		add_child(_pet)
 		waves.enemy_killed.connect(_pet.cheer)
 
-	if Net.mode == "waves" and Net.is_online():
+	if Net.mode in ["waves", "raid"] and Net.is_online():
 		_coop = WavesNet.new()
 		# The same path on every device: the RPCs find it by its name.
 		_coop.name = "WavesNet"
@@ -163,15 +181,19 @@ func _ready() -> void:
 		_coop.setup(self)
 		hud.pause_menu.keep_running = true
 
+	if Raid.active and not _coop:
+		_spawn_raid_allies()
 	if Story.is_active():
 		_start_story_mission()
-	elif Tutorial.is_needed() and not _coop:
+	elif Tutorial.is_needed() and not _coop and not BossRush.active and not Raid.active:
 		var tutorial := Tutorial.new()
 		add_child(tutorial)
 		tutorial.setup(player, hud, waves)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if BossRush.active and not _won and player.health > 0:
+		_rush_time += delta / maxf(Engine.time_scale, 0.01)
 	hud.set_status(player.get_effects(), player.perks)
 	hud.reticle.on_target = player.aiming_at_enemy
 	if Input.is_action_just_pressed("emote") and player.health > 0:
@@ -269,7 +291,12 @@ func _add_score(points: int) -> void:
 
 func _on_wave_started(number: int) -> void:
 	get_tree().call_group("chests", "close")
-	hud.show_banner("VAGUE %d  ·  BOSS" % number if waves.is_boss_wave() else "VAGUE %d" % number)
+	if Raid.active:
+		hud.show_banner("RAID  ·  DÉTRUIS LES 4 CŒURS")
+	elif BossRush.active:
+		hud.show_banner("BOSS %d / %d  ·  %s" % [number, BossRush.STAGES.size(), BossRush.clock(_rush_time)])
+	else:
+		hud.show_banner("VAGUE %d  ·  BOSS" % number if waves.is_boss_wave() else "VAGUE %d" % number)
 	# One weapon crate per wave, a moment after it starts.
 	var arena := _arena
 	await get_tree().create_timer(CRATE_DELAY, false).timeout
@@ -344,6 +371,17 @@ func _on_boss_killed(kind: Boss.Kind) -> void:
 		hud.show_banner("UN ŒUF ! IL ÉCLÔT APRÈS %d VAGUES" % Pets.HATCH_WAVES)
 	if Story.is_active():
 		_end_story_mission(true)
+		return
+	if Raid.active:
+		if _coop:
+			if Net.is_host():
+				_coop.announce_victory()
+		else:
+			_win_raid()
+		return
+	if BossRush.active:
+		if waves.wave >= BossRush.STAGES.size():
+			_win_rush()
 		return
 	if kind == Boss.Kind.TITAN and not _endless:
 		_win()
@@ -427,7 +465,7 @@ func coop_end(won: bool) -> void:
 
 func _on_replay_pressed() -> void:
 	if _coop_over and Net.is_online():
-		Net.start_game("waves")
+		Net.start_game(Net.mode)
 		return
 	get_tree().reload_current_scene()
 
@@ -441,7 +479,67 @@ func _on_menu_pressed() -> void:
 ## The arena after a boss: the next of the round, or the village again in
 ## the Christmas waves.
 func _next_arena() -> int:
+	if BossRush.active:
+		return BossRush.STAGES[mini(waves.wave, BossRush.STAGES.size() - 1)][1]
 	return Events.SNOW_ARENA if Events.christmas_run else (_arena_index + 1) % ROTATION
+
+
+## The raid is won, alone with the bots: the Léviathan is down.
+func _win_raid() -> void:
+	_won = true
+	waves.stop()
+	player.invulnerable = true
+	for enemy in get_tree().get_nodes_in_group("targets"):
+		enemy.take_damage(9999)
+	var top := _boss.global_position + Vector3.UP * 4.0
+	Effects.flash(self, top, Boss.LEVIATHAN_COLOR, 12.0, 1.2)
+	Effects.spray(self, top, [Boss.LEVIATHAN_COLOR, Color(1.0, 0.85, 0.3), Color.WHITE],
+			90, Vector3(0.16, 0.1, 0.01), Vector2(4.0, 8.0), Vector3(0, -3.0, 0), 70.0, 3.0)
+	hud.show_banner("LE LÉVIATHAN EST VAINCU")
+	await get_tree().create_timer(VICTORY_TIME).timeout
+	_on_exit_chosen(true)
+
+
+## Two allied bots for a raid without other players, one on each side.
+func _spawn_raid_allies() -> void:
+	var heroes := Loadout.CHARACTERS.filter(func(item: Dictionary) -> bool:
+		return not item.get("shop", false) and not item.get("code", false) and item.id != Loadout.selected_character().id)
+	for i in Raid.ALLIES:
+		var bot := waves.enemy_scene.instantiate()
+		var bolt: PackedScene = bot.projectile_scene
+		bot.set_script(RaidAlly)
+		var ally := bot as RaidAlly
+		ally.projectile_scene = bolt
+		ally.team = &"ally"
+		ally.side = -1.0 if i == 0 else 1.0
+		ally.max_health = 150
+		ally.fire_interval = 0.7
+		ally.attack_range = 26.0
+		ally.drop_chance = 0.0
+		ally.model_scene = load(Loadout.CHARACTER_DIR + str(heroes.pick_random().model))
+		ally.weapon_id = ["heavy", "smg"][i]
+		ally.position = player.global_position + Vector3(ally.side * 2.5, 0, 1.5)
+		add_child(ally)
+
+
+## The boss rush is won: the last boss is down. The time is saved, and the
+## first run to the end gives the Chrono skin.
+func _win_rush() -> void:
+	_won = true
+	waves.stop()
+	player.invulnerable = true
+	Achievements.set_flag("rush_done")
+	var rank := BossRush.add_time(_rush_time)
+	BossRush.last_result = "boss rush en %s%s" % [BossRush.clock(_rush_time), " (meilleur temps)" if rank == 1 else ""]
+	if Wallet.give(BossRush.SKIN_ID):
+		BossRush.last_result += ", skin Chrono"
+	var top := player.global_position + Vector3.UP * 3.0
+	Effects.flash(self, top, Color(1.0, 0.65, 0.2), 10.0, 1.2)
+	Effects.spray(self, top, [Color(1.0, 0.65, 0.2), Color(1.0, 0.85, 0.3), Color.WHITE],
+			90, Vector3(0.16, 0.1, 0.01), Vector2(4.0, 8.0), Vector3(0, -3.0, 0), 70.0, 3.0)
+	hud.show_banner("BOSS RUSH TERMINÉ   %s" % BossRush.clock(_rush_time))
+	await get_tree().create_timer(VICTORY_TIME).timeout
+	_on_exit_chosen(true)
 
 
 ## The Christmas waves are won: the last Père Glaçon is down. A shower of
@@ -525,6 +623,10 @@ func _on_wave_cleared(number: int) -> void:
 
 func _on_perk_chosen(type: Perk.Type) -> void:
 	player.add_perk(type)
+	# Boss rush: straight on to the next boss's arena.
+	if _arena_change_pending and BossRush.active:
+		_on_exit_chosen(false)
+		return
 	# A boss was just beaten: go on to the next arena, or go home with the XP.
 	if _arena_change_pending:
 		var next: Arena = ARENAS[_next_arena()].instantiate()
@@ -690,8 +792,12 @@ func _show_results(result: Hud.Result) -> void:
 	if Pets.add_xp(xp + challenge_xp):
 		var pet := Pets.selected()
 		unlocked.append("%s niveau %d" % [pet.name, Pets.level(pet)])
-	if result == Hud.Result.VICTORY or _endless:
+	if (result == Hud.Result.VICTORY and not BossRush.active and not Raid.active) or _endless:
 		unlocked.append("skin Champion")
+	if BossRush.active and result == Hud.Result.VICTORY:
+		unlocked.append(BossRush.last_result)
+	if Raid.active and result == Hud.Result.VICTORY:
+		unlocked.append_array(Raid.reward())
 	for achievement in Achievements.check():
 		unlocked.append("succès %s" % achievement.name)
 	var rank := Leaderboard.add(score, waves.wave, Loadout.selected_character().name, _endless)
