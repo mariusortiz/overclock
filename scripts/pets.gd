@@ -14,9 +14,15 @@ class_name Pets
 ## or "build" (made by Pet: "drone", "shard"), its height, "fly" for the ones
 ## that hover, "turn" to face forward, "colors" (by material name: some of
 ## the pack's models lost theirs on export), "rarity" (Cards.Rarity), the "perk",
-## and how it is had: "shop", "egg", or a pass tier (BattlePass).
+## "head" (where an accessory sits: height, forward, width, in units of
+## "height"), and how it is had: "shop", "egg", or a pass tier (BattlePass).
 
 const KEY := "pet"
+const ACCESSORY_KEY := "pet_accessory"
+## Chance that an egg holds an accessory (one of the "egg" ones) instead of a pet.
+const EGG_ACCESSORY_CHANCE := 0.33
+## Gems for an accessory hatched again.
+const DUPLICATE_ACCESSORY_GEMS := 60
 const EGGS_KEY := "pet_eggs"
 const EGG_WAVES_KEY := "pet_egg_waves"
 const HATCH_WAVES := 10
@@ -32,31 +38,51 @@ const NONE := {"id": "pet_none", "name": "Aucun", "perk": &"", "rarity": 0}
 
 const LIST := [
 	NONE,
-	{"id": "pet_dog", "name": "Chien", "model": ANIMALS + "Dog.fbx", "turn": PI / 2.0, "height": 0.55,
+	{"id": "pet_dog", "head": [0.92, -0.6, 0.45], "name": "Chien", "model": ANIMALS + "Dog.fbx", "turn": PI / 2.0, "height": 0.55,
 		"colors": {"Dog": Color(0.62, 0.45, 0.3)}, "rarity": 0, "perk": &"magnet", "egg": true},
-	{"id": "pet_cat", "name": "Chat", "model": ANIMALS + "Cat.fbx", "turn": PI / 2.0, "height": 0.55,
+	{"id": "pet_cat", "head": [0.75, -0.5, 0.4], "name": "Chat", "model": ANIMALS + "Cat.fbx", "turn": PI / 2.0, "height": 0.55,
 		"colors": {"Grey": Color(0.25, 0.25, 0.28), "White": Color(0.95, 0.95, 0.95), "Pink": Color(1.0, 0.6, 0.8)}, "rarity": 0, "perk": &"luck", "egg": true},
-	{"id": "pet_chick", "name": "Poussin", "model": ANIMALS + "Chick.fbx", "turn": PI / 2.0, "height": 0.35,
+	{"id": "pet_chick", "head": [0.95, -0.45, 0.45], "name": "Poussin", "model": ANIMALS + "Chick.fbx", "turn": PI / 2.0, "height": 0.35,
 		"colors": {"Material.001": Color(1.0, 0.85, 0.3), "Material.002": Color(1.0, 0.55, 0.15)}, "rarity": 0, "perk": &"xp", "egg": true},
-	{"id": "pet_sheep", "name": "Mouton", "model": ANIMALS + "Sheep.fbx", "height": 0.6, "rarity": 0, "perk": &"wool", "egg": true},
-	{"id": "pet_fox", "name": "Renard", "model": ANIMALS + "RedFox.fbx", "height": 0.5,
+	{"id": "pet_sheep", "head": [0.9, -0.5, 0.45], "name": "Mouton", "model": ANIMALS + "Sheep.fbx", "height": 0.6, "rarity": 0, "perk": &"wool", "egg": true},
+	{"id": "pet_fox", "head": [1.05, -1.4, 0.5], "name": "Renard", "model": ANIMALS + "RedFox.fbx", "height": 0.5,
 		"colors": {"Material.001": Color(0.9, 0.42, 0.15), "Material.002": Color(0.97, 0.95, 0.9)}, "rarity": 1, "perk": &"swift", "egg": true},
-	{"id": "pet_bat", "name": "Mini chauve-souris", "model": MONSTERS + "Bat.fbx", "height": 0.45, "fly": true, "rarity": 1, "perk": &"echo", "egg": true},
-	{"id": "pet_pig", "name": "Cochon", "model": ANIMALS + "Pig.fbx", "height": 0.5, "rarity": 1, "perk": &"piggy", "shop": true},
-	{"id": "pet_llama", "name": "Lama", "model": ANIMALS + "Llama.fbx", "height": 0.85, "rarity": 1, "perk": &"spit", "shop": true},
-	{"id": "pet_pug", "name": "Carlin", "model": ANIMALS + "Pug.fbx", "height": 0.4, "rarity": 1, "perk": &"cuddle"},
-	{"id": "pet_wolf", "name": "Loup", "model": ANIMALS + "Wolf.fbx", "turn": PI / 2.0, "height": 0.55,
+	{"id": "pet_bat", "head": [0.95, -0.45, 0.45], "name": "Mini chauve-souris", "model": MONSTERS + "Bat.fbx", "height": 0.45, "fly": true, "rarity": 1, "perk": &"echo", "egg": true},
+	{"id": "pet_pig", "head": [1.0, -1.3, 0.6], "name": "Cochon", "model": ANIMALS + "Pig.fbx", "height": 0.5, "rarity": 1, "perk": &"piggy", "shop": true},
+	{"id": "pet_llama", "head": [1.0, -0.45, 0.35], "name": "Lama", "model": ANIMALS + "Llama.fbx", "height": 0.85, "rarity": 1, "perk": &"spit", "shop": true},
+	{"id": "pet_pug", "head": [0.85, -0.5, 0.5], "name": "Carlin", "model": ANIMALS + "Pug.fbx", "height": 0.4, "rarity": 1, "perk": &"cuddle"},
+	{"id": "pet_wolf", "head": [1.0, -1.2, 0.5], "name": "Loup", "model": ANIMALS + "Wolf.fbx", "turn": PI / 2.0, "height": 0.55,
 		"colors": {"Wolf": Color(0.62, 0.64, 0.7)}, "rarity": 2, "perk": &"bite", "egg": true},
-	{"id": "pet_slime", "name": "Mini slime", "model": MONSTERS + "Slime.fbx", "turn": PI, "height": 0.45, "rarity": 2, "perk": &"jelly", "shop": true},
-	{"id": "pet_eagle", "name": "Aigle", "model": ANIMALS + "Eagle.fbx", "height": 0.22,
+	{"id": "pet_slime", "head": [1.0, 0.0, 0.6], "name": "Mini slime", "model": MONSTERS + "Slime.fbx", "turn": PI, "height": 0.45, "rarity": 2, "perk": &"jelly", "shop": true},
+	{"id": "pet_eagle", "head": [1.0, -1.6, 0.7], "name": "Aigle", "model": ANIMALS + "Eagle.fbx", "height": 0.22,
 		"colors": {"Wings": Color(0.32, 0.18, 0.1), "Beak": Color(0.98, 0.75, 0.2), "Head": Color(0.97, 0.97, 0.95), "Claws": Color(0.98, 0.75, 0.2)}, "fly": true, "rarity": 2, "perk": &"dive"},
-	{"id": "pet_drone", "name": "Drone", "build": "drone", "height": 0.4, "fly": true, "rarity": 2, "perk": &"turret", "shop": true},
-	{"id": "pet_dragon", "name": "Dragonnet", "model": MONSTERS + "Dragon.fbx", "height": 0.6, "fly": true, "rarity": 3, "perk": &"breath", "egg": true},
-	{"id": "pet_titan", "name": "Mini-Titan", "model": "res://assets/models/quaternius/mechs/George.fbx", "height": 0.8, "rarity": 3, "perk": &"shield"},
-	{"id": "pet_calf", "name": "Veau", "model": ANIMALS + "Calf.fbx", "height": 0.6, "rarity": 3, "perk": &"ulti", "egg": true},
+	{"id": "pet_drone", "head": [1.05, 0.0, 0.6], "name": "Drone", "build": "drone", "height": 0.4, "fly": true, "rarity": 2, "perk": &"turret", "shop": true},
+	{"id": "pet_dragon", "head": [0.95, -0.5, 0.45], "name": "Dragonnet", "model": MONSTERS + "Dragon.fbx", "height": 0.6, "fly": true, "rarity": 3, "perk": &"breath", "egg": true},
+	{"id": "pet_titan", "head": [1.0, 0.4, 0.4], "name": "Mini-Titan", "model": "res://assets/models/quaternius/mechs/George.fbx", "height": 0.8, "rarity": 3, "perk": &"shield"},
+	{"id": "pet_calf", "head": [0.85, -1.0, 0.45], "name": "Veau", "model": ANIMALS + "Calf.fbx", "height": 0.6, "rarity": 3, "perk": &"ulti", "egg": true},
 	# Le Créateur's: only through his code (PromoCodes), full power everywhere.
-	{"id": "pet_capybara", "name": "Capybara", "build": "capybara", "height": 0.6, "rarity": 4, "perk": &"capy", "code": true},
-	{"id": "pet_shard", "name": "Éclat de cristal", "build": "shard", "height": 0.5, "fly": true, "rarity": 3, "perk": &"song", "egg": true},
+	{"id": "pet_capybara", "head": [0.85, -0.5, 0.5], "name": "Capybara", "build": "capybara", "height": 0.6, "rarity": 4, "perk": &"capy", "code": true},
+	{"id": "pet_shard", "head": [1.05, 0.0, 0.45], "name": "Éclat de cristal", "build": "shard", "height": 0.5, "fly": true, "rarity": 3, "perk": &"song", "egg": true},
+]
+
+## The accessories a pet can wear (PetAccessory builds them): looks only, on
+## whichever pet is out. "neck" ones go round the neck. Had from the shop
+## ("event": Christmas only), eggs, the season 2 pass, or an achievement.
+const ACCESSORY_NONE := {"id": "acc_none", "name": "Aucun"}
+const ACCESSORIES := [
+	ACCESSORY_NONE,
+	{"id": "acc_santa", "name": "Bonnet de Noël", "shop": true, "event": "christmas"},
+	{"id": "acc_scarf", "name": "Écharpe de Noël", "neck": true, "shop": true, "event": "christmas"},
+	{"id": "acc_antlers", "name": "Bois de renne", "shop": true, "event": "christmas"},
+	{"id": "acc_sunglasses", "name": "Lunettes de soleil", "shop": true},
+	{"id": "acc_bowtie", "name": "Nœud papillon", "neck": true, "shop": true},
+	{"id": "acc_tophat", "name": "Haut-de-forme", "shop": true},
+	{"id": "acc_pilot", "name": "Casque de pilote", "egg": true},
+	{"id": "acc_halo", "name": "Auréole", "egg": true},
+	{"id": "acc_horns", "name": "Cornes de diable", "egg": true},
+	{"id": "acc_matrix", "name": "Casque à antennes", "egg": true},
+	{"id": "acc_cowboy", "name": "Chapeau de cowboy"},
+	{"id": "acc_crown", "name": "Couronne", "achievement": "breeder"},
 ]
 
 ## What each perk does, for the armory, the shop and the cards: [name, text].
@@ -78,8 +104,9 @@ const PERKS := {
 	&"shield": ["Bouclier", "Annule un coup reçu toutes les 20 s."],
 	&"ulti": ["Petit créateur", "La jauge d'ulti se remplit 15 % plus vite."],
 	&"song": ["Chant", "Toutes les 8 s, ralentit les ennemis à moins de 6 m."],
-	&"capy": ["Calme absolu", "Foudroie l'ennemi le plus proche à 25 m (8 dégâts) toutes les 1,5 s, rend 2 PV toutes les 3 s, "
-			+ "dégâts reçus divisés par deux, +15 % de vitesse, ulti, XP, crédits et bonus +30 %. Partout, multijoueur compris."],
+	&"capy": ["Mode dieu", "Tout ennemi ordinaire à moins de 10 m est éliminé, les boss à 25 m perdent 1,5 % de leurs PV "
+			+ "toutes les 0,5 s, la foudre frappe 3 ennemis (20 dégâts) chaque seconde, rend 5 PV par seconde, dégâts reçus -90 %, "
+			+ "+25 % de vitesse, ulti, XP, crédits et bonus +50 %. Partout, multijoueur compris."],
 }
 const RARITY_NAMES := ["Commun", "Rare", "Épique", "Légendaire", "Hacker"]
 ## Battle pass tiers (season 2) of the pets of the pass, for the texts.
@@ -159,7 +186,7 @@ static func perk_text(pet: Dictionary) -> String:
 
 ## Extra chance of a power-up from an enemy (luck).
 static func drop_bonus() -> float:
-	return 0.1 if perk() == &"luck" else (0.3 if perk() == &"capy" else 0.0)
+	return 0.1 if perk() == &"luck" else (0.5 if perk() == &"capy" else 0.0)
 
 
 ## A hit on the player, after the pet: lighter (wool), or none at all
@@ -167,7 +194,7 @@ static func drop_bonus() -> float:
 static func filter_damage(amount: int) -> int:
 	match perk():
 		&"capy":
-			return maxi(roundi(amount * 0.5), 1)
+			return maxi(roundi(amount * 0.1), 1)
 		&"wool":
 			return maxi(roundi(amount * 0.9), 1)
 		&"shield":
@@ -180,25 +207,25 @@ static func filter_damage(amount: int) -> int:
 
 static func speed_factor() -> float:
 	if perk() == &"capy":
-		return 1.15
+		return 1.25
 	return 1.06 if perk() == &"swift" else 1.0
 
 
 static func charge_factor() -> float:
 	if perk() == &"capy":
-		return 1.3
+		return 1.5
 	return 1.15 if perk() == &"ulti" else 1.0
 
 
 static func xp_factor() -> float:
 	if perk() == &"capy":
-		return 1.3
+		return 1.5
 	return 1.1 if perk() == &"xp" else 1.0
 
 
 static func credits_factor() -> float:
 	if perk() == &"capy":
-		return 1.3
+		return 1.5
 	return 1.1 if perk() == &"piggy" else 1.0
 
 
@@ -237,6 +264,14 @@ static func hatch(rng := RandomNumberGenerator.new()) -> Dictionary:
 		return {}
 	SaveData.save_progress(EGGS_KEY, eggs() - 1)
 	SaveData.save_progress(EGG_WAVES_KEY, 0)
+	# Sometimes an accessory instead of a pet.
+	if rng.randf() < EGG_ACCESSORY_CHANCE:
+		var hats := ACCESSORIES.filter(func(item: Dictionary) -> bool: return item.get("egg", false))
+		var accessory: Dictionary = hats[rng.randi() % hats.size()]
+		var got := Wallet.give(accessory.id)
+		if not got:
+			Wallet.add_gems(DUPLICATE_ACCESSORY_GEMS)
+		return {"accessory": accessory, "new": got}
 	var pool := LIST.filter(func(pet: Dictionary) -> bool: return pet.get("egg", false))
 	var rarity := 0
 	var roll := rng.randf() * 100.0
@@ -251,3 +286,50 @@ static func hatch(rng := RandomNumberGenerator.new()) -> Dictionary:
 	if not fresh:
 		Wallet.add_gems(DUPLICATE_GEMS)
 	return {"pet": pet, "new": fresh}
+
+
+# --- Accessories -------------------------------------------------------------------
+
+static func is_accessory(item: Dictionary) -> bool:
+	return str(item.get("id", "")).begins_with("acc_")
+
+
+static func find_accessory(id: String) -> Dictionary:
+	for accessory: Dictionary in ACCESSORIES:
+		if accessory.id == id:
+			return accessory
+	return {}
+
+
+static func accessory_owned(accessory: Dictionary) -> bool:
+	if accessory.id == ACCESSORY_NONE.id:
+		return true
+	if accessory.get("shop", false) or accessory.get("egg", false) or accessory.has("achievement"):
+		return Wallet.owns(accessory.id)
+	return BattlePass.is_unlocked(accessory.id)
+
+
+static func accessory_text(accessory: Dictionary) -> String:
+	if accessory.get("event", "") == "christmas":
+		return "Boutique de Noël (1er décembre – 6 janvier)"
+	if accessory.get("shop", false):
+		return "En vente à la boutique"
+	if accessory.get("egg", false):
+		return "Sort d'un œuf"
+	if accessory.has("achievement"):
+		return "Succès « Éleveur » : 10 animaux"
+	return "Palier %d du passe saison 2" % BattlePass.required_tier(accessory.id)
+
+
+static func selected_accessory() -> Dictionary:
+	var accessory := find_accessory(SaveData.load_value(ACCESSORY_KEY, ACCESSORY_NONE.id))
+	return accessory if not accessory.is_empty() and accessory_owned(accessory) else ACCESSORY_NONE
+
+
+## How many pets the player has (the "none" one left out).
+static func owned_count() -> int:
+	var count := 0
+	for pet: Dictionary in LIST.slice(1):
+		if is_owned(pet):
+			count += 1
+	return count

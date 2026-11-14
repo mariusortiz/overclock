@@ -105,7 +105,7 @@ static func redeem(code: String) -> Array:
 
 static func _shop_ids() -> Array:
 	var ids := []
-	for group: Array in [Loadout.CHARACTERS, Loadout.WEAPONS, Loadout.SKINS, Loadout.SHIPS, Dances.LIST, Pets.LIST]:
+	for group: Array in [Loadout.CHARACTERS, Loadout.WEAPONS, Loadout.SKINS, Loadout.SHIPS, Dances.LIST, Pets.LIST, Pets.ACCESSORIES]:
 		for item: Dictionary in group:
 			# The pets of the eggs too: the test code has everything.
 			if item.get("shop", false) or item.get("egg", false):

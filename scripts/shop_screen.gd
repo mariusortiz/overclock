@@ -95,7 +95,9 @@ func _offers() -> Array:
 		return BOOSTERS
 	if _tab == GEMS_TAB:
 		return Shop.GEM_PACKS
-	return Shop.catalog().filter(func(offer: Dictionary) -> bool: return offer.kind == KINDS[_tab])
+	# The pets' tab shows their accessories too.
+	return Shop.catalog().filter(func(offer: Dictionary) -> bool:
+		return offer.kind == KINDS[_tab] or (KINDS[_tab] == "Animal" and offer.kind == "Accessoire"))
 
 
 func _refresh() -> void:
@@ -179,6 +181,11 @@ func _preview() -> void:
 		"Animal":
 			_stage.focus(CharacterStage.Focus.PET)
 			_stage.show_pet(_viewed.item)
+		"Accessoire":
+			# On the pet out (the dog when there is none).
+			_stage.focus(CharacterStage.Focus.PET)
+			var wearer := Pets.selected() if Pets.selected().id != Pets.NONE.id else Pets.find("pet_dog")
+			_stage.show_pet(wearer, _viewed.item)
 		"Danse":
 			# The hero dances it, on the spot.
 			_stage.focus(CharacterStage.Focus.CHARACTER)
@@ -219,6 +226,8 @@ func _show_detail() -> void:
 	_info.text = "%s exclusif" % _viewed.kind.to_lower() if _viewed.kind != "Arme" else "Arme exotique"
 	if _viewed.kind == "Animal":
 		_info.text = "Animal de compagnie"
+	elif _viewed.kind == "Accessoire":
+		_info.text = "Accessoire d'animal"
 	if _viewed.kind == "Danse":
 		_info.text = "Danse exclusive"
 	_info.text += "\n" + _description(item, _viewed.kind)
@@ -269,6 +278,8 @@ func _traits(item: Dictionary, kind: String) -> String:
 			return "Se lance en jeu avec DANSE (touche B), dans la roue des danses."
 		"Animal":
 			return "%s · %s" % [Pets.RARITY_NAMES[item.rarity], Pets.perk_text(item)]
+		"Accessoire":
+			return "Se porte sur tous les animaux. Pour le style : aucun effet en jeu."
 		"Vaisseau":
 			var special: Array = Loadout.SHIP_SPECIALS[item.special]
 			return "%s : %s · vitesse %d %%, maniabilité %d %%, bouclier %d, tir x%s" % [special[0], special[1],
@@ -320,6 +331,8 @@ func _is_equipped(item: Dictionary) -> bool:
 			return Loadout.selected_ship().id == item.id
 		"Animal":
 			return Pets.selected().id == item.id
+		"Accessoire":
+			return Pets.selected_accessory().id == item.id
 	return Loadout.selected_skin().id == item.id
 
 
@@ -333,4 +346,6 @@ func _key(kind: String) -> String:
 			return Loadout.SHIP_KEY
 		"Animal":
 			return Pets.KEY
+		"Accessoire":
+			return Pets.ACCESSORY_KEY
 	return Loadout.SKIN_KEY

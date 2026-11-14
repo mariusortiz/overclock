@@ -51,7 +51,7 @@ const REWARDS_2: Array[String] = [
 	"ship_firewall", "booster:rare", "credits:1880", "gems:136", "booster:standard",
 	"credits:2060", "gems:148", "skin_corruption", "booster:rare", "credits:2300",
 	"gems:164", "booster:standard", "pet_eagle", "gems:176", "booster:rare",
-	"skin_binary", "credits:2720", "gems:192", "booster:standard", "credits:2900",
+	"skin_binary", "credits:2720", "gems:192", "booster:standard", "acc_cowboy",
 	"gems:204", "booster:rare", "credits:3080", "gems:216", "dance_reboot",
 	"booster:standard", "credits:3320", "gems:232", "booster:rare", "credits:3500",
 	"gems:244", "skin_kernel", "booster:standard", "credits:3740", "gems:260",

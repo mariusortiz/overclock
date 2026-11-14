@@ -169,10 +169,12 @@ func _subject(kind: String, reference: String) -> Node3D:
 				mesh.material_override = body
 				mesh.material_overlay = glow
 			return virus
-		"pet":
-			var pet := Pets.find(reference)
+		"pet", "pet_accessory":
+			# An accessory is shown on the dog.
+			var pet := Pets.find(reference if kind == "pet" else "pet_dog")
+			var accessory := Pets.find_accessory(reference) if kind == "pet_accessory" else {}
 			var holder := Node3D.new()
-			holder.add_child(Pet.build_model(pet))
+			holder.add_child(Pet.build_model(pet, accessory))
 			# An invisible box of the pet's real size guides the framing (an
 			# animated mesh's own bounds can be far off).
 			var size: float = pet.height
@@ -185,6 +187,11 @@ func _subject(kind: String, reference: String) -> Node3D:
 			box.material = clear
 			frame.mesh = box
 			frame.position.y = size * 0.55 + (0.3 if pet.get("fly", false) else 0.0)
+			if kind == "pet_accessory":
+				# Close on the head and what it wears.
+				var head: Array = pet.head
+				box.size = Vector3.ONE * size * 0.95
+				frame.position = Vector3(0, (head[0] - 0.05) * size, head[1] * size)
 			holder.add_child(frame)
 			holder.rotation.y = PI + 0.5
 			return holder

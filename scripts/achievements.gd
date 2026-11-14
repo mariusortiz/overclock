@@ -1,5 +1,5 @@
 class_name Achievements
-## Fifty achievements: forty-nine goals, measured on what the game already
+## Fifty-one achievements: fifty goals, measured on what the game already
 ## keeps (career stats, battle pass tiers, cards, story stars) and on a few
 ## feats ("flag"), each paying gems once; the fiftieth, Platine, for all the
 ## others, gives the Platine skin. check() is called on the home screen and at
@@ -8,7 +8,8 @@ class_name Achievements
 ## "kind": "stat" (a career count of GameStats), "pass" (tiers of a season),
 ## "cards" (cards of the album), "expansion" (cards of Saison 2), "stars"
 ## (story stars), "flag" (a feat, see set_flag), "owned" (shop items owned),
-## "all" (every other achievement).
+## "pets" (pets owned), "all" (every other achievement but the "extra" ones,
+## added after Platine). An "item" is given along with the gems.
 
 const SAVE_KEY := "achievements_done"
 const FLAGS_KEY := "achievement_flags"
@@ -64,7 +65,9 @@ const LIST: Array[Dictionary] = [
 	{"id": "race", "name": "Pilote", "text": "Gagne une course de vaisseaux", "kind": "flag", "flag": "race_win", "gems": 50},
 	{"id": "capture", "name": "Territoire", "text": "Gagne une partie de capture de zone", "kind": "flag", "flag": "capture_win", "gems": 50},
 	{"id": "shopper", "name": "Client fidèle", "text": "Achète 5 objets à la boutique", "kind": "owned", "goal": 5, "gems": 50},
-	{"id": "platinum", "name": "Platine", "text": "Débloque les 49 autres succès", "kind": "all", "gems": 1000},
+	{"id": "breeder", "name": "Éleveur", "text": "Possède 10 animaux de compagnie (donne la Couronne)", "kind": "pets", "goal": 10,
+		"gems": 200, "item": "acc_crown", "extra": true},
+	{"id": "platinum", "name": "Platine", "text": "Débloque les 49 succès de base (tous sauf Éleveur)", "kind": "all", "gems": 1000},
 ]
 
 
@@ -104,10 +107,14 @@ static func progress(achievement: Dictionary) -> Array:
 			return [Story.total_stars(), goal]
 		"owned":
 			return [Wallet.owned_count(), goal]
+		"pets":
+			return [Pets.owned_count(), goal]
 		"flag":
 			return [1 if _flag(achievement.flag) else 0, 1]
 		"all":
-			return [done().filter(func(id: String) -> bool: return id != achievement.id).size(), LIST.size() - 1]
+			var counted := LIST.filter(func(other: Dictionary) -> bool: return other.id != achievement.id and not other.get("extra", false))
+			var ids := counted.map(func(other: Dictionary) -> String: return other.id)
+			return [done().filter(func(id: String) -> bool: return id in ids).size(), counted.size()]
 	return [0, 1]
 
 
@@ -134,5 +141,7 @@ static func check() -> Array[Dictionary]:
 			list.append(achievement.id)
 			SaveData.save_progress(SAVE_KEY, list)
 			Wallet.add_gems(achievement.gems)
+			if achievement.has("item"):
+				Wallet.give(achievement.item)
 			reached.append(achievement)
 	return reached

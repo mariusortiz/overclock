@@ -31,7 +31,7 @@ const SERIES := [
 	["Mythiques", 5000, 250],
 	# The "Saison 2" expansion (EXPANSION): its own numbers, outside the 99.
 	["Matrice", 1500, 60], ["Anime S2", 2500, 100], ["Combat", 1500, 60], ["Boutique", 1800, 70], ["Noël", 1500, 80], ["Passe S2", 2000, 90],
-	["Portail", 1800, 70], ["Anime S3", 2500, 100], ["Compagnons", 2500, 100],
+	["Portail", 1800, 70], ["Anime S3", 2500, 100], ["Compagnons", 2500, 100], ["Accessoires", 1500, 70],
 	# Le Créateur's: only through his code, outside the album's count.
 	["Hacker", 10000, 500],
 ]
@@ -249,6 +249,19 @@ const EXPANSION := [
 	{"id": "card_pet_titan", "name": "Mini-Titan", "series": "Compagnons", "rarity": L, "art": ["pet", "pet_titan"]},
 	{"id": "card_pet_calf", "name": "Veau", "series": "Compagnons", "rarity": L, "art": ["pet", "pet_calf"]},
 	{"id": "card_pet_shard", "name": "Éclat de cristal", "series": "Compagnons", "rarity": L, "art": ["pet", "pet_shard"]},
+	# The pets' accessories.
+	{"id": "card_acc_santa", "name": "Bonnet de Noël", "series": "Accessoires", "rarity": R, "art": ["pet_accessory", "acc_santa"], "event": "christmas"},
+	{"id": "card_acc_scarf", "name": "Écharpe de Noël", "series": "Accessoires", "rarity": C, "art": ["pet_accessory", "acc_scarf"], "event": "christmas"},
+	{"id": "card_acc_antlers", "name": "Bois de renne", "series": "Accessoires", "rarity": R, "art": ["pet_accessory", "acc_antlers"], "event": "christmas"},
+	{"id": "card_acc_sunglasses", "name": "Lunettes de soleil", "series": "Accessoires", "rarity": C, "art": ["pet_accessory", "acc_sunglasses"]},
+	{"id": "card_acc_bowtie", "name": "Nœud papillon", "series": "Accessoires", "rarity": C, "art": ["pet_accessory", "acc_bowtie"]},
+	{"id": "card_acc_tophat", "name": "Haut-de-forme", "series": "Accessoires", "rarity": R, "art": ["pet_accessory", "acc_tophat"]},
+	{"id": "card_acc_pilot", "name": "Casque de pilote", "series": "Accessoires", "rarity": R, "art": ["pet_accessory", "acc_pilot"]},
+	{"id": "card_acc_halo", "name": "Auréole", "series": "Accessoires", "rarity": E, "art": ["pet_accessory", "acc_halo"]},
+	{"id": "card_acc_horns", "name": "Cornes de diable", "series": "Accessoires", "rarity": E, "art": ["pet_accessory", "acc_horns"]},
+	{"id": "card_acc_matrix", "name": "Casque à antennes", "series": "Accessoires", "rarity": E, "art": ["pet_accessory", "acc_matrix"]},
+	{"id": "card_acc_cowboy", "name": "Chapeau de cowboy", "series": "Accessoires", "rarity": E, "art": ["pet_accessory", "acc_cowboy"]},
+	{"id": "card_acc_crown", "name": "Couronne", "series": "Accessoires", "rarity": L, "art": ["pet_accessory", "acc_crown"]},
 ]
 
 ## Every card there is: the album, the expansion, Le Créateur's.
@@ -330,6 +343,8 @@ static func ability(card: Dictionary) -> Array:
 		"melee":
 			var blade: Dictionary = Loadout.find(reference).item
 			return ["FRAPPE", "Dégâts %d · portée %s m." % [blade.damage, str(blade.range).trim_suffix(".0")]]
+		"pet_accessory":
+			return ["ACCESSOIRE", "Se porte sur tous les animaux. Pour le style."]
 		"pet":
 			var pet := Pets.find(reference)
 			var perk: Array = Pets.PERKS[pet.perk]

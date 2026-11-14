@@ -13,7 +13,7 @@ const FLY_HEIGHT := 1.5
 const HOP_HEIGHT := 0.18
 ## Seconds between two uses of each perk that acts by itself.
 const PERIODS := {&"echo": 3.0, &"spit": 5.0, &"bite": 3.0, &"jelly": 3.0, &"dive": 6.0, &"turret": 1.5,
-		&"breath": 5.0, &"song": 8.0, &"magnet": 0.2, &"capy": 1.5}
+		&"breath": 5.0, &"song": 8.0, &"magnet": 0.2, &"capy": 0.5}
 const RANGES := {&"echo": 16.0, &"spit": 14.0, &"bite": 4.0, &"dive": 20.0, &"turret": 18.0, &"breath": 12.0, &"song": 6.0, &"capy": 25.0}
 const MAGNET_RANGE := 10.0
 const MAGNET_SPEED := 8.0
@@ -33,20 +33,27 @@ var _hop_left := 0.0
 var _perk_left := 1.0
 var _flying := false
 var _capy_beats := 0
+## The capybara's god mode (see _capy_god).
+const CAPY_AURA := 10.0
+const CAPY_BOSS_SHARE := 0.015
+const CAPY_HEAL := 5
+var _accessory: Dictionary
 
 
-## Call before adding it to the scene.
-func configure(item: Dictionary, follow: Node3D = null) -> void:
+## Call before adding it to the scene. `accessory` defaults to the one the
+## player chose (Pets.selected_accessory).
+func configure(item: Dictionary, follow: Node3D = null, accessory: Dictionary = {}) -> void:
 	pet = item
 	owner_node = follow
 	_flying = item.get("fly", false)
+	_accessory = accessory if not accessory.is_empty() else Pets.selected_accessory()
 
 
 func _ready() -> void:
 	add_child(_body)
 	if pet.is_empty() or pet.id == Pets.NONE.id:
 		return
-	var model := build_model(pet)
+	var model := build_model(pet, _accessory)
 	_body.add_child(model)
 	_player = model.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	if _player:
@@ -67,7 +74,7 @@ func _ready() -> void:
 
 ## The pet's model, scaled to its height, standing on its origin and facing
 ## -Z like the heroes. Used by the menus, the cards and the anime too.
-static func build_model(item: Dictionary) -> Node3D:
+static func build_model(item: Dictionary, accessory: Dictionary = {}) -> Node3D:
 	var holder := Node3D.new()
 	var model: Node3D
 	match item.get("build", ""):
@@ -111,7 +118,26 @@ static func build_model(item: Dictionary) -> Node3D:
 	turn.add_child(model)
 	holder.add_child(turn)
 	turn.rotation.y = float(item.get("turn", 0.0)) + (PI if _left_side_x(model) > 0.0 else 0.0)
+	if not accessory.is_empty() and accessory.id != Pets.ACCESSORY_NONE.id:
+		holder.add_child(wear(item, accessory))
 	return holder
+
+
+## The accessory on the pet's head (or round its neck), sized to the pet.
+## Its "head" (top of the head and its width, in the model's frame facing
+## -Z) is set by eye for each pet in Pets.LIST.
+static func wear(item: Dictionary, accessory: Dictionary) -> Node3D:
+	# "head": [height, forward, width], in units of the pet's height.
+	var shape: Array = item.get("head", [1.0, -0.45, 0.45])
+	var unit: float = item.height
+	var size: float = shape[2] * unit
+	var head := Vector3(0, shape[0] * unit, shape[1] * unit)
+	var worn := PetAccessory.build(accessory.id)
+	worn.scale = Vector3.ONE * size
+	worn.position = head
+	if accessory.get("neck", false):
+		worn.position += Vector3(0, -size * 0.75, size * 0.35)
+	return worn
 
 
 ## Starts the model's idle animation (a model from build_model shown alone).
@@ -366,14 +392,7 @@ func _use_perk() -> void:
 					if to_player.length() < MAGNET_RANGE:
 						power_up.global_position += to_player.limit_length(MAGNET_SPEED * PERIODS.magnet)
 		&"capy":
-			# Calm, and devastating.
-			_capy_beats += 1
-			if player and _capy_beats % 2 == 0 and player.health < player.max_health:
-				player.heal(2)
-			var target := _nearest(RANGES.capy)
-			if target:
-				var at: Vector3 = target.get_aim_position() if target.has_method("get_aim_position") else target.global_position + Vector3.UP
-				_zap(at, Color(0.2, 1.0, 0.45), 8, target)
+			_capy_god(player)
 		&"jelly":
 			if player and player.health < player.max_health:
 				player.heal(1)
@@ -410,6 +429,38 @@ func _use_perk() -> void:
 					_zap(at, Color(1.0, 0.5, 0.1), 1, target)
 					if target.has_method("ignite"):
 						target.ignite(1)
+
+
+## Le Créateur's capybara, god mode, every half second: ordinary enemies
+## within CAPY_AURA are wiped out, bosses within reach lose a share of their
+## life, and every second it heals its owner and strikes three targets.
+func _capy_god(player: Player) -> void:
+	var green := Color(0.2, 1.0, 0.45)
+	_capy_beats += 1
+	for target in _targets(RANGES.capy):
+		var close := target.global_position.distance_to(global_position) <= CAPY_AURA
+		if target is Boss:
+			var boss := target as Boss
+			_zap(boss.get_aim_position(), green, maxi(ceili(boss.max_health * CAPY_BOSS_SHARE), 1), boss)
+		elif target is Enemy and close:
+			_zap((target as Enemy).get_aim_position(), green, (target as Enemy).max_health * 10, target)
+	if _capy_beats % 2 == 1:
+		return
+	if player and player.health < player.max_health:
+		player.heal(CAPY_HEAL)
+	var struck := 0
+	for target in _by_distance(_targets(RANGES.capy)):
+		if struck == 3 or not is_instance_valid(target) or (target is Enemy and (target as Enemy)._dead):
+			continue
+		var at: Vector3 = target.get_aim_position() if target.has_method("get_aim_position") else target.global_position + Vector3.UP
+		_zap(at, green, 20, target)
+		struck += 1
+
+
+func _by_distance(targets: Array[Node3D]) -> Array[Node3D]:
+	targets.sort_custom(func(a: Node3D, b: Node3D) -> bool:
+		return a.global_position.distance_squared_to(global_position) < b.global_position.distance_squared_to(global_position))
+	return targets
 
 
 ## Hostile targets of the player within `radius` of the pet.

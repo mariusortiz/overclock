@@ -94,7 +94,7 @@ jobs:
             godot --headless --fixed-fps 60 --quit-after 1200 res://scenes/main.tscn -- --start-wave=$wave 2>&1 | tee -a run.log
           done
           # The pets whose perk acts by itself, 15 s each in a boss wave.
-          for pet in pet_drone pet_wolf pet_eagle pet_dragon pet_shard pet_slime pet_llama pet_bat; do
+          for pet in pet_drone pet_wolf pet_eagle pet_dragon pet_shard pet_slime pet_llama pet_bat pet_capybara; do
             godot --headless --fixed-fps 60 --quit-after 900 res://scenes/main.tscn -- --pet=$pet --start-wave=5 2>&1 | tee -a run.log
           done
           # Zone capture: a whole match's first minute on two arenas.

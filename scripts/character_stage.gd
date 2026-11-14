@@ -143,12 +143,13 @@ func show_loadout() -> void:
 	show_pet(Pets.selected())
 
 
-## A pet of Pets.LIST (none for Pets.NONE).
-func show_pet(item: Dictionary) -> void:
+## A pet of Pets.LIST (none for Pets.NONE), wearing `accessory` (by default
+## the one chosen).
+func show_pet(item: Dictionary, accessory: Dictionary = {}) -> void:
 	if _pet:
 		_pet.queue_free()
 	_pet = Pet.new()
-	_pet.configure(item)
+	_pet.configure(item, null, accessory)
 	$SubViewport/World.add_child(_pet)
 	_place_pet()
 

@@ -22,6 +22,7 @@ var _tabs := [
 	{"label": "VAISSEAU", "key": Loadout.SHIP_KEY, "items": Loadout.SHIPS,
 		"stats": [["VITESSE", "velocity", 1.1], ["MANIABILITÉ", "handling", 1.4], ["BOUCLIER", "shield", 5.0], ["CADENCE", "fire", 1.7]]},
 	{"label": "ANIMAL", "key": Pets.KEY, "items": Pets.LIST, "stats": []},
+	{"label": "ACCESSOIRE", "key": Pets.ACCESSORY_KEY, "items": Pets.ACCESSORIES, "stats": []},
 ]
 var _tab_index := 0
 var _viewed: Dictionary
@@ -70,13 +71,15 @@ func _select_tab(index: int) -> void:
 		Loadout.SHIP_KEY:
 			_stage.focus(CharacterStage.Focus.SHIP)
 			_stage.show_ship(Loadout.selected_ship())
-		Pets.KEY:
+		Pets.KEY, Pets.ACCESSORY_KEY:
 			_stage.focus(CharacterStage.Focus.PET)
 		_:
 			_stage.focus(CharacterStage.Focus.WEAPON)
 	_stage.show_loadout()
 	if _tabs[index].key == Pets.KEY:
 		_stage.show_pet(_viewed)
+	elif _tabs[index].key == Pets.ACCESSORY_KEY:
+		_stage.show_pet(_wearer(), _viewed)
 	_refresh()
 
 
@@ -94,6 +97,8 @@ func _equipped() -> Dictionary:
 			return Loadout.selected_ship()
 		Pets.KEY:
 			return Pets.selected()
+		Pets.ACCESSORY_KEY:
+			return Pets.selected_accessory()
 	return Loadout.selected_character()
 
 
@@ -147,7 +152,7 @@ func _refresh() -> void:
 	for bar in _detail_stats.get_children():
 		_detail_stats.remove_child(bar)
 		bar.queue_free()
-	if _tabs[_tab_index].key == Pets.KEY:
+	if _tabs[_tab_index].key in [Pets.KEY, Pets.ACCESSORY_KEY]:
 		_add_eggs()
 	for stat: Array in _tabs[_tab_index].stats:
 		# A melee weapon's speed is its number of blows per second.
@@ -176,6 +181,8 @@ func _on_card_pressed(item: Dictionary) -> void:
 			_stage.show_ship(item)
 		Pets.KEY:
 			_stage.show_pet(item)
+		Pets.ACCESSORY_KEY:
+			_stage.show_pet(_wearer(), item)
 	# Deferred: the cards are rebuilt, and one of them is handling this click.
 	_refresh.call_deferred()
 
@@ -226,9 +233,24 @@ func _add_eggs() -> void:
 		_detail_stats.add_child(hatch)
 
 
+## The pet that tries the accessories on: the one out, or the dog.
+func _wearer() -> Dictionary:
+	return Pets.selected() if Pets.selected().id != Pets.NONE.id else Pets.find("pet_dog")
+
+
 func _hatch() -> void:
 	var result := Pets.hatch()
 	if result.is_empty():
+		return
+	if result.has("accessory"):
+		var accessory: Dictionary = result.accessory
+		if result.new:
+			Loadout.select(Pets.ACCESSORY_KEY, accessory)
+		_stage.show_pet(_wearer(), accessory)
+		_stage.cheer_pet()
+		_refresh()
+		_detail_status.text = ("Un accessoire dans l'œuf : %s !" % accessory.name) if result.new else \
+				("Encore : %s. %d gemmes à la place." % [accessory.name.to_lower(), Pets.DUPLICATE_ACCESSORY_GEMS])
 		return
 	var pet: Dictionary = result.pet
 	if result.new:
