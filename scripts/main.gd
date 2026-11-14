@@ -687,6 +687,9 @@ func _show_results(result: Hud.Result) -> void:
 	var tier_before: int = BattlePass.progress().tier
 	for id in BattlePass.add_xp(xp + challenge_xp):
 		unlocked.append(Loadout.find(id).item.name)
+	if Pets.add_xp(xp + challenge_xp):
+		var pet := Pets.selected()
+		unlocked.append("%s niveau %d" % [pet.name, Pets.level(pet)])
 	if result == Hud.Result.VICTORY or _endless:
 		unlocked.append("skin Champion")
 	for achievement in Achievements.check():
@@ -700,7 +703,8 @@ func _show_results(result: Hud.Result) -> void:
 		@warning_ignore("integer_division")
 		credits /= 2
 	var gems: int = int(_stats.counts.get("bosses", 0)) * Wallet.GEMS_PER_BOSS
-	if not completed.is_empty() and Challenges.done_count() == Challenges.PER_DAY:
+	var daily_done := completed.any(func(challenge: Dictionary) -> bool: return not challenge.get("weekly", false))
+	if daily_done and Challenges.done_count() == Challenges.PER_DAY:
 		gems += Wallet.GEMS_FOR_ALL_CHALLENGES
 		Cards.give_booster("rare")
 		Pets.give_egg()

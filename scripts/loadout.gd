@@ -351,6 +351,15 @@ static func selected_ship() -> Dictionary:
 	return _selected(SHIPS, SHIP_KEY)
 
 
+## The skin a weapon wears in game: its mastery finish (see Mastery) when
+## the chosen skin is the standard one, else the chosen skin.
+static func mastery_skin(item: Dictionary, skin: Dictionary) -> Dictionary:
+	if skin.id != SKINS[0].id:
+		return skin
+	var finish := Mastery.finish(item.id)
+	return finish if not finish.is_empty() else skin
+
+
 ## On during a multiplayer match (set by Net): overpowered items play as
 ## their "fair" version.
 static var fair_play := false
@@ -422,7 +431,7 @@ static func weapon_layout(item: Dictionary, skin: Dictionary) -> Dictionary:
 ## with the skin's finish and accessories. `skin` defaults to the equipped one.
 static func instantiate_weapon(item: Dictionary, skin := {}) -> Node3D:
 	if skin.is_empty():
-		skin = selected_skin()
+		skin = mastery_skin(item, selected_skin())
 	# Some guns come with their own finish, worn unless another skin is chosen.
 	if item.has("finish") and skin.id == SKINS[0].id:
 		skin = find(item.finish).item

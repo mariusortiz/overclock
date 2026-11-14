@@ -4,7 +4,9 @@ render_mode cull_disabled;
 // The pattern follows the model (object space), so it stays on the gun.
 // mode 0: hologram scanlines, 1: twinkling galaxy, 2: flowing plasma,
 // 3: glitch blocks, 4: rainbow prism, 5: lightning, 6: black hole,
-// 7: digital rain, 8: candy cane stripes, 9: snowflakes, 10: Christmas lights.
+// 7: digital rain, 8: candy cane stripes, 9: snowflakes, 10: Christmas lights,
+// 11: mastery gold (polished, a shine sweeping along), 12: mastery diamond
+// (facets catching rainbow sparks).
 
 uniform int mode = 0;
 uniform vec3 color_a : source_color = vec3(0.0, 0.9, 1.0);
@@ -95,6 +97,19 @@ void fragment() {
 		float on = step(0.5, fract(t * 0.8 + h * 3.0));
 		color = mix(color_b, bulb_color, bulb);
 		glow = bulb_color * bulb * (0.3 + 1.6 * on);
+	} else if (mode == 11) {
+		// Mastery gold: polished gold, a band of light sweeping along it.
+		float sweep = smoothstep(0.25, 0.0, abs(fract(p.z * 0.35 - t * 0.35) - 0.5));
+		float grain = 0.9 + 0.1 * sin(p.y * 18.0);
+		color = mix(color_b, color_a, 0.55 + 0.45 * sin(p.x * 1.5 + p.y)) * grain;
+		glow = color_a * (0.12 + sweep * 0.9);
+	} else if (mode == 12) {
+		// Mastery diamond: pale facets, each catching a spark of rainbow.
+		vec3 cell = floor(p * 4.0);
+		float facet = hash(cell);
+		float spark = pow(max(sin(t * 2.0 + facet * 40.0), 0.0), 12.0);
+		color = mix(color_b, color_a, 0.6 + 0.4 * facet);
+		glow = color_a * 0.2 + hue(fract(facet + t * 0.1)) * spark * 1.4;
 	} else if (mode == 6) {
 		// Black hole: pitch black, a glowing ring of fire that swirls in.
 		float r = length(p.xy);

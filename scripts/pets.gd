@@ -161,6 +161,54 @@ static func select(pet: Dictionary) -> void:
 	SaveData.save_value(KEY, pet.id)
 
 
+# --- Levels ------------------------------------------------------------------------
+
+## Pet XP needed for levels 2 to 5. A pet earns a fifth of its owner's game XP.
+const LEVELS := [400, 1200, 3000, 6000]
+const MAX_LEVEL := 5
+const XP_SHARE := 0.2
+const LEVEL_KEY := "pet_xp"
+const RARITY_COLORS := [Color(0.75, 0.8, 0.85), Color(0.3, 0.6, 1.0), Color(0.75, 0.35, 1.0), Color(1.0, 0.75, 0.2), Color(0.2, 1.0, 0.45)]
+
+
+static func xp(pet: Dictionary) -> int:
+	return int(SaveData.load_progress(LEVEL_KEY, {}).get(pet.id, 0))
+
+
+static func level(pet: Dictionary) -> int:
+	var reached := 1
+	for goal: int in LEVELS:
+		if xp(pet) >= goal:
+			reached += 1
+	return reached
+
+
+## "Niv. 3 · 1500 / 3000 XP" (or "Niv. 5 · max").
+static func level_text(pet: Dictionary) -> String:
+	var current := level(pet)
+	if current >= MAX_LEVEL:
+		return "Niv. %d · max" % current
+	return "Niv. %d · %d / %d XP" % [current, xp(pet), LEVELS[current - 1]]
+
+
+## The equipped pet earns its share of a game's XP. Returns true when it
+## reached a new level.
+static func add_xp(game_xp: int) -> bool:
+	var pet := selected()
+	if pet.id == NONE.id or not forced.is_empty():
+		return false
+	var before := level(pet)
+	var saved: Dictionary = SaveData.load_progress(LEVEL_KEY, {})
+	saved[pet.id] = int(saved.get(pet.id, 0)) + roundi(game_xp * XP_SHARE)
+	SaveData.save_progress(LEVEL_KEY, saved)
+	return level(pet) > before
+
+
+## How strong the equipped pet's perk is: 1.0 at level 1, +10 % a level.
+static func power() -> float:
+	return 1.0 + 0.1 * (level(selected()) - 1)
+
+
 ## The perk playing now: the pet's, while perks are on (the capybara's
 ## always, in a game: like Le Créateur, full power everywhere).
 static func perk() -> StringName:
@@ -186,7 +234,7 @@ static func perk_text(pet: Dictionary) -> String:
 
 ## Extra chance of a power-up from an enemy (luck).
 static func drop_bonus() -> float:
-	return 0.1 if perk() == &"luck" else (0.5 if perk() == &"capy" else 0.0)
+	return 0.1 * power() if perk() == &"luck" else (0.5 if perk() == &"capy" else 0.0)
 
 
 ## A hit on the player, after the pet: lighter (wool), or none at all
@@ -196,11 +244,11 @@ static func filter_damage(amount: int) -> int:
 		&"capy":
 			return maxi(roundi(amount * 0.1), 1)
 		&"wool":
-			return maxi(roundi(amount * 0.9), 1)
+			return maxi(roundi(amount * (1.0 - 0.1 * power())), 1)
 		&"shield":
 			var now := Time.get_ticks_msec() / 1000.0
 			if now >= _shield_ready_at:
-				_shield_ready_at = now + SHIELD_COOLDOWN
+				_shield_ready_at = now + SHIELD_COOLDOWN / power()
 				return 0
 	return amount
 
@@ -208,25 +256,25 @@ static func filter_damage(amount: int) -> int:
 static func speed_factor() -> float:
 	if perk() == &"capy":
 		return 1.25
-	return 1.06 if perk() == &"swift" else 1.0
+	return 1.0 + 0.06 * power() if perk() == &"swift" else 1.0
 
 
 static func charge_factor() -> float:
 	if perk() == &"capy":
 		return 1.5
-	return 1.15 if perk() == &"ulti" else 1.0
+	return 1.0 + 0.15 * power() if perk() == &"ulti" else 1.0
 
 
 static func xp_factor() -> float:
 	if perk() == &"capy":
 		return 1.5
-	return 1.1 if perk() == &"xp" else 1.0
+	return 1.0 + 0.1 * power() if perk() == &"xp" else 1.0
 
 
 static func credits_factor() -> float:
 	if perk() == &"capy":
 		return 1.5
-	return 1.1 if perk() == &"piggy" else 1.0
+	return 1.0 + 0.1 * power() if perk() == &"piggy" else 1.0
 
 
 # --- Eggs ------------------------------------------------------------------------

@@ -15,6 +15,12 @@ var _stats := GridContainer.new()
 var _best := GridContainer.new()
 var _achievements := AchievementsPanel.new()
 var _achievements_button := Button.new()
+var titles := TitlesPanel.new()
+## The left list shows the day's challenges or the week's missions.
+var _weekly := false
+var _list_title: Label
+var _list_hint: Label
+var _weekly_button := Button.new()
 
 
 func _ready() -> void:
@@ -40,8 +46,11 @@ func _ready() -> void:
 	var left := VBoxContainer.new()
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.add_theme_constant_override("separation", 10)
-	left.add_child(_title("DÉFIS DU JOUR"))
-	left.add_child(_label("Renouvelés chaque jour. L'XP est gagnée même si tu meurs.", 17, Color(1, 1, 1, 0.7)))
+	_list_title = _title("")
+	left.add_child(_list_title)
+	_list_hint = _label("", 17, Color(1, 1, 1, 0.7))
+	_list_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	left.add_child(_list_hint)
 	_challenges.add_theme_constant_override("separation", 14)
 	left.add_child(_challenges)
 	left.add_child(_title("MEILLEURES PARTIES"))
@@ -69,6 +78,20 @@ func _ready() -> void:
 	_achievements_button.add_theme_font_size_override("font_size", 28)
 	_achievements_button.pressed.connect(_achievements.open)
 	buttons.add_child(_achievements_button)
+	_weekly_button.custom_minimum_size.y = 64
+	_weekly_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_weekly_button.add_theme_font_size_override("font_size", 28)
+	_weekly_button.pressed.connect(func() -> void:
+		_weekly = not _weekly
+		open())
+	buttons.add_child(_weekly_button)
+	var titles_button := Button.new()
+	titles_button.text = "TITRE"
+	titles_button.custom_minimum_size.y = 64
+	titles_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	titles_button.add_theme_font_size_override("font_size", 28)
+	titles_button.pressed.connect(titles.open)
+	buttons.add_child(titles_button)
 	var close := Button.new()
 	close.text = "FERMER"
 	close.custom_minimum_size.y = 64
@@ -78,6 +101,8 @@ func _ready() -> void:
 	buttons.add_child(close)
 	_achievements.visible = false
 	add_child(_achievements)
+	titles.visible = false
+	add_child(titles)
 
 
 func open() -> void:
@@ -93,8 +118,18 @@ func open() -> void:
 		_best.add_child(_label(str(entry.score), 18, CYAN))
 		_best.add_child(_label("vague %d%s" % [entry.wave, " · sans fin" if entry.endless else ""], 18, Color.WHITE))
 		_best.add_child(_label("%s · %s" % [entry.hero, entry.date], 18, Color(1, 1, 1, 0.6)))
-	for challenge in Challenges.today():
-		_challenges.add_child(_challenge_row(challenge))
+	if _weekly:
+		_list_title.text = "MISSIONS DE LA SEMAINE"
+		_list_hint.text = "Une à la fois. La 7e ouvre le coffre : booster légendaire, %d gemmes et un œuf. Nouvelles dans %d j." % [Weekly.CHEST_GEMS, Weekly.days_left()]
+		_weekly_button.text = "DÉFIS DU JOUR"
+		for mission in Weekly.missions():
+			_challenges.add_child(_mission_row(mission))
+	else:
+		_list_title.text = "DÉFIS DU JOUR"
+		_list_hint.text = "Renouvelés chaque jour. L'XP est gagnée même si tu meurs."
+		_weekly_button.text = "SEMAINE  %d / %d" % [Weekly.done_count(), Weekly.COUNT]
+		for challenge in Challenges.today():
+			_challenges.add_child(_challenge_row(challenge))
 	for line in GameStats.career_lines():
 		_stats.add_child(_label(line[0], 20, Color(1, 1, 1, 0.75)))
 		var value := _label(line[1], 20, CYAN)
@@ -121,6 +156,16 @@ func _challenge_row(challenge: Dictionary) -> Control:
 	row.add_child(bar)
 	row.add_child(_label("%d / %d" % [challenge.progress, challenge.goal], 16, Color(1, 1, 1, 0.6)))
 	return row
+
+
+## A weekly mission on one line: done, current (with its bar) or to come.
+func _mission_row(mission: Dictionary) -> Control:
+	if not mission.current:
+		var color := GOLD if mission.done else Color(1, 1, 1, 0.45)
+		return _label("%d. %s  %s" % [mission.index + 1, mission.text, "FAIT" if mission.done else "+%d XP" % mission.xp], 18, color)
+	mission = mission.duplicate()
+	mission.text = "%d. %s" % [mission.index + 1, mission.text]
+	return _challenge_row(mission)
 
 
 func _title(text: String) -> Label:

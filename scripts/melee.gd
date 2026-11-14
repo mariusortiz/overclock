@@ -24,6 +24,8 @@ var holder: CharacterModel
 ## The gun's visual, hidden while the melee weapon takes its place for a swing.
 var gun_visual: Node3D
 var damage_multiplier := 1
+## True while the blade deals its damage (a kill then is the blade's).
+var striking := false
 
 var _cooldown_left := 0.0
 var _swing_left := 0.0
@@ -41,7 +43,7 @@ func setup(data: Dictionary) -> void:
 	cone_deg = data.cone
 	knockback = data.knockback
 	_tip_up = Loadout.is_carried_tip_up(data)
-	_model_pivot.add_child(Loadout.instantiate_melee(data, Loadout.selected_melee_skin()))
+	_model_pivot.add_child(Loadout.instantiate_melee(data, Loadout.mastery_skin(data, Loadout.selected_melee_skin())))
 
 
 func _process(_delta: float) -> void:
@@ -72,12 +74,14 @@ func _swing() -> void:
 		return
 	if not sweep:
 		targets = [targets[0]]
+	striking = true
 	for target: Node3D in targets:
 		target.take_damage(damage * damage_multiplier)
 		if knockback > 0.0:
 			var away := target.global_position - global_position
 			away.y = 0.0
 			target.knockback(away.normalized(), knockback)
+	striking = false
 	_hit_sound.play()
 	hit_confirmed.emit()
 

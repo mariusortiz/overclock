@@ -111,7 +111,8 @@ func _show_room() -> void:
 	_text("Joueurs (%d / %d) :" % [Net.players.size(), Net.MAX_PLAYERS])
 	for id: int in Net.ids():
 		var info: Dictionary = Net.players[id]
-		var label := _text("%s%s%s" % [info.name, "  · hôte" if id == 1 else "", "  · toi" if id == Net.my_id() else ""], 24)
+		var title: String = info.get("title", "")
+		var label := _text("%s%s%s%s" % [info.name, "  « %s »" % title if title != "" else "", "  · hôte" if id == 1 else "", "  · toi" if id == Net.my_id() else ""], 24)
 		label.add_theme_color_override("font_color", Color.html(info.color))
 	if Net.is_host():
 		_text("Ton adresse : %s · les places libres sont prises par des bots." % Net.local_address(), 18)

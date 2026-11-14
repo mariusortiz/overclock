@@ -12,6 +12,8 @@ const BEST_OF: Array[String] = ["best_wave"]
 var counts := {}
 ## Gun id -> enemies it killed in this game.
 var weapon_kills := {}
+## Blade id -> enemies it killed in this game (see Mastery).
+var melee_kills := {}
 
 var _player: Player
 var _last_hit_frame := -1
@@ -40,6 +42,11 @@ func _process(delta: float) -> void:
 
 func _on_enemy_killed() -> void:
 	add("kills")
+	# A kill while the blade strikes is the blade's.
+	if _player.melee.striking:
+		var blade_id: String = Loadout.selected_melee().id
+		melee_kills[blade_id] = melee_kills.get(blade_id, 0) + 1
+		return
 	var weapon_id: String = _player.weapon.current_data.get("id", "")
 	weapon_kills[weapon_id] = weapon_kills.get(weapon_id, 0) + 1
 
@@ -60,7 +67,7 @@ func _on_wave_cleared(number: int) -> void:
 
 
 ## The game is over: adds it to the career and to the daily challenges.
-## Returns the challenges it completed.
+## Returns the challenges and weekly missions it completed.
 func finish() -> Array[Dictionary]:
 	add("games")
 	var career := load_career()
@@ -75,7 +82,13 @@ func finish() -> Array[Dictionary]:
 		kills_by_weapon[weapon_id] = kills_by_weapon.get(weapon_id, 0) + weapon_kills[weapon_id]
 	career["weapon_kills"] = kills_by_weapon
 	SaveData.save_progress(CAREER_KEY, career)
-	return Challenges.record(counts)
+	Mastery.record(weapon_kills, melee_kills)
+	var completed := Challenges.record(counts)
+	for mission in Weekly.record(counts):
+		mission.weekly = true
+		mission.text = "Semaine : " + mission.text
+		completed.append(mission)
+	return completed
 
 
 static func load_career() -> Dictionary:

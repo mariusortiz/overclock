@@ -20,6 +20,18 @@ func _ready() -> void:
 	super()
 	set_physics_process(false)
 	_goal_position = global_position
+	# Another player's title floats above them.
+	var info: Dictionary = Net.players.get(entity_id, {})
+	if str(info.get("title", "")) != "":
+		var tag := Label3D.new()
+		tag.text = "%s\n« %s »" % [info.get("name", ""), info.title]
+		tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		tag.font_size = 40
+		tag.outline_size = 10
+		tag.modulate = Color(1.0, 0.85, 0.3)
+		tag.no_depth_test = true
+		tag.position.y = model_height + 0.6
+		add_child(tag)
 
 
 func take_damage(amount: int, from := Vector3.INF) -> void:

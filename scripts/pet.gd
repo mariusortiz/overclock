@@ -69,7 +69,39 @@ func _ready() -> void:
 		_player.play(_idle)
 	if owner_node:
 		global_position = _place()
-	_perk_left = PERIODS.get(pet.perk, 1.0)
+	_perk_left = _period()
+	# Level 5: a little bigger, and a glow of its rarity under it.
+	if owner_node and Pets.level(pet) >= Pets.MAX_LEVEL and pet.perk != &"capy":
+		_body.scale = Vector3.ONE * 1.15
+		_add_aura(Pets.RARITY_COLORS[pet.rarity])
+
+
+## The time between two uses of the perk, shorter as the pet levels up
+## (the capybara is at its peak already).
+func _period() -> float:
+	var period: float = PERIODS.get(pet.perk, 1.0)
+	return period if pet.perk == &"capy" else period / Pets.power()
+
+
+func _add_aura(color: Color) -> void:
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(color, 0.45)
+	var ring := TorusMesh.new()
+	ring.inner_radius = float(pet.height) * 0.55
+	ring.outer_radius = float(pet.height) * 0.7
+	ring.material = material
+	var aura := MeshInstance3D.new()
+	aura.mesh = ring
+	aura.position.y = 0.04
+	add_child(aura)
+	var light := OmniLight3D.new()
+	light.light_color = color
+	light.light_energy = 0.8
+	light.omni_range = float(pet.height) * 2.5
+	light.position.y = float(pet.height) * 0.6
+	add_child(light)
 
 
 ## The pet's model, scaled to its height, standing on its origin and facing
@@ -371,7 +403,7 @@ func _process(delta: float) -> void:
 	if pet.perk != &"" and Pets.perk() == pet.perk:
 		_perk_left -= delta
 		if _perk_left <= 0.0:
-			_perk_left = PERIODS.get(pet.perk, 1.0)
+			_perk_left = _period()
 			_use_perk()
 
 
@@ -395,7 +427,7 @@ func _use_perk() -> void:
 			_capy_god(player)
 		&"jelly":
 			if player and player.health < player.max_health:
-				player.heal(1)
+				player.heal(roundi(Pets.power()))
 				Effects.burst(get_tree().current_scene, _mouth(), Color(0.4, 1.0, 0.5), 6)
 		&"song":
 			var hit := false
@@ -504,6 +536,8 @@ func _zap(at: Vector3, color: Color, damage: int, target: Node3D) -> void:
 	tween.tween_callback(beam.queue_free)
 	Effects.burst(get_tree().current_scene, at, color, 10)
 	if damage > 0:
+		if pet.perk != &"capy":
+			damage = roundi(damage * Pets.power())
 		target.take_damage(damage, from)
 
 

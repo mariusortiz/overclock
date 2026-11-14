@@ -36,9 +36,9 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Music.play_track(Music.Track.CHRISTMAS if Events.is_christmas() else Music.Track.MAIN)
 	_stage.show_loadout()
-	_best_label.text = "Record : %d  ·  Palier %d\nDéfis du jour : %d / %d\n%d crédits  ·  %d gemmes" % [
+	_best_label.text = "Record : %d  ·  Palier %d\nDéfis du jour : %d / %d  ·  Semaine : %d / %d\n%d crédits  ·  %d gemmes" % [
 			SaveData.load_high_score(), BattlePass.progress().tier, Challenges.done_count(), Challenges.PER_DAY,
-			Wallet.credits(), Wallet.gems()]
+			Weekly.done_count(), Weekly.COUNT, Wallet.credits(), Wallet.gems()]
 	_settings_panel.visible = false
 	add_child(_profile_panel)
 	_profile_panel.visible = false
@@ -102,7 +102,29 @@ func _add_corner_labels() -> void:
 	version.offset_bottom = -8.0
 	add_child(version)
 	move_child(version, _settings_panel.get_index())
+	_add_nameplate()
+	_profile_panel.titles.visibility_changed.connect(_add_nameplate)
 	move_child(_profile_panel, -1)
+
+
+## Top left: the hero's name, title and banner (see Titles); a tap opens
+## the choice.
+func _add_nameplate() -> void:
+	if has_node("Nameplate"):
+		var old := get_node("Nameplate")
+		remove_child(old)
+		old.queue_free()
+	var plate := TitlesPanel.profile_card(Loadout.selected_character().name, Titles.selected_title(), Titles.selected_banner())
+	plate.name = "Nameplate"
+	plate.position = Vector2(24, 24)
+	plate.size = Vector2(380, 92)
+	plate.mouse_filter = Control.MOUSE_FILTER_STOP
+	plate.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed:
+			_profile_panel.open()
+			_profile_panel.titles.open())
+	add_child(plate)
+	move_child(plate, _settings_panel.get_index())
 
 
 func _unhandled_key_input(event: InputEvent) -> void:

@@ -142,6 +142,10 @@ func _refresh() -> void:
 		_detail_status.text += "\nCAPACITÉ · %s : %s" % [special[0], special[1]]
 	if Pets.is_pet(_viewed) and _viewed.perk != &"":
 		_detail_status.text += "\n%s · %s" % [Pets.RARITY_NAMES[_viewed.rarity].to_upper(), Pets.perk_text(_viewed)]
+		if _viewed.perk != &"capy":
+			_detail_status.text += "\n%s (bonus +%d %%)" % [Pets.level_text(_viewed), 10 * (Pets.level(_viewed) - 1)]
+	if _tabs[_tab_index].key in [Loadout.WEAPON_KEY, Loadout.MELEE_KEY]:
+		_detail_status.text += "\n" + Mastery.text(_viewed.id)
 	if _viewed.has("pellets"):
 		_detail_status.text += "\n%d plombs par tir" % _viewed.pellets
 	if _viewed.has("ulti"):
@@ -154,6 +158,8 @@ func _refresh() -> void:
 		bar.queue_free()
 	if _tabs[_tab_index].key in [Pets.KEY, Pets.ACCESSORY_KEY]:
 		_add_eggs()
+	if _tabs[_tab_index].key in [Loadout.WEAPON_KEY, Loadout.MELEE_KEY]:
+		_add_mastery_option()
 	for stat: Array in _tabs[_tab_index].stats:
 		# A melee weapon's speed is its number of blows per second.
 		var value: float = 1.0 / _viewed.cooldown if stat[1] == "speed" else _viewed[stat[1]]
@@ -172,7 +178,7 @@ func _on_card_pressed(item: Dictionary) -> void:
 		Loadout.WEAPON_KEY:
 			_stage.show_weapon(item)
 		Loadout.MELEE_KEY:
-			_stage.show_melee(item)
+			_stage.show_melee(item, Loadout.mastery_skin(item, Loadout.selected_melee_skin()))
 		Loadout.SKIN_KEY:
 			_stage.show_weapon(Loadout.selected_weapon(), item)
 		Loadout.MELEE_SKIN_KEY:
@@ -209,6 +215,19 @@ func _add_stat(label_text: String, value: float, full: float) -> void:
 	number.add_theme_font_size_override("font_size", 20)
 	row.add_child(number)
 	_detail_stats.add_child(row)
+
+
+## Gold and diamond masteries come with a finish, worn with the standard
+## skin; this button turns it off for those who prefer the plain weapon.
+func _add_mastery_option() -> void:
+	var button := Button.new()
+	button.text = "FINITION DE MAÎTRISE (OR, DIAMANT) : %s" % ("OUI" if Mastery.finish_on() else "NON")
+	button.custom_minimum_size.y = 52
+	button.add_theme_font_size_override("font_size", 18)
+	button.pressed.connect(func() -> void:
+		Mastery.set_finish_on(not Mastery.finish_on())
+		_on_card_pressed(_viewed))
+	_detail_stats.add_child(button)
 
 
 ## On the pet tab: the eggs waiting, and the one about to hatch.
