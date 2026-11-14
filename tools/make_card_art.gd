@@ -200,6 +200,12 @@ func _subject(kind: String, reference: String) -> Node3D:
 			var guardian := _character(Boss.MODEL_DIR + str(Boss.INFO[Boss.Kind.GUARDIAN].model), &"idle")
 			Boss.dress_guardian.call_deferred(guardian.get_child(0))
 			return guardian
+		"mech":
+			# The mech of the waves (see Mech.build_model), in its idle.
+			var holder := Node3D.new()
+			holder.add_child(Mech.build_model())
+			holder.rotation.y = PI + 0.5
+			return holder
 		"reflect":
 			# Le Reflet: the soldier in mirror glass (see Boss.dress_reflect).
 			var reflect := _character(Loadout.CHARACTER_DIR + "Soldier_Male.fbx", &"idle")

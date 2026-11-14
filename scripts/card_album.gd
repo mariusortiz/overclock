@@ -14,8 +14,11 @@ const FANFARE_LEGENDARY := "res://assets/audio/fanfare_legendary.ogg"
 const FANFARE_MYTHIC := "res://assets/audio/fanfare_mythic.ogg"
 
 var _series := 0
+## Which cards of the series are shown: "all", "owned", "missing", "variants".
+var _filter := "all"
+const FILTERS := [["all", "TOUTES"], ["owned", "POSSÉDÉES"], ["missing", "MANQUANTES"], ["variants", "VARIANTES"]]
 var _top := HBoxContainer.new()
-var _actions := HBoxContainer.new()
+var _actions := HFlowContainer.new()
 var _tabs := HBoxContainer.new()
 var _grid := GridContainer.new()
 var _footer := HBoxContainer.new()
@@ -94,19 +97,40 @@ func _refresh() -> void:
 			child.queue_free()
 	_button(_top, "< RETOUR", func() -> void: get_tree().change_scene_to_file.call_deferred(MENU_SCENE))
 	var title := Label.new()
-	title.text = "CARTES  %d / %d  ·  SAISON 2  %d / %d  ·  POUSSIÈRE %d" % [Cards.owned_total(), Cards.CATALOG.size(),
-			Cards.expansion_owned(), Cards.EXPANSION.size(), Cards.dust()]
-	title.add_theme_font_size_override("font_size", 26)
+	title.text = "CARTES %d/%d · EXT. %d/%d · POUSSIÈRE %d\nCHROMA %d · OR %d · SIGNÉES %d · COSMIQUES %d/%d" % [
+			Cards.owned_total(), Cards.CATALOG.size(), Cards.expansion_owned(), Cards.EXPANSION.size(), Cards.dust(),
+			Cards.variant_total("chroma"), Cards.variant_total("gold"), Cards.variant_total("signed"),
+			_cosmic_owned(), Cards.in_series("Cosmique").size()]
+	title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", CYAN)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_top.add_child(title)
 	var pending := Cards.boosters()
-	for kind: Array in [["standard", "BOOSTER", CYAN], ["rare", "RARE", GOLD], ["legend", "LÉGENDAIRE", MAGENTA]]:
-		var count: int = pending.get(kind[0], 0)
-		var open := _button(_actions, "%s (%d)" % [kind[1], count], _open.bind(kind[0]), kind[2])
+	if Cards.daily_ready():
+		_button(_actions, "BOOSTER DU JOUR !", func() -> void:
+			Cards.take_daily()
+			_open("mystery"), GOLD)
+	# The boosters waiting: the three usual ones always, the others when there are some.
+	for kind: String in Cards.BOOSTER_NAMES:
+		var count: int = pending.get(kind, 0)
+		if count <= 0 and not kind in ["standard", "rare", "legend"]:
+			continue
+		var color: Color = {"rare": GOLD, "legend": MAGENTA, "chroma": Color(0.5, 1.0, 0.8), "mega": Color(1.0, 0.55, 0.2),
+				"mystery": Color(0.75, 0.6, 1.0)}.get(kind, CYAN)
+		var label: String = {"standard": "BOOSTER", "rare": "RARE", "legend": "LÉGENDAIRE", "chroma": "CHROMATIQUE", "mega": "MÉGA",
+				"mystery": "MYSTÈRE"}.get(kind, str(Cards.BOOSTER_NAMES[kind]).to_upper().trim_prefix("BOOSTER "))
+		var open := _button(_actions, "%s (%d)" % [label, count], _open.bind(kind), color)
 		open.disabled = count <= 0
-	_button(_actions, "RECYCLER LES DOUBLONS", _recycle)
+	_button(_actions, "RECYCLER", _recycle)
+	_button(_actions, "FUSIONNER", _show_fusion, Color(0.5, 1.0, 0.8))
+	for entry: Array in FILTERS:
+		var filter_button := _button(_actions, entry[1], func() -> void:
+			_filter = entry[0]
+			_refresh.call_deferred())
+		filter_button.toggle_mode = true
+		filter_button.button_pressed = _filter == entry[0]
+		filter_button.add_theme_font_size_override("font_size", 16)
 
 	for index in Cards.SERIES.size():
 		var series: String = Cards.SERIES[index][0]
@@ -120,7 +144,11 @@ func _refresh() -> void:
 	var shown: String = Cards.SERIES[_series][0]
 	# The hacker cards owned come after the series' own.
 	for card: Dictionary in Cards.in_series(shown):
-		var view := CardView.new(card, Cards.count(card.id) > 0, Cards.count(card.id))
+		var has := Cards.count(card.id) > 0
+		var best := _best_variant(card.id)
+		if (_filter == "owned" and not has) or (_filter == "missing" and has) or (_filter == "variants" and best == ""):
+			continue
+		var view := CardView.new(card, has, Cards.count(card.id), best)
 		view.custom_minimum_size = CARD_SIZE
 		view.gui_input.connect(func(event: InputEvent) -> void:
 			# On release: a finger sliding to scroll the grid opens nothing
@@ -146,6 +174,77 @@ func _refresh() -> void:
 			_refresh(), GOLD)
 		claim.disabled = not Cards.series_done(shown)
 	_fit_columns()
+
+
+## The finest variant owned of a card, to show it in the grid: signed, then
+## chromatic, then gold.
+func _best_variant(id: String) -> String:
+	for variant: String in ["signed", "chroma", "gold"]:
+		if Cards.has_variant(id, variant):
+			return variant
+	return ""
+
+
+func _cosmic_owned() -> int:
+	return Cards.in_series("Cosmique").filter(func(card: Dictionary) -> bool: return Cards.count(card.id) > 0).size()
+
+
+## Duplicates by rarity, and a button to fuse ten into a card of the rarity above.
+func _show_fusion() -> void:
+	var box := _open_overlay()
+	var title := Label.new()
+	title.text = "FUSION · %d DOUBLONS → 1 CARTE PLUS RARE" % Cards.FUSION_COPIES
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_color_override("font_color", Color(0.5, 1.0, 0.8))
+	box.add_child(title)
+	for rarity: Cards.Rarity in [Cards.Rarity.COMMON, Cards.Rarity.RARE, Cards.Rarity.EPIC, Cards.Rarity.LEGENDARY]:
+		var target: int = Cards.fusion_target(rarity)
+		var have := Cards.duplicates_of(rarity)
+		var row := HBoxContainer.new()
+		row.alignment = BoxContainer.ALIGNMENT_CENTER
+		row.add_theme_constant_override("separation", 16)
+		box.add_child(row)
+		var label := Label.new()
+		label.text = "%s : %d doublons" % [Cards.RARITY[rarity].name, have]
+		label.custom_minimum_size.x = 320
+		label.add_theme_font_size_override("font_size", 22)
+		label.add_theme_color_override("font_color", Cards.RARITY[rarity].color)
+		row.add_child(label)
+		var fuse := _button(row, "FUSIONNER → %s" % str(Cards.RARITY[target].name).to_upper(), func() -> void:
+			var card := Cards.fuse(rarity)
+			if not card.is_empty():
+				_show_fused(card), Cards.RARITY[target].color)
+		fuse.disabled = have < Cards.FUSION_COPIES
+	var hint := Label.new()
+	hint.text = "Les doublons les plus nombreux partent en premier. Tu gardes toujours un exemplaire de chaque carte."
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.custom_minimum_size.x = 640
+	hint.add_theme_font_size_override("font_size", 18)
+	box.add_child(hint)
+	_button(box, "FERMER", _close_overlay).size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+
+
+func _show_fused(card: Dictionary) -> void:
+	var box := _open_overlay()
+	var title := Label.new()
+	title.text = "FUSION RÉUSSIE"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 30)
+	title.add_theme_color_override("font_color", Cards.RARITY[card.rarity].color)
+	box.add_child(title)
+	var view := CardView.new(card, true, 0)
+	view.custom_minimum_size = Vector2(280, 392)
+	view.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	box.add_child(view)
+	_sparks(box, Vector2(140, 200), Cards.RARITY[card.rarity].color, 80, 500.0)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 12)
+	box.add_child(row)
+	_button(row, "ENCORE", _show_fusion, Color(0.5, 1.0, 0.8))
+	_button(row, "FERMER", _close_overlay)
 
 
 func _select(index: int) -> void:
@@ -195,11 +294,11 @@ func _close_overlay() -> void:
 	_refresh()
 
 
-## One card, large, with what to do with it.
-func _show_card(card: Dictionary) -> void:
+## One card, large, with what to do with it, and a tab for each variant owned.
+func _show_card(card: Dictionary, variant := "") -> void:
 	var box := _open_overlay()
 	var owned := Cards.count(card.id) > 0
-	var view := CardView.new(card, owned, Cards.count(card.id))
+	var view := CardView.new(card, owned, Cards.count(card.id), variant)
 	view.custom_minimum_size = Vector2(300, 420)
 	view.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	box.add_child(view)
@@ -208,10 +307,26 @@ func _show_card(card: Dictionary) -> void:
 	info.add_theme_font_size_override("font_size", 20)
 	info.text = "%s · %s · %s" % [card.series, Cards.RARITY[card.rarity].name, "%d exemplaire%s" % [Cards.count(card.id), "s" if Cards.count(card.id) > 1 else ""] if owned else "manquante"]
 	box.add_child(info)
+	var owned_variants: Array = ["chroma", "gold", "signed"].filter(func(name: String) -> bool: return Cards.has_variant(card.id, name))
+	if not owned_variants.is_empty():
+		var tabs := HBoxContainer.new()
+		tabs.alignment = BoxContainer.ALIGNMENT_CENTER
+		tabs.add_theme_constant_override("separation", 8)
+		box.add_child(tabs)
+		for name: String in [""] + owned_variants:
+			var tab := _button(tabs, "NORMALE" if name == "" else str(Cards.VARIANT_NAMES[name]).to_upper(), _show_card.bind(card, name))
+			tab.toggle_mode = true
+			tab.button_pressed = name == variant
+			tab.add_theme_font_size_override("font_size", 16)
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 12)
 	box.add_child(row)
+	if Cards.can_make_gold(card.id):
+		_button(row, "CRÉER L'OR (%d EX.)" % Cards.GOLD_COPIES, func() -> void:
+			if Cards.make_gold(card.id):
+				_show_card(card, "gold")
+				_flash_message("Carte en or !"), GOLD)
 	if not owned and card.rarity == Cards.Rarity.HACKER:
 		var only := _button(row, "UNIQUEMENT AVEC UN CODE", func() -> void: pass, Color(0.2, 1.0, 0.45))
 		only.disabled = true
@@ -220,7 +335,7 @@ func _show_card(card: Dictionary) -> void:
 			if Cards.craft(card.id):
 				_show_card(card), GOLD)
 		craft.disabled = Cards.dust() < Cards.craft_cost(card.id)
-	else:
+	elif variant == "":
 		_button(row, "ENVOYER", _confirm_send.bind(card), MAGENTA)
 	_button(row, "FERMER", _close_overlay)
 
@@ -234,7 +349,7 @@ func _confirm_send(card: Dictionary) -> void:
 	text.custom_minimum_size.x = 620
 	text.add_theme_font_size_override("font_size", 22)
 	var left := Cards.count(card.id) - 1
-	text.text = "Envoyer %s ?\nTu obtiens un code à donner : la carte quitte ta collection (il t'en restera %d), et celui qui tape le code dans CODE, sur l'accueil, la reçoit." % [card.name, left]
+	text.text = "Envoyer %s ?\nTu obtiens un code à donner : la carte quitte ta collection (il t'en restera %d), et celui qui tape le code dans CODE, sur l'accueil, la reçoit. Les variantes (chromatique, or, signée) restent chez toi." % [card.name, left]
 	box.add_child(text)
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -284,31 +399,32 @@ func _show_sent(card: Dictionary, code: String) -> void:
 ## sends it aside, until the pile is empty and the three are laid out.
 ## Legendary and mythic cards come with a show (see _celebrate).
 func _open(kind: String) -> void:
-	var drawn := Cards.open_booster(kind)
-	if drawn.is_empty():
+	var entries := Cards.open_booster(kind)
+	if entries.is_empty():
 		return
+	var drawn: Array[Dictionary] = []
+	var variants := []
+	var news := []
+	for entry in entries:
+		drawn.append(entry.card)
+		variants.append(entry.variant)
+		news.append(entry.new)
 	var box := _open_overlay()
 	var title := Label.new()
-	title.text = {"rare": "BOOSTER RARE", "legend": "BOOSTER LÉGENDAIRE"}.get(kind, "BOOSTER")
+	title.text = str(Cards.BOOSTER_NAMES.get(kind, "Booster")).to_upper()
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 34)
-	title.add_theme_color_override("font_color", {"rare": GOLD, "legend": MAGENTA}.get(kind, CYAN))
+	title.add_theme_color_override("font_color", {"rare": GOLD, "legend": MAGENTA, "chroma": Color(0.5, 1.0, 0.8),
+			"mega": Color(1.0, 0.55, 0.2), "mystery": Color(0.75, 0.6, 1.0)}.get(kind, CYAN))
 	box.add_child(title)
 	var hint := Label.new()
 	hint.text = "Glisse sur le pointillé pour ouvrir"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_size_override("font_size", 18)
 	box.add_child(hint)
-	# "New" for the first copy of a card the player did not have before this booster.
-	var news := []
-	var seen := {}
-	for card: Dictionary in drawn:
-		var in_booster := drawn.filter(func(other: Dictionary) -> bool: return other.id == card.id).size()
-		news.append(Cards.count(card.id) == in_booster and not seen.has(card.id))
-		seen[card.id] = true
-	# The rarest last, for the suspense.
+	# The rarest last, for the suspense (a variant counts as rarer still).
 	var order := range(drawn.size())
-	order.sort_custom(func(a: int, b: int) -> bool: return drawn[a].rarity > drawn[b].rarity)
+	order.sort_custom(func(a: int, b: int) -> bool: return _suspense(drawn[a], variants[a]) > _suspense(drawn[b], variants[b]))
 	var pile := Control.new()
 	pile.custom_minimum_size = PILE_CARD + Vector2(40, 40)
 	pile.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -316,19 +432,24 @@ func _open(kind: String) -> void:
 	box.add_child(pile)
 	var views: Array[CardView] = []
 	for slot in order.size():
-		var view := CardView.new(drawn[order[slot]], true, 0)
+		var view := CardView.new(drawn[order[slot]], true, 0, variants[order[slot]])
 		view.face_down = true
 		view.size = PILE_CARD
 		view.pivot_offset = PILE_CARD / 2.0
 		# Untidy, like a real pile.
 		view.position = Vector2(20, 20) + Vector2(-6, -4) * slot
 		view.rotation = [-0.05, 0.04, -0.02][slot % 3]
+		# A mega booster's pile stays tidy enough to fit.
+		if order.size() > 7:
+			view.position = Vector2(20, 20) + Vector2(-1.5, -1) * slot
 		view.set_meta("new", news[order[slot]])
 		pile.add_child(view)
 		views.append(view)
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 24)
+	var row := GridContainer.new()
+	row.columns = mini(drawn.size(), 8)
+	row.add_theme_constant_override("h_separation", 16)
+	row.add_theme_constant_override("v_separation", 16)
+	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	row.visible = false
 	box.add_child(row)
 	var done := _button(box, "CONTINUER", _close_overlay)
@@ -377,7 +498,7 @@ func _open(kind: String) -> void:
 			await out.finished
 			pile.visible = false
 			hint.text = ""
-			_lay_out(row, drawn, news)
+			_lay_out(row, drawn, news, variants)
 			row.visible = true
 			done.visible = true)
 
@@ -386,8 +507,12 @@ func _open(kind: String) -> void:
 ## then burst (see _celebrate); the others get a spray in their color.
 func _reveal(view: CardView, pile: Control) -> void:
 	var rarity: int = view.card.rarity
-	if rarity >= Cards.Rarity.LEGENDARY:
+	var step := Cards.ORDER.find(rarity)
+	if rarity >= Cards.Rarity.LEGENDARY or view.variant in ["chroma", "signed"]:
 		await _celebrate(view, pile)
+	else:
+		# A glow behind the card, in its rarity's color, stronger for rarer cards.
+		_halo(pile, view, Cards.RARITY[rarity].color, 0.25 + 0.2 * step)
 	var tween := create_tween()
 	tween.tween_property(view, "scale:x", 0.0, 0.15)
 	tween.tween_callback(func() -> void:
@@ -397,7 +522,19 @@ func _reveal(view: CardView, pile: Control) -> void:
 	tween.tween_property(view, "scale:x", 1.0, 0.15)
 	tween.tween_property(view, "scale", Vector2.ONE * 1.08, 0.12)
 	tween.tween_property(view, "scale", Vector2.ONE, 0.12)
-	_sparks(pile, view.position + view.size / 2.0, Cards.RARITY[rarity].color, 30 + 40 * rarity, 380.0 + 80.0 * rarity)
+	_sparks(pile, view.position + view.size / 2.0, Cards.RARITY[rarity].color, 30 + 40 * step, 380.0 + 80.0 * step)
+	if view.variant != "":
+		var banner := Label.new()
+		banner.text = "%s !" % str(Cards.VARIANT_NAMES[view.variant]).to_upper()
+		banner.add_theme_font_size_override("font_size", 40)
+		banner.add_theme_color_override("font_color", GOLD if view.variant == "gold" else Color.WHITE)
+		banner.add_theme_color_override("font_outline_color", Color.BLACK)
+		banner.add_theme_constant_override("outline_size", 10)
+		banner.position = view.position + Vector2(view.size.x * 0.5 - 140, view.size.y + 8)
+		pile.add_child(banner)
+		var pulse := banner.create_tween().set_loops(3)
+		pulse.tween_property(banner, "modulate", Color(1, 0.5, 1), 0.2)
+		pulse.tween_property(banner, "modulate", Color.WHITE, 0.2)
 	await tween.finished
 	if view.get_meta("new", false):
 		var badge := Label.new()
@@ -411,13 +548,40 @@ func _reveal(view: CardView, pile: Control) -> void:
 		view.add_child(badge)
 
 
+## How long a card waits in the pile: rarer cards (and variants) last.
+func _suspense(card: Dictionary, variant: String) -> int:
+	return Cards.ORDER.find(card.rarity) + (10 if variant != "" else 0)
+
+
+## A soft glow behind a card turning over, fading out.
+func _halo(pile: Control, view: CardView, color: Color, strength: float) -> void:
+	var glow := ColorRect.new()
+	glow.color = Color(color, strength)
+	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var additive := CanvasItemMaterial.new()
+	additive.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	glow.material = additive
+	glow.size = view.size * 1.25
+	glow.position = view.position - view.size * 0.125
+	pile.add_child(glow)
+	pile.move_child(glow, 0)
+	var fade := glow.create_tween()
+	fade.tween_interval(0.4)
+	fade.tween_property(glow, "color:a", 0.0, 0.8)
+	fade.tween_callback(glow.queue_free)
+
+
 ## The show of a legendary or mythic card: it trembles and glows, columns of
 ## light rise behind it, then a flash, confetti and a fanfare as it turns.
 func _celebrate(view: CardView, pile: Control) -> void:
-	var mythic: bool = view.card.rarity >= Cards.Rarity.MYTHIC
+	var mythic: bool = view.card.rarity >= Cards.Rarity.MYTHIC or view.variant in ["chroma", "signed"]
 	var colors: Array = [Color(1.0, 0.24, 0.95), GOLD, Color(0.3, 1.0, 0.6), CYAN, Color(0.7, 0.4, 1.0)] if mythic else [GOLD, Color(1.0, 0.95, 0.7)]
 	if view.card.rarity == Cards.Rarity.HACKER:
 		colors = [Color(0.2, 1.0, 0.45), Color(0.6, 1.0, 0.7), Color(0.0, 0.6, 0.25), Color.WHITE]
+	elif view.card.rarity == Cards.Rarity.COSMIC:
+		colors = [Color(0.35, 0.3, 1.0), Color(0.8, 0.5, 1.0), Color(0.1, 0.05, 0.4), Color.WHITE]
+	elif view.variant == "chroma":
+		colors = [Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA]
 	# Columns of light, behind the pile.
 	var beams := Control.new()
 	beams.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -547,16 +711,18 @@ func _play_fanfare(mythic: bool) -> void:
 
 
 ## The booster's three cards side by side, once all are turned.
-func _lay_out(row: HBoxContainer, drawn: Array[Dictionary], news: Array) -> void:
-	# Smaller cards when there are many, so that they fit side by side.
-	var width := minf(200.0, (get_viewport_rect().size.x - 80.0 - 16.0 * drawn.size()) / drawn.size())
+func _lay_out(row: GridContainer, drawn: Array[Dictionary], news: Array, variants: Array) -> void:
+	# Smaller cards when there are many, so that they fit: a row of at most 8.
+	var per_row := row.columns
+	var rows := ceili(drawn.size() / float(per_row))
+	var width := minf(200.0, (get_viewport_rect().size.x - 80.0 - 16.0 * per_row) / per_row)
+	width = minf(width, (get_viewport_rect().size.y - 260.0) / rows / 1.4)
 	var card_size := Vector2(width, width * 1.4)
-	row.add_theme_constant_override("separation", 16)
 	for index in drawn.size():
 		var holder := Control.new()
 		holder.custom_minimum_size = card_size
 		row.add_child(holder)
-		var view := CardView.new(drawn[index], true, 0)
+		var view := CardView.new(drawn[index], true, 0, variants[index])
 		view.size = card_size
 		view.pivot_offset = view.size / 2.0
 		holder.add_child(view)

@@ -7,7 +7,10 @@ class_name Cards
 ## Card art: assets/cards/<id>.jpg (see tools/make_card_art.gd).
 
 ## HACKER is above everything, and only for the cards of HACKER_CARDS.
-enum Rarity { COMMON, RARE, EPIC, LEGENDARY, MYTHIC, HACKER }
+## COSMIC, added last, ranks between MYTHIC and HACKER (see ORDER).
+enum Rarity { COMMON, RARE, EPIC, LEGENDARY, MYTHIC, HACKER, COSMIC }
+## The rarities from the most common to the rarest.
+const ORDER := [Rarity.COMMON, Rarity.RARE, Rarity.EPIC, Rarity.LEGENDARY, Rarity.MYTHIC, Rarity.COSMIC, Rarity.HACKER]
 
 const RARITY := {
 	Rarity.COMMON: {"name": "Commune", "color": Color(0.75, 0.78, 0.85), "weight": 60.0, "dust": 5, "craft": 40},
@@ -17,10 +20,37 @@ const RARITY := {
 	Rarity.MYTHIC: {"name": "Mythique", "color": Color(1.0, 0.25, 0.6), "weight": 0.3, "dust": 500, "craft": 4000},
 	# Never drawn, recycled or crafted: only with a code.
 	Rarity.HACKER: {"name": "Hacker", "color": Color(0.2, 1.0, 0.45), "weight": 0.0, "dust": 0, "craft": 0},
+	Rarity.COSMIC: {"name": "Cosmique", "color": Color(0.45, 0.4, 1.0), "weight": 0.08, "dust": 1500, "craft": 10000},
 }
 const ART_DIR := "res://assets/cards/"
 ## Cards in each kind of booster.
-const CARDS_PER_BOOSTER := {"standard": 3, "rare": 5, "legend": 7}
+const CARDS_PER_BOOSTER := {"standard": 3, "rare": 5, "legend": 7, "chroma": 5, "mega": 15, "mystery": 5,
+		"theme_heroes": 5, "theme_bosses": 5, "theme_pets": 5, "theme_anime": 5, "theme_gear": 5}
+## What each booster is called.
+const BOOSTER_NAMES := {"standard": "Booster", "rare": "Booster rare", "legend": "Booster légendaire",
+		"chroma": "Booster chromatique", "mega": "Méga-booster", "mystery": "Booster mystère",
+		"theme_heroes": "Booster Héros", "theme_bosses": "Booster Boss", "theme_pets": "Booster Animaux",
+		"theme_anime": "Booster Anime", "theme_gear": "Booster Arsenal"}
+## The series of each theme booster.
+const THEMES := {
+	"theme_heroes": ["Héros", "Mythiques", "Passe S2"],
+	"theme_bosses": ["Boss", "Ennemis", "Raid et miroirs", "Portail", "Matrice"],
+	"theme_pets": ["Compagnons", "Accessoires"],
+	"theme_anime": ["Anime", "Anime S2", "Anime S3", "Anime S4"],
+	"theme_gear": ["Armes", "Mêlée", "Skins", "Vaisseaux", "Boutique"],
+}
+## Variants: a card drawn is chromatic one time in CHROMA_ODDS, signed one
+## time in SIGNED_ODDS (numbered out of SIGNED_RUN); five copies make it gold.
+const CHROMA_ODDS := 150
+const SIGNED_ODDS := 1000
+const SIGNED_RUN := 500
+const GOLD_COPIES := 5
+## Duplicates of one rarity fused into a card of the rarity above.
+const FUSION_COPIES := 10
+const VARIANTS_KEY := "card_variants"
+const DAILY_KEY := "card_daily"
+const FUSIONS_KEY := "card_fusions"
+const VARIANT_NAMES := {"chroma": "Chromatique", "gold": "Or", "signed": "Signée"}
 ## A score worth a second booster.
 const BIG_SCORE := 8000
 
@@ -32,8 +62,11 @@ const SERIES := [
 	# The "Saison 2" expansion (EXPANSION): its own numbers, outside the 99.
 	["Matrice", 1500, 60], ["Anime S2", 2500, 100], ["Combat", 1500, 60], ["Boutique", 1800, 70], ["Noël", 1500, 80], ["Passe S2", 2000, 90],
 	["Portail", 1800, 70], ["Anime S3", 2500, 100], ["Compagnons", 2500, 100], ["Accessoires", 1500, 70], ["Saint-Valentin", 1500, 80], ["Anime S4", 2500, 100], ["Raid et miroirs", 1800, 70],
+	["Cosmique", 20000, 1000], ["Nouveautés", 2000, 90], ["Coulisses", 1500, 70],
 	# Le Créateur's: only through his code, outside the album's count.
 	["Hacker", 10000, 500],
+	# Only with promo codes, outside the album's count.
+	["Promo", 3000, 150],
 ]
 
 ## Every card: id, name, series, rarity, and what its art shows ("art": a
@@ -282,11 +315,42 @@ const EXPANSION := [
 	{"id": "card_ep41", "name": "Les Miroirs", "series": "Anime S4", "rarity": E, "art": ["image", "ep41"]},
 	{"id": "card_reflect", "name": "Le Reflet", "series": "Raid et miroirs", "rarity": L, "art": ["reflect", ""]},
 	{"id": "card_leviathan", "name": "Le Léviathan", "series": "Raid et miroirs", "rarity": L, "art": ["leviathan", ""]},
+	# Cosmic: above mythic, the stars behind their art (see Rarity.COSMIC).
+	{"id": "card_cosmic_squad", "name": "L'escouade au complet", "series": "Cosmique", "rarity": Rarity.COSMIC, "art": ["image", "cosmic_squad"]},
+	{"id": "card_cosmic_coder", "name": "Le Premier Codeur", "series": "Cosmique", "rarity": Rarity.COSMIC, "art": ["image", "cosmic_coder"]},
+	{"id": "card_cosmic_guardian", "name": "Le Gardien éveillé", "series": "Cosmique", "rarity": Rarity.COSMIC, "art": ["guardian", ""]},
+	{"id": "card_cosmic_titan", "name": "Le Titan des étoiles", "series": "Cosmique", "rarity": Rarity.COSMIC, "art": ["titan", ""]},
+	{"id": "card_cosmic_creators", "name": "Les deux Créateurs", "series": "Cosmique", "rarity": Rarity.COSMIC, "art": ["image", "cosmic_creators"]},
+	{"id": "card_cosmic_portal", "name": "Le Portail ouvert", "series": "Cosmique", "rarity": Rarity.COSMIC, "art": ["image", "cosmic_portal"]},
+	{"id": "card_cosmic_reflect", "name": "Le Reflet brisé", "series": "Cosmique", "rarity": Rarity.COSMIC, "art": ["reflect", ""]},
+	{"id": "card_cosmic_galaxy", "name": "La Galaxie", "series": "Cosmique", "rarity": Rarity.COSMIC, "art": ["gun_skin", "heavy:skin_galaxy"]},
+	# What came lately: the new arenas, modes and skins.
+	{"id": "card_island", "name": "L'Île", "series": "Nouveautés", "rarity": E, "art": ["image", "island"]},
+	{"id": "card_abyss_arena", "name": "L'Abysse", "series": "Nouveautés", "rarity": E, "art": ["image", "abyss_arena"]},
+	{"id": "card_garden", "name": "Jardin des cœurs", "series": "Nouveautés", "rarity": R, "art": ["image", "garden"]},
+	{"id": "card_mirror_arena", "name": "Monde-miroir", "series": "Nouveautés", "rarity": E, "art": ["image", "mirror_arena"]},
+	{"id": "card_royale", "name": "Battle royale", "series": "Nouveautés", "rarity": L, "art": ["image", "royale"]},
+	{"id": "card_boss_rush", "name": "Boss rush", "series": "Nouveautés", "rarity": E, "art": ["boss", "monsters/Dragon.fbx"]},
+	{"id": "card_mech", "name": "Mech", "series": "Nouveautés", "rarity": L, "art": ["mech", ""]},
+	{"id": "card_skin_chrono", "name": "Skin Chrono", "series": "Nouveautés", "rarity": E, "art": ["gun_skin", "heavy:skin_chrono"]},
+	{"id": "card_skin_abyss", "name": "Skin Abysse", "series": "Nouveautés", "rarity": L, "art": ["gun_skin", "heavy:skin_abyss"]},
+	{"id": "card_pet_race", "name": "Course d'animaux", "series": "Nouveautés", "rarity": R, "art": ["image", "pet_race"]},
+	# Behind the scenes: the jokes of the world of Overclock.
+	{"id": "card_bts_mandarin", "name": "La mandarine", "series": "Coulisses", "rarity": R, "art": ["pet", "pet_capybara"]},
+	{"id": "card_bts_hangar", "name": "Le hangar", "series": "Coulisses", "rarity": C, "art": ["image", "bts_hangar"]},
+	{"id": "card_bts_bug", "name": "Le bug du Créateur", "series": "Coulisses", "rarity": E, "art": ["hero", "createur"]},
+	{"id": "card_bts_mirror", "name": "Le mauvais miroir", "series": "Coulisses", "rarity": R, "art": ["image", "bts_mirror"]},
+	{"id": "card_bts_sneeze", "name": "L'éternuement", "series": "Coulisses", "rarity": C, "art": ["pet", "pet_dragon"]},
+	{"id": "card_bts_titan", "name": "Le Titan en pause", "series": "Coulisses", "rarity": R, "art": ["titan", ""]},
+	{"id": "card_bts_coffee", "name": "Le café du Créateur", "series": "Coulisses", "rarity": C, "art": ["image", "bts_coffee"]},
+	{"id": "card_bts_mud", "name": "La boue", "series": "Coulisses", "rarity": C, "art": ["image", "bts_mud"]},
+	{"id": "card_bts_photo", "name": "La photo d'équipe", "series": "Coulisses", "rarity": E, "art": ["image", "bts_photo"]},
+	{"id": "card_bts_pixel", "name": "Le dernier pixel", "series": "Coulisses", "rarity": R, "art": ["gun_skin", "heavy:skin_glitch"]},
 ]
 
 ## Every card there is: the album, the expansion, Le Créateur's.
 static func all_cards() -> Array:
-	return CATALOG + EXPANSION + HACKER_CARDS
+	return CATALOG + EXPANSION + HACKER_CARDS + PROMO_CARDS
 
 
 static func is_expansion(card: Dictionary) -> bool:
@@ -310,6 +374,16 @@ const HACKER_CARDS := [
 	{"id": "card_matrix", "name": "Skin Matrice", "series": "Hacker", "rarity": Rarity.HACKER, "art": ["gun_skin", "heavy:skin_matrix"], "item": "skin_matrix"},
 	{"id": "card_mainframe", "name": "Mainframe", "series": "Hacker", "rarity": Rarity.HACKER, "art": ["ship", "ship_mainframe"], "item": "ship_mainframe"},
 	{"id": "card_capybara", "name": "Capybara", "series": "Hacker", "rarity": Rarity.HACKER, "art": ["pet", "pet_capybara"], "item": "pet_capybara"},
+]
+
+## Promo cards: like the hacker cards, outside the album, never drawn; each
+## only through its promo code (see PromoCodes).
+const PROMO_CARDS := [
+	{"id": "card_promo_gold", "name": "Overclock édition or", "series": "Promo", "rarity": L, "art": ["gun_skin", "heavy:skin_gold"], "promo": true},
+	{"id": "card_promo_capy", "name": "Capybara en fête", "series": "Promo", "rarity": L, "art": ["pet", "pet_capybara"], "promo": true},
+	{"id": "card_promo_vipere", "name": "Vipère, pilote d'élite", "series": "Promo", "rarity": E, "art": ["ship", "ship_scarlet"], "promo": true},
+	{"id": "card_promo_squad", "name": "Fan de l'escouade", "series": "Promo", "rarity": E, "art": ["hero", "kunoichi"], "promo": true},
+	{"id": "card_promo_signed", "name": "Signé Le Créateur", "series": "Promo", "rarity": M, "art": ["hero", "createur"], "promo": true},
 ]
 
 const SAVE_KEY := "cards"
@@ -423,6 +497,39 @@ const FLAVOR := {
 	"card_volcano": "Rivière de lave et plateaux de basalte.",
 	"card_city": "Rues, pont routier et toits accessibles.",
 	"card_squad": "Soldat, Kunoichi, Capitaine, Ronin. Prochaine vague ?",
+	"card_cosmic_squad": "Tous ensemble, une fois. La galaxie s'en souvient encore.",
+	"card_cosmic_coder": "Il a écrit les étoiles, puis il est parti par la porte.",
+	"card_cosmic_guardian": "Il garde la porte depuis avant le premier code.",
+	"card_cosmic_titan": "Taillé dans la nuit, constellé de vieilles batailles.",
+	"card_cosmic_creators": "Un monde qui crée, un monde qui fait pousser.",
+	"card_cosmic_portal": "Un anneau de lumière. De l'autre côté, tout recommence.",
+	"card_cosmic_reflect": "Ce qu'il y avait de pire en deux mondes, en mille morceaux.",
+	"card_cosmic_galaxy": "La finition la plus lointaine de l'arsenal.",
+	"card_island": "140 mètres, 24 combattants, une seule zone à la fin.",
+	"card_abyss_arena": "Quatre plateformes au-dessus du vide. En bas, le Léviathan.",
+	"card_garden": "Des roses, une fontaine, et un Cupidon en fer.",
+	"card_mirror_arena": "La même ville. Les couleurs à l'envers.",
+	"card_royale": "Le dernier debout gagne. La zone violette décide du reste.",
+	"card_boss_rush": "Huit boss, une seule vie, un chrono qui ne pardonne pas.",
+	"card_mech": "Trente secondes de puissance, puis il explose. Classique.",
+	"card_skin_chrono": "Pour ceux qui ont battu les huit boss d'affilée.",
+	"card_skin_abyss": "Rapporté du fond de l'Abysse, encore humide.",
+	"card_pet_race": "Saute, sprinte, évite la boue. Mise ce que tu veux.",
+	"card_bts_mandarin": "Personne ne sait d'où vient la deuxième.",
+	"card_bts_hangar": "Où dorment les vaisseaux. Et parfois le Créateur.",
+	"card_bts_bug": "« C'est voulu. » Ce n'était pas voulu.",
+	"card_bts_mirror": "Le double qui s'est trompé de miroir. Il est encore perdu.",
+	"card_bts_sneeze": "Le plus calme de tous. Presque.",
+	"card_bts_titan": "Même un Titan a besoin d'une pause entre deux saisons.",
+	"card_bts_coffee": "Sans café, pas de patch.",
+	"card_bts_mud": "Le cochon a gagné. Personne ne comprend comment.",
+	"card_bts_photo": "Tout le monde a cligné des yeux. Sauf le capybara.",
+	"card_bts_pixel": "Le dernier pixel du Virus, gardé en souvenir.",
+	"card_promo_gold": "Distribuée pour le lancement. Brille plus fort que toi.",
+	"card_promo_capy": "Il a mis son plus beau chapeau. C'est-à-dire une mandarine.",
+	"card_promo_vipere": "« La prochaine fois, je ne te laisse pas d'avance. »",
+	"card_promo_squad": "Pour ceux qui étaient là dès l'épisode 1.",
+	"card_promo_signed": "Une signature, un trait, et une tête de vache.",
 	"card_reflect": "Il copie ton arme. Pas ton équipe.",
 	"card_leviathan": "Le boss du raid : quatre cœurs, des renforts, un laser au ras du sol.",
 	"card_cupid": "Ses flèches charment : deux secondes à marcher à l'envers.",
@@ -463,6 +570,8 @@ const FLAVOR := {
 static func number(card: Dictionary) -> String:
 	if card.rarity == Rarity.HACKER:
 		return "H%02d/H%02d" % [HACKER_CARDS.find(card) + 1, HACKER_CARDS.size()]
+	if card.get("promo", false):
+		return "P%02d/P%02d" % [PROMO_CARDS.find(card) + 1, PROMO_CARDS.size()]
 	if is_expansion(card):
 		return "S%02d/S%02d" % [EXPANSION.find(card) + 1, EXPANSION.size()]
 	return "%03d/%03d" % [CATALOG.find(card) + 1, CATALOG.size()]
@@ -470,7 +579,7 @@ static func number(card: Dictionary) -> String:
 
 ## The big number at the top: higher for rarer cards, a little different for each.
 static func power(card: Dictionary) -> int:
-	var base := [60, 90, 120, 160, 220, 960][card.rarity] as int
+	var base := [60, 90, 120, 160, 220, 960, 500][card.rarity] as int
 	return base + absi(hash(card.id)) % 4 * 10
 
 
@@ -514,13 +623,23 @@ static func boosters() -> Dictionary:
 	return SaveData.load_progress(BOOSTERS_KEY, {"standard": 0, "rare": 0})
 
 
+## All the boosters waiting, whatever their kind.
+static func boosters_waiting() -> int:
+	var total := 0
+	for kind: String in boosters():
+		total += int(boosters()[kind])
+	return total
+
+
 static func give_booster(kind: String, amount := 1) -> void:
 	var pending := boosters()
 	pending[kind] = pending.get(kind, 0) + amount
 	SaveData.save_progress(BOOSTERS_KEY, pending)
 
 
-## Opens a waiting booster of `kind`: its cards are added and returned.
+## Opens a waiting booster of `kind`: its cards are added and returned, each
+## as {"card", "variant" ("", "chroma" or "signed"), "new"}. Event cards only
+## during their event, theme boosters only their series (see THEMES).
 static func open_booster(kind: String) -> Array[Dictionary]:
 	var pending := boosters()
 	if pending.get(kind, 0) <= 0:
@@ -528,23 +647,44 @@ static func open_booster(kind: String) -> Array[Dictionary]:
 	pending[kind] -= 1
 	SaveData.save_progress(BOOSTERS_KEY, pending)
 	var drawn: Array[Dictionary] = []
-	var count: int = cards_in(kind)
-	for slot in count:
+	var size: int = cards_in(kind)
+	if kind == "mystery":
+		size = randi_range(3, 7)
+	var series: Array = THEMES.get(kind, [])
+	# Which slot is sure to be chromatic, if one is.
+	var chroma_slot := -1
+	if kind == "chroma" or (kind == "mystery" and randf() < 0.05):
+		chroma_slot = randi() % size
+	for slot in size:
 		var lowest := Rarity.COMMON
-		var highest := Rarity.MYTHIC
-		if slot == count - 1:
-			if kind == "rare":
+		var highest := Rarity.COSMIC
+		var last := slot == size - 1
+		if last and kind in ["rare", "chroma"] or (last and kind.begins_with("theme_")):
+			lowest = Rarity.RARE
+		elif last and kind == "legend":
+			# One time in two legendary or better; otherwise rare or epic.
+			if randf() < LEGEND_CHANCE:
+				lowest = Rarity.LEGENDARY
+			else:
 				lowest = Rarity.RARE
-			elif kind == "legend":
-				# One time in two legendary or better; otherwise rare or epic.
-				if randf() < LEGEND_CHANCE:
-					lowest = Rarity.LEGENDARY
-				else:
-					lowest = Rarity.RARE
-					highest = Rarity.EPIC
-		var card := _draw(lowest, highest)
+				highest = Rarity.EPIC
+		elif kind == "mega" and last:
+			lowest = Rarity.LEGENDARY
+		elif kind == "mega" and slot == size - 2:
+			lowest = Rarity.EPIC
+		elif kind == "mystery" and last:
+			lowest = Rarity.EPIC
+		var card := _draw(lowest, highest, series)
+		var is_new := count(card.id) == 0
 		add(card.id)
-		drawn.append(card)
+		var variant := ""
+		if slot == chroma_slot or randi() % CHROMA_ODDS == 0:
+			variant = "chroma"
+		elif randi() % SIGNED_ODDS == 0:
+			variant = "signed"
+		if variant != "":
+			add_variant(card.id, variant)
+		drawn.append({"card": card, "variant": variant, "new": is_new})
 	return drawn
 
 
@@ -556,27 +696,157 @@ static func cards_in(kind: String) -> int:
 const LEGEND_CHANCE := 0.5
 
 
-## A random card of rarity `lowest` or above, by the rarities' weights.
-static func _draw(lowest: Rarity, highest := Rarity.MYTHIC) -> Dictionary:
+## A random card of rarity `lowest` to `highest` (in ORDER, never Hacker),
+## by the rarities' weights; from `series` only when given.
+static func _draw(lowest: Rarity, highest := Rarity.COSMIC, series: Array = []) -> Dictionary:
+	var low := ORDER.find(lowest)
+	var high := ORDER.find(highest)
+	var allowed: Array = ORDER.slice(low, high + 1).filter(func(rarity: Rarity) -> bool: return rarity != Rarity.HACKER)
+	# Event cards only during their event.
+	var drawable := (CATALOG + EXPANSION).filter(func(card: Dictionary) -> bool:
+		return Events.is_on(card.get("event", "")) and (series.is_empty() or card.series in series))
+	# Only the rarities that have cards here.
+	allowed = allowed.filter(func(rarity: Rarity) -> bool:
+		return drawable.any(func(card: Dictionary) -> bool: return card.rarity == rarity))
+	if allowed.is_empty():
+		return drawable.pick_random() if not drawable.is_empty() else CATALOG.pick_random()
 	var total := 0.0
-	for rarity: Rarity in RARITY:
-		if rarity >= lowest and rarity <= highest:
-			total += RARITY[rarity].weight
+	for rarity: Rarity in allowed:
+		total += RARITY[rarity].weight
 	var roll := randf() * total
-	var chosen := lowest
-	for rarity: Rarity in RARITY:
-		if rarity < lowest or rarity > highest:
-			continue
+	var chosen: Rarity = allowed[0]
+	for rarity: Rarity in allowed:
 		roll -= RARITY[rarity].weight
 		if roll <= 0.0:
 			chosen = rarity
 			break
-	# Event cards only during their event.
-	var drawable := (CATALOG + EXPANSION).filter(func(card: Dictionary) -> bool: return Events.is_on(card.get("event", "")))
-	var pool := drawable.filter(func(card: Dictionary) -> bool: return card.rarity == chosen)
-	if pool.is_empty():
-		pool = drawable.filter(func(card: Dictionary) -> bool: return card.rarity == lowest)
-	return pool.pick_random()
+	return drawable.filter(func(card: Dictionary) -> bool: return card.rarity == chosen).pick_random()
+
+
+# --- Variants: chromatic, gold, signed --------------------------------------------
+
+## {id: {"chroma": count, "gold": count, "signed": [numbers]}}
+static func variants() -> Dictionary:
+	return SaveData.load_progress(VARIANTS_KEY, {})
+
+
+static func variants_of(id: String) -> Dictionary:
+	return variants().get(id, {})
+
+
+## Whether the player has `id` in `variant`.
+static func has_variant(id: String, variant: String) -> bool:
+	var entry := variants_of(id)
+	if variant == "signed":
+		return not entry.get("signed", []).is_empty()
+	return int(entry.get(variant, 0)) > 0
+
+
+static func add_variant(id: String, variant: String) -> void:
+	var all := variants()
+	var entry: Dictionary = all.get(id, {})
+	if variant == "signed":
+		var numbers: Array = entry.get("signed", [])
+		numbers.append(randi_range(1, SIGNED_RUN))
+		entry["signed"] = numbers
+	else:
+		entry[variant] = int(entry.get(variant, 0)) + 1
+	all[id] = entry
+	SaveData.save_progress(VARIANTS_KEY, all)
+
+
+## The number of the first signed copy ("n° 37 / 500"), or 0.
+static func signed_number(id: String) -> int:
+	var numbers: Array = variants_of(id).get("signed", [])
+	return int(numbers[0]) if not numbers.is_empty() else 0
+
+
+## How many cards (not copies) the player has in `variant`.
+static func variant_total(variant: String) -> int:
+	var total := 0
+	for id: String in variants():
+		if has_variant(id, variant):
+			total += 1
+	return total
+
+
+## Gold: five copies of a card make it gold (four copies are used up).
+static func can_make_gold(id: String) -> bool:
+	return count(id) >= GOLD_COPIES and find(id).rarity != Rarity.HACKER and not has_variant(id, "gold")
+
+
+static func make_gold(id: String) -> bool:
+	if not can_make_gold(id):
+		return false
+	var cards := owned()
+	cards[id] = int(cards[id]) - (GOLD_COPIES - 1)
+	SaveData.save_progress(SAVE_KEY, cards)
+	add_variant(id, "gold")
+	return true
+
+
+# --- Fusion ---------------------------------------------------------------------
+
+## Extra copies (beyond the first) of the cards of `rarity`.
+static func duplicates_of(rarity: Rarity) -> int:
+	var cards := owned()
+	var total := 0
+	for id: String in cards:
+		var card := find(id)
+		if not card.is_empty() and card.rarity == rarity:
+			total += maxi(int(cards[id]) - 1, 0)
+	return total
+
+
+## The rarity a fusion of `rarity` gives, or -1 (nothing above, or not fusable).
+static func fusion_target(rarity: Rarity) -> int:
+	var index := ORDER.find(rarity)
+	if rarity in [Rarity.HACKER, Rarity.MYTHIC, Rarity.COSMIC] or index < 0:
+		return -1
+	return ORDER[index + 1]
+
+
+## Fuses FUSION_COPIES duplicates of `rarity` (the most copied first) into a
+## random card of the rarity above. Returns it, or {}.
+static func fuse(rarity: Rarity) -> Dictionary:
+	var target := fusion_target(rarity)
+	if target < 0 or duplicates_of(rarity) < FUSION_COPIES:
+		return {}
+	var cards := owned()
+	var ids := cards.keys().filter(func(id: String) -> bool:
+		return not find(id).is_empty() and find(id).rarity == rarity and int(cards[id]) > 1)
+	ids.sort_custom(func(a: String, b: String) -> bool: return int(cards[a]) > int(cards[b]))
+	var left := FUSION_COPIES
+	while left > 0:
+		for id: String in ids:
+			if left > 0 and int(cards[id]) > 1:
+				cards[id] = int(cards[id]) - 1
+				left -= 1
+	SaveData.save_progress(SAVE_KEY, cards)
+	SaveData.save_progress(FUSIONS_KEY, fusions() + 1)
+	var card := _draw(target, target)
+	add(card.id)
+	return card
+
+
+static func fusions() -> int:
+	return SaveData.load_progress(FUSIONS_KEY, 0)
+
+
+# --- The booster of the day --------------------------------------------------------
+
+static func daily_ready() -> bool:
+	return SaveData.load_progress(DAILY_KEY, "") != Time.get_date_string_from_system()
+
+
+## Today's free booster (a mystery one): added to those waiting. False if
+## already taken today.
+static func take_daily() -> bool:
+	if not daily_ready():
+		return false
+	SaveData.save_progress(DAILY_KEY, Time.get_date_string_from_system())
+	give_booster("mystery")
+	return true
 
 
 ## Turns every extra copy into dust. Returns the dust gained.

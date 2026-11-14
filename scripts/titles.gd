@@ -34,6 +34,8 @@ const TITLES: Array[Dictionary] = [
 	{"id": "title_conqueror", "name": "Conquérant", "ach": "capture"},
 	{"id": "title_breeder", "name": "Éleveur", "ach": "breeder"},
 	{"id": "title_platinum", "name": "Platine", "ach": "platinum"},
+	{"id": "title_astral", "name": "Astral", "ach": "cosmic_all"},
+	{"id": "title_prism", "name": "Prisme vivant", "ach": "chroma_10"},
 	{"id": "title_recruit", "name": "Recrue", "pass": [0, 10]},
 	{"id": "title_veteran", "name": "Vétéran", "pass": [0, -1]},
 	{"id": "title_admin", "name": "Administrateur", "pass": [1, 35]},
@@ -59,6 +61,7 @@ const BANNERS: Array[Dictionary] = [
 	{"id": "banner_hex", "name": "Hexagones", "mode": 8, "colors": [Color(1.0, 0.3, 0.6), Color(0.12, 0.02, 0.1)], "gems": 120},
 	{"id": "banner_gold", "name": "Or", "mode": 9, "colors": [Color(1.0, 0.85, 0.35), Color(0.4, 0.25, 0.05)], "ach": "platinum"},
 	{"id": "banner_ice", "name": "Glace", "mode": 10, "colors": [Color(0.85, 0.97, 1.0), Color(0.2, 0.45, 0.7)], "ach": "christmas"},
+	{"id": "banner_galaxy", "name": "Galaxie", "mode": 2, "colors": [Color(0.8, 0.6, 1.0), Color(0.03, 0.0, 0.12)], "gift": "Succès « Astral » : toutes les cartes cosmiques"},
 	{"id": "banner_sunset", "name": "Couchant", "mode": 11, "colors": [Color(1.0, 0.55, 0.2), Color(0.45, 0.1, 0.45)], "gems": 200},
 ]
 const BANNER_SHADER := preload("res://shaders/banner.gdshader")

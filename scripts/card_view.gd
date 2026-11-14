@@ -7,6 +7,11 @@ extends Control
 ## card (or the phone) tilts, stronger with the rarity. Legendary and mythic
 ## cards are full-art. A missing card is grey; a card can be face down (a
 ## booster).
+##
+## A card may be shown in a variant (see Cards): "chroma" (its frame and art
+## run through the rainbow), "gold" (gold frame, gold-tinted art) or "signed"
+## (Le Créateur's signature across the art, and its number). Cosmic cards
+## have a field of stars behind their art.
 
 const FONT := preload("res://assets/ui/fonts/kenney_mini_square_mono.ttf")
 const BACK_COLOR := Color(0.06, 0.09, 0.25)
@@ -19,7 +24,23 @@ const SERIES_TINT := {
 	"Arènes": Color(0.6, 0.85, 0.75), "Anime": Color(0.9, 0.65, 0.85), "Mythiques": Color(0.2, 0.15, 0.35), "Hacker": Color(0.04, 0.12, 0.06),
 	"Matrice": Color(0.45, 0.85, 0.55), "Anime S2": Color(0.75, 0.6, 0.95), "Combat": Color(0.95, 0.6, 0.45), "Boutique": Color(0.95, 0.75, 0.9),
 	"Noël": Color(0.95, 0.55, 0.55), "Passe S2": Color(0.55, 0.9, 0.75),
+	"Nouveautés": Color(0.55, 0.9, 0.95), "Coulisses": Color(0.95, 0.85, 0.7), "Promo": Color(1.0, 0.8, 0.45),
 }
+## Stars drifting slowly behind a cosmic card's art.
+const STARS_SHADER := """
+shader_type canvas_item;
+uniform vec2 rect_size = vec2(100.0);
+float hash(vec2 p) {
+	return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+void fragment() {
+	vec2 p = UV * rect_size / 4.0 + vec2(TIME * 0.6, 0.0);
+	vec2 cell = floor(p);
+	float star = step(0.97, hash(cell)) * (0.4 + 0.6 * sin(TIME * 2.0 + hash(cell + 7.0) * 40.0));
+	vec3 sky = mix(vec3(0.02, 0.01, 0.1), vec3(0.18, 0.08, 0.4), UV.y + 0.2 * sin(UV.x * 3.0 + TIME * 0.2));
+	COLOR = vec4(sky + vec3(star), 1.0);
+}
+"""
 ## The holographic foil, laid over the whole card: a faint rainbow wash,
 ## brighter rainbow bands that slide with the tilt and time, and glitter.
 ## `strength` 0 turns the bands off; the card's rounded corners stay clean.
@@ -53,6 +74,7 @@ void fragment() {
 """
 
 static var _foil_shader: Shader
+static var _stars_shader: Shader
 
 var card := {}
 var owned := true
@@ -61,6 +83,11 @@ var face_down := false:
 		face_down = value
 		_layout()
 var copies := 0
+## "", "chroma", "gold" or "signed" (see Cards).
+var variant := "":
+	set(value):
+		variant = value
+		_layout()
 
 var _time := 0.0
 var _art := TextureRect.new()
@@ -69,14 +96,24 @@ var _foil := ColorRect.new()
 var _foil_material := ShaderMaterial.new()
 ## Texts and symbols, drawn over the art (see _draw_ink).
 var _ink := Control.new()
+## A cosmic card's starry background.
+var _stars := ColorRect.new()
 ## Where the drawing helpers draw: this card, or the ink layer.
 var _canvas: CanvasItem = self
 
 
-func _init(shown: Dictionary = {}, is_owned := true, card_copies := 0) -> void:
+func _init(shown: Dictionary = {}, is_owned := true, card_copies := 0, shown_variant := "") -> void:
 	card = shown
 	owned = is_owned
 	copies = card_copies
+	variant = shown_variant
+	if _stars_shader == null:
+		_stars_shader = Shader.new()
+		_stars_shader.code = STARS_SHADER
+	var stars_material := ShaderMaterial.new()
+	stars_material.shader = _stars_shader
+	_stars.material = stars_material
+	_stars.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	mouse_filter = Control.MOUSE_FILTER_PASS
 	if _foil_shader == null:
 		_foil_shader = Shader.new()
@@ -93,6 +130,7 @@ func _init(shown: Dictionary = {}, is_owned := true, card_copies := 0) -> void:
 
 
 func _ready() -> void:
+	add_child(_stars)
 	add_child(_art)
 	add_child(_foil)
 	add_child(_ink)
@@ -128,14 +166,28 @@ func _layout() -> void:
 	_art.position = Vector2(size.x * 0.05, size.y * 0.05) if full_art else Vector2(size.x * 0.08, size.y * 0.13)
 	_art.size = Vector2(size.x * 0.9, size.y * 0.9) if full_art else Vector2(size.x * 0.84, size.y * 0.42)
 	_art.self_modulate = Color.WHITE if owned else Color(0.12, 0.12, 0.16)
-	_foil.visible = owned and _rarity() >= Cards.Rarity.RARE
+	if owned and variant == "gold":
+		_art.self_modulate = Color(1.0, 0.88, 0.6)
+	var cosmic := _rarity() == Cards.Rarity.COSMIC and owned
+	_stars.visible = cosmic
+	if cosmic:
+		_stars.position = _art.position
+		_stars.size = _art.size
+		(_stars.material as ShaderMaterial).set_shader_parameter("rect_size", _stars.size)
+		_art.self_modulate = Color(1, 1, 1, 0.82)
+	_foil.visible = owned and (_rarity() >= Cards.Rarity.RARE or variant != "")
 	_foil.position = Vector2.ZERO
 	_foil.size = size
 	_foil_material.set_shader_parameter("rect_size", size)
 	_foil_material.set_shader_parameter("radius", float(int(size.x * 0.05)))
-	_foil_material.set_shader_parameter("strength", [0.0, 0.35, 0.5, 0.6, 0.75, 0.9][_rarity()])
-	_foil_material.set_shader_parameter("wash", [0.0, 0.05, 0.08, 0.11, 0.14, 0.18][_rarity()])
-	_foil_material.set_shader_parameter("glitter", [0.0, 0.5, 0.8, 1.0, 1.0, 1.0][_rarity()])
+	_foil_material.set_shader_parameter("strength", [0.0, 0.35, 0.5, 0.6, 0.75, 0.9, 0.9][_rarity()])
+	_foil_material.set_shader_parameter("wash", [0.0, 0.05, 0.08, 0.11, 0.14, 0.18, 0.12][_rarity()])
+	_foil_material.set_shader_parameter("glitter", [0.0, 0.5, 0.8, 1.0, 1.0, 1.0, 1.0][_rarity()])
+	if variant == "chroma":
+		_foil_material.set_shader_parameter("strength", 1.0)
+		_foil_material.set_shader_parameter("wash", 0.28)
+		_foil_material.set_shader_parameter("glitter", 1.0)
+	_foil.modulate = Color(1.0, 0.85, 0.4) if variant == "gold" else Color.WHITE
 	queue_redraw()
 
 
@@ -145,7 +197,7 @@ func _is_full_art() -> bool:
 
 
 func _process(delta: float) -> void:
-	if card.is_empty() or face_down or not owned or _rarity() < Cards.Rarity.RARE:
+	if card.is_empty() or face_down or not owned or (_rarity() < Cards.Rarity.RARE and variant == ""):
 		return
 	_time += delta
 	# The light moves with the tilt: the phone's, or the mouse over the card.
@@ -156,9 +208,12 @@ func _process(delta: float) -> void:
 	elif get_global_rect().has_point(get_global_mouse_position()):
 		tilt = (get_local_mouse_position() / size - Vector2(0.5, 0.5)) * 2.0
 	_foil_material.set_shader_parameter("tilt", tilt)
-	if _rarity() >= Cards.Rarity.LEGENDARY:
+	if _rarity() >= Cards.Rarity.LEGENDARY or variant != "":
 		queue_redraw()
 		_ink.queue_redraw()
+	if variant == "chroma":
+		# The art itself runs through the colors.
+		_art.self_modulate = Color.from_hsv(fmod(_time * 0.25, 1.0), 0.35, 1.0)
 
 
 ## The card itself: border and panel (or its back).
@@ -227,13 +282,44 @@ func _draw_ink() -> void:
 	_bolt(Vector2(size.x * 0.88, foot - font_size * 0.25), size.x * 0.035)
 	if copies > 1:
 		_text("x%d" % copies, Vector2(size.x * 0.92, size.y * 0.2), font_size, Color.WHITE, true)
+	if owned:
+		_draw_variant(font_size)
+
+
+## The variant's marks: a signature and its number, a GOLD band, a CHROMA band.
+func _draw_variant(font_size: float) -> void:
+	match variant:
+		"signed":
+			var art := Rect2(_art.position, _art.size)
+			var points := PackedVector2Array()
+			# Always the same flourish: a loop and a long tail.
+			for i in 40:
+				var t := i / 39.0
+				points.append(art.position + art.size * Vector2(0.12 + 0.76 * t, 0.62 - 0.18 * sin(t * TAU * 1.5) * (1.0 - t * 0.5)))
+			_canvas.draw_polyline(points, Color(1, 1, 1, 0.95), maxf(size.x * 0.012, 1.5), true)
+			_canvas.draw_line(art.position + art.size * Vector2(0.2, 0.75), art.position + art.size * Vector2(0.85, 0.72), Color(1, 1, 1, 0.9), maxf(size.x * 0.008, 1.0), true)
+			var number := Cards.signed_number(card.id)
+			_text("SIGNÉE · N° %d / %d" % [number, Cards.SIGNED_RUN], art.position + art.size * Vector2(0.5, 0.92), font_size * 0.55, Color.WHITE, false, -1, true)
+		"gold":
+			_canvas.draw_rect(Rect2(size.x * 0.62, size.y * 0.135, size.x * 0.3, font_size * 1.1), Color(0.95, 0.75, 0.2))
+			_text("OR", Vector2(size.x * 0.77, size.y * 0.135 + font_size * 0.9), font_size * 0.8, Color(0.25, 0.15, 0.0), false, -1, true)
+		"chroma":
+			var band := Color.from_hsv(fmod(_time * 0.3, 1.0), 0.8, 1.0)
+			_canvas.draw_rect(Rect2(size.x * 0.5, size.y * 0.135, size.x * 0.42, font_size * 1.1), band)
+			_text("CHROMA", Vector2(size.x * 0.71, size.y * 0.135 + font_size * 0.9), font_size * 0.7, Color.BLACK, false, -1, true)
 
 
 ## Gold from epic up; legendary gold shimmers, mythic runs through the rainbow.
 func _border_color() -> Color:
 	if not owned:
 		return Color(0.35, 0.35, 0.4)
+	if variant == "chroma":
+		return Color.from_hsv(fmod(_time * 0.35, 1.0), 0.75, 1.0)
+	if variant == "gold":
+		return Color(1.0, 0.82, 0.3).lerp(Color.WHITE, 0.25 + 0.25 * sin(_time * 4.0))
 	match _rarity():
+		Cards.Rarity.COSMIC:
+			return Color(0.35, 0.3, 1.0).lerp(Color(0.9, 0.5, 1.0), 0.5 + 0.5 * sin(_time * 1.5))
 		Cards.Rarity.HACKER:
 			# Neon green that flickers, like a screen.
 			return Color(0.2, 1.0, 0.45).lerp(Color.WHITE, 0.4 * float(int(_time * 12.0) % 7 == 0))
@@ -258,6 +344,13 @@ func _rarity_symbol(at: Vector2, r: float, color: Color) -> void:
 		Cards.Rarity.LEGENDARY:
 			_star(at - Vector2(r * 1.1, 0), r, color)
 			_star(at + Vector2(r * 1.1, 0), r, color)
+		Cards.Rarity.COSMIC:
+			# An eight-point star.
+			var points := PackedVector2Array()
+			for i in 16:
+				var angle := -PI / 2.0 + PI * i / 8.0
+				points.append(at + Vector2(cos(angle), sin(angle)) * (r * 1.6 if i % 2 == 0 else r * 0.6))
+			_canvas.draw_colored_polygon(points, Color(0.6, 0.5, 1.0))
 		Cards.Rarity.HACKER:
 			_text("</>", at + Vector2(0, r), r * 2.6, Color(0.2, 1.0, 0.45), false, -1, true)
 		_:

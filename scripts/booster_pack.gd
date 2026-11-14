@@ -86,6 +86,13 @@ func _color() -> Color:
 			return Color(0.55, 0.38, 0.05)
 		"legend":
 			return Color(0.4, 0.05, 0.42)
+		"chroma":
+			# The rainbow pack: its color turns.
+			return Color.from_hsv(fmod(Time.get_ticks_msec() / 4000.0, 1.0), 0.6, 0.6)
+		"mega":
+			return Color(0.5, 0.2, 0.02)
+		"mystery":
+			return Color(0.03, 0.02, 0.06)
 	return Color(0.07, 0.12, 0.38)
 
 
@@ -95,6 +102,14 @@ func _accent() -> Color:
 			return GOLD
 		"legend":
 			return MAGENTA
+		"chroma":
+			return Color.WHITE
+		"mega":
+			return Color(1.0, 0.6, 0.2)
+		"mystery":
+			return Color(0.75, 0.6, 1.0)
+	if kind.begins_with("theme_"):
+		return Color(0.5, 1.0, 0.8)
 	return CYAN
 
 
@@ -212,8 +227,10 @@ func _draw_body() -> void:
 		bolt.append(center + point * size.x * 0.22)
 	_body.draw_colored_polygon(bolt, MAGENTA)
 	_centered(_body, "OVERCLOCK", Vector2(size.x / 2.0, size.y * 0.3), size.x * 0.11, Color.WHITE)
-	_centered(_body, {"rare": "BOOSTER RARE", "legend": "LÉGENDAIRE"}.get(kind, "BOOSTER"), Vector2(size.x / 2.0, size.y * 0.78), size.x * 0.085, _accent())
-	_centered(_body, "%d CARTES" % Cards.cards_in(kind), Vector2(size.x / 2.0, size.y * 0.86), size.x * 0.06, Color(1, 1, 1, 0.8))
+	var title: String = {"rare": "BOOSTER RARE", "legend": "LÉGENDAIRE", "chroma": "CHROMATIQUE", "mega": "MÉGA", "mystery": "?  MYSTÈRE  ?"}.get(kind,
+			str(Cards.BOOSTER_NAMES.get(kind, "Booster")).to_upper())
+	_centered(_body, title, Vector2(size.x / 2.0, size.y * 0.78), size.x * 0.085, _accent())
+	_centered(_body, "? CARTES" if kind == "mystery" else "%d CARTES" % Cards.cards_in(kind), Vector2(size.x / 2.0, size.y * 0.86), size.x * 0.06, Color(1, 1, 1, 0.8))
 	# The hint arrow, until the tear starts.
 	if _progress < 1.0:
 		if _progress == 0.0 and not _torn:

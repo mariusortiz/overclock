@@ -140,6 +140,22 @@ Les cartes arrivent en boosters (3 cartes, 5 pour un rare, 7 pour un légendaire
 
 Les doublons se recyclent en poussière (5 à 500 selon la rareté), qui sert à fabriquer une carte manquante (40 à 4000). Une série complète rapporte des crédits et des gemmes (bouton RÉCUPÉRER), l'album entier le skin Collectionneur. Les illustrations sont dans `assets/cards/` : les modèles sont rendus par `tools/make_card_art.gd` (scène `scenes/tools/card_art.tscn`, à lancer avec un affichage), les arènes et les épisodes sont des images des vidéos.
 
+**Cosmique** : une rareté au-dessus de mythique (environ une carte sur 1200), avec un fond étoilé animé derrière l'illustration et une étoile à 8 branches. 8 cartes cosmiques : L'escouade au complet, Le Premier Codeur, Le Gardien éveillé, Le Titan des étoiles, Les deux Créateurs, Le Portail ouvert, Le Reflet brisé, La Galaxie.
+
+**Variantes** (une même carte, en plus beau ; elles ne s'échangent pas par code) :
+- **Chromatique** : environ une carte tirée sur 150 ; cadre et illustration arc-en-ciel qui changent sans cesse, bandeau CHROMA.
+- **Signée** : environ une carte sur 1000 ; la signature du Créateur en travers de l'illustration, et un numéro « n° X / 500 ».
+- **Or** : à créer soi-même avec 5 exemplaires d'une même carte (CRÉER L'OR sur la grande carte ; 4 exemplaires partent).
+Les variantes possédées s'affichent dans la grille (la plus belle) et dans des onglets sur la grande carte.
+
+**Boosters** de plus : **méga** (15 cartes, une épique et une légendaire ou mieux garanties ; 6000 crédits ou 450 gemmes), **chromatique** (5 cartes dont une chromatique garantie ; 900 gemmes), **à thème** (5 cartes d'un seul thème : Héros, Boss, Animaux, Anime, Arsenal ; 1500 crédits ou 110 gemmes), et le **booster du jour** : un booster mystère gratuit chaque jour (de 3 à 7 cartes, une épique ou mieux, et une chance sur 20 d'une chromatique garantie), signalé par une étoile sur CARTES à l'accueil.
+
+**Fusion** (FUSIONNER) : 10 doublons d'une rareté donnent une carte au hasard de la rareté au-dessus (jusqu'à mythique). **Classeur** : filtres TOUTES, POSSÉDÉES, MANQUANTES, VARIANTES, et compteurs de chromatiques, ors, signées et cosmiques.
+
+**Nouvelles séries** : **Nouveautés** (l'Île, l'Abysse, le Jardin des cœurs, le Monde-miroir, le battle royale, le boss rush, le mech, les skins Chrono et Abysse, la course d'animaux), **Coulisses** (10 cartes pour rire : la mandarine, le bug du Créateur, le mauvais miroir, la photo d'équipe…) et **Promo** (5 cartes hors album, numérotées P01 à P05, seulement avec des codes promo).
+
+**Défis de collection** (succès en plus) : première chromatique, 10 chromatiques (titre Prisme vivant), une signée, 5 ors, première cosmique, toutes les cosmiques (titre Astral et bannière Galaxie), 10 fusions.
+
 ## Power-ups
 
 Un robot détruit laisse parfois un cube lumineux au sol. Marche dessus pour le ramasser.

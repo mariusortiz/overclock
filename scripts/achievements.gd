@@ -70,6 +70,14 @@ const LIST: Array[Dictionary] = [
 	{"id": "rush", "name": "Contre la montre", "text": "Termine le boss rush", "kind": "flag", "flag": "rush_done", "gems": 150, "extra": true},
 	{"id": "raid", "name": "Chasseur d'abysses", "text": "Bats le Léviathan en raid", "kind": "flag", "flag": "raid_win", "gems": 150, "extra": true},
 	{"id": "royale", "name": "Top 1", "text": "Gagne une partie de battle royale", "kind": "flag", "flag": "royale_win", "gems": 150, "extra": true},
+	{"id": "chroma_1", "name": "Arc-en-ciel", "text": "Obtiens ta première carte chromatique", "kind": "variants", "variant": "chroma", "goal": 1, "gems": 100, "extra": true},
+	{"id": "chroma_10", "name": "Prisme vivant", "text": "Possède 10 cartes chromatiques", "kind": "variants", "variant": "chroma", "goal": 10, "gems": 400, "extra": true},
+	{"id": "signed_1", "name": "Autographe", "text": "Obtiens une carte signée", "kind": "variants", "variant": "signed", "goal": 1, "gems": 300, "extra": true},
+	{"id": "gold_5", "name": "Orfèvre", "text": "Possède 5 cartes en or", "kind": "variants", "variant": "gold", "goal": 5, "gems": 200, "extra": true},
+	{"id": "cosmic_1", "name": "Poussière d'étoile", "text": "Obtiens ta première carte cosmique", "kind": "cosmic", "goal": 1, "gems": 200, "extra": true},
+	{"id": "cosmic_all", "name": "Astral", "text": "Possède toutes les cartes cosmiques (donne la bannière Galaxie)", "kind": "cosmic", "goal": -1, "gems": 1000,
+		"item": "banner_galaxy", "extra": true},
+	{"id": "fusion_10", "name": "Alchimiste", "text": "Fais 10 fusions de cartes", "kind": "fusions", "goal": 10, "gems": 150, "extra": true},
 	{"id": "valentine", "name": "Cœur de fer", "text": "Termine les vagues de la Saint-Valentin", "kind": "flag", "flag": "valentine", "gems": 100, "extra": true},
 	{"id": "pet_race", "name": "Écurie gagnante", "text": "Gagne une course d'animaux", "kind": "flag", "flag": "pet_race_win", "gems": 75, "extra": true},
 	{"id": "platinum", "name": "Platine", "text": "Débloque les 49 succès de base (tous sauf Éleveur)", "kind": "all", "gems": 1000},
@@ -114,6 +122,14 @@ static func progress(achievement: Dictionary) -> Array:
 			return [Wallet.owned_count(), goal]
 		"pets":
 			return [Pets.owned_count(), goal]
+		"variants":
+			return [Cards.variant_total(achievement.variant), goal]
+		"cosmic":
+			var cosmic := Cards.in_series("Cosmique")
+			var have := cosmic.filter(func(card: Dictionary) -> bool: return Cards.count(card.id) > 0).size()
+			return [have, maxi(cosmic.size(), 1) if goal < 0 else goal]
+		"fusions":
+			return [Cards.fusions(), goal]
 		"flag":
 			return [1 if _flag(achievement.flag) else 0, 1]
 		"all":

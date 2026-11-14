@@ -73,10 +73,7 @@ func _ready() -> void:
 	$Right/Box/Gear/Shop.pressed.connect(get_tree().change_scene_to_file.bind(SHOP_SCENE), CONNECT_DEFERRED)
 	$Right/Box/PassRow/Pass.pressed.connect(get_tree().change_scene_to_file.bind(PASS_SCENE), CONNECT_DEFERRED)
 	$Right/Box/PassRow/Cards.pressed.connect(get_tree().change_scene_to_file.bind(CARDS_SCENE), CONNECT_DEFERRED)
-	var waiting: Dictionary = Cards.boosters()
-	var boosters: int = waiting.get("standard", 0) + waiting.get("rare", 0) + waiting.get("legend", 0)
-	if boosters > 0:
-		$Right/Box/PassRow/Cards.text = "CARTES (%d)" % boosters
+	_refresh_cards_button()
 	$Right/Box/Row/Settings.pressed.connect(func() -> void: _settings_panel.visible = true)
 	$Right/Box/Row/Profile.pressed.connect(_profile_panel.open)
 	$SettingsPanel/Center/Panel/Box/Close.pressed.connect(func() -> void: _settings_panel.visible = false)
@@ -217,6 +214,16 @@ func _build_mode_panel() -> void:
 	move_child(_mode_panel, -1)
 
 
+## CARTES (n) for the boosters waiting, and a star while the booster of the
+## day is still to take.
+func _refresh_cards_button() -> void:
+	var button: Button = $Right/Box/PassRow/Cards
+	var count := Cards.boosters_waiting()
+	button.text = "CARTES" + (" (%d)" % count if count > 0 else "") + ("  ★" if Cards.daily_ready() else "")
+	if Cards.daily_ready():
+		button.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+
+
 ## The code field: a code typed here gives its rewards (see PromoCodes).
 func _open_code_panel() -> void:
 	var panel_root := Control.new()
@@ -344,8 +351,7 @@ func _add_christmas() -> void:
 		var given := Events.open_gift()
 		gift.text = "JOYEUX NOËL : %s !" % given.to_upper()
 		gift.disabled = true
-		var waiting: Dictionary = Cards.boosters()
-		$Right/Box/PassRow/Cards.text = "CARTES (%d)" % (waiting.get("standard", 0) + waiting.get("rare", 0) + waiting.get("legend", 0)))
+		_refresh_cards_button())
 	$Right/Box.add_child(gift)
 	$Right/Box.move_child(gift, $Right/Box/Play.get_index() + 1)
 

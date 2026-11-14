@@ -31,6 +31,16 @@ const CODES := {
 	# ESCOUADE
 	"e4d370b3de8fa9d94cbe74342fb83fe5dce9c4394fcb190ab347d82db2e3cbe9": {
 		"items": ["kunoichi"], "boosters": {"rare": 1}},
+	# The promo card card_promo_capy.
+	"fb7d7ddd0018f8e725b2110c77ca85458e0a19960ea469dcab3a665db93ac02a": {"cards": ["card_promo_capy"]},
+	# The promo card card_promo_vipere.
+	"27c73ddbff2a4103c3d289ec7dc08423535187664b950274cb25332f71d57886": {"cards": ["card_promo_vipere"]},
+	# The promo card card_promo_squad.
+	"4f444ec9566fe6a012a02abd47a200824e71ad3197f97df7c5ce34c297809efa": {"cards": ["card_promo_squad"]},
+	# The promo card card_promo_gold.
+	"f45a6824d399e777d4e68e0dd5fb3e16f58d47a1d926ad11ab1471bb59dc2c3d": {"cards": ["card_promo_gold"]},
+	# The promo card card_promo_signed.
+	"ace45c7cba0b6713c2e4db64f66c5ed2331605cff701f53b301bf2fec92a7378": {"cards": ["card_promo_signed"]},
 	# TITANMK2
 	"8fd4dc1e2ddf85b78170bdf9c814910a036a6a8a41a85a10bec3653f15080aa4": {
 		"gems": 1000, "cards": ["card_titan_mk2"], "boosters": {"rare": 1}},

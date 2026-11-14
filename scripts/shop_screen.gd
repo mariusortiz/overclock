@@ -27,6 +27,20 @@ const BOOSTERS: Array[Dictionary] = [
 		"text": "5 cartes, dont une rare ou mieux."},
 	{"booster": "legend", "name": "BOOSTER LÉGENDAIRE", "credits": 20000, "gems": 1500,
 		"text": "7 cartes, dont une légendaire ou mieux une fois sur deux (sinon rare ou épique)."},
+	{"booster": "mega", "name": "MÉGA", "credits": 6000, "gems": 450,
+		"text": "15 cartes, dont une épique et une légendaire ou mieux garanties."},
+	{"booster": "chroma", "name": "CHROMA", "credits": 0, "gems": 900,
+		"text": "5 cartes, dont une chromatique garantie (la carte arc-en-ciel)."},
+	{"booster": "theme_heroes", "name": "BOOSTER HÉROS", "credits": 1500, "gems": 110,
+		"text": "5 cartes de héros (Héros, Mythiques, Passe S2), la dernière rare ou mieux."},
+	{"booster": "theme_bosses", "name": "BOOSTER BOSS", "credits": 1500, "gems": 110,
+		"text": "5 cartes de boss et d'ennemis, la dernière rare ou mieux."},
+	{"booster": "theme_pets", "name": "BOOSTER ANIMAUX", "credits": 1500, "gems": 110,
+		"text": "5 cartes de compagnons et d'accessoires, la dernière rare ou mieux."},
+	{"booster": "theme_anime", "name": "BOOSTER ANIME", "credits": 1500, "gems": 110,
+		"text": "5 cartes des épisodes de l'anime (saisons 1 à 4), la dernière rare ou mieux."},
+	{"booster": "theme_gear", "name": "BOOSTER ARSENAL", "credits": 1500, "gems": 110,
+		"text": "5 cartes d'armes, de lames, de skins et de vaisseaux, la dernière rare ou mieux."},
 ]
 
 var _tab := 0
@@ -127,7 +141,7 @@ func _refresh() -> void:
 
 func _card_text(offer: Dictionary) -> String:
 	if offer.has("booster"):
-		return "%s\n%d CR" % [offer.name, offer.credits]
+		return "%s\n%s" % [offer.name, "%d CR" % offer.credits if offer.credits > 0 else "%d GEMMES" % offer.gems]
 	if offer.has("product"):
 		return "%d GEMMES\n%s" % [offer.gems, offer.label]
 	var item: Dictionary = offer.item
@@ -205,9 +219,10 @@ func _show_detail() -> void:
 		_name.text = _viewed.name
 		var waiting: int = Cards.boosters().get(_viewed.booster, 0)
 		_info.text = "%s À ouvrir dans CARTES, depuis l'accueil.%s" % [_viewed.text, " (%d en attente)" % waiting if waiting > 0 else ""]
-		var by_credits := _add_button("%d CRÉDITS" % _viewed.credits, GOLD)
-		by_credits.disabled = Wallet.credits() < _viewed.credits
-		by_credits.pressed.connect(_buy_booster.bind(Wallet.CREDITS_KEY))
+		if _viewed.credits > 0:
+			var by_credits := _add_button("%d CRÉDITS" % _viewed.credits, GOLD)
+			by_credits.disabled = Wallet.credits() < _viewed.credits
+			by_credits.pressed.connect(_buy_booster.bind(Wallet.CREDITS_KEY))
 		var by_gems := _add_button("%d GEMMES" % _viewed.gems, Color(0.5, 0.9, 1.0))
 		by_gems.disabled = Wallet.gems() < _viewed.gems
 		by_gems.pressed.connect(_buy_booster.bind(Wallet.GEMS_KEY))
